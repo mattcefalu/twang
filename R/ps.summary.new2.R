@@ -28,7 +28,15 @@ na.action = c("level", "exclude","lowest")[1], collapse.by.var = FALSE, estimand
 			p <- svytable(~x + t, design, Ntotal = 1)
 			p <- t(t(p)/colSums(p))
 			sd <- sqrt(p*(1-p))
-			b.f <- ifelse(sd[,2] == 0, NA, (p[,2] - p[,1])/ sd[,2])
+			
+      if (estimand == "ATE"){
+        p.pooled <- svymean(~x, designSW, na.rm = TRUE)
+        sd.pooled = sqrt(p.pooled*(1-p.pooled))
+        b.f <- ifelse(sd.pooled == 0, NA, (p[,2] - p[,1])/ sd.pooled)
+      }else{
+        b.f <- ifelse(sd[,2] == 0, NA, (p[,2] - p[,1])/ sd[,2])
+      }
+			
 			test <- try(svychisq(~x + t, design), silent = TRUE)
 			if(class(test)[1] != "try-error"){
 				stat <- c(test$statistic, rep(NA, nrow(p) - 1))
@@ -49,8 +57,7 @@ na.action = c("level", "exclude","lowest")[1], collapse.by.var = FALSE, estimand
 			sd.t <- sqrt(svyvar(~x, design.t, na.rm = TRUE))
 			sd.c <- sqrt(svyvar(~x, design.c, na.rm = TRUE))
 			
-			if((estimand == "ATE") & (! multinom)) sd.denom <- sqrt(svyvar(~x, design, na.rm = TRUE))
-			else if(multinomATE) sd.denom <- sqrt(svyvar(~x, designSW, na.rm=TRUE))
+			if((estimand == "ATE")) sd.denom <- sqrt(svyvar(~x, designSW, na.rm = TRUE))
 			else sd.denom <- sd.t
 			
 			t.n <- summary(svyglm(x~t, design))$coefficients[2,3:4]
@@ -69,7 +76,7 @@ na.action = c("level", "exclude","lowest")[1], collapse.by.var = FALSE, estimand
 				if(class(test)[1] != "try-error") t.n <- test$coefficients[2,3:4]
 				else t.n <- c(NA,NA)
 				
-				if(estimand == "ATT"){
+				if(estimand == "ATE"){
 					m.SW <- svymean(~is.na(x), designSW, na.rm = TRUE)[2]
 					sd.p <- sqrt(m.SW * (1 - m.SW))
 					b.n <- ifelse(sd.p == 0, NA, (m.t - m.c)/sd.p)
