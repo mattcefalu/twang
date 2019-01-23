@@ -1,0 +1,31 @@
+useDynLib(twang)
+
+export(ps, mnps, dx.wts, get.weights, bal.table, stop.methods, bal.stat, means.table, iptw, sensitivity, get.weights.unstab, get.weights.num)
+
+import(gbm, latticeExtra, survey, xtable, lattice)
+
+importFrom("grDevices", dev.cur, dev.new)
+importFrom("graphics",plot, boxplot)
+importFrom("stats", approx, as.formula, cor, fitted, formula,
+              median, model.extract, model.frame, na.pass, nlm,
+              optimize, predict, quasibinomial, runif, terms,
+              update, var)
+
+S3method(boxplot, ps)
+S3method(boxplot, mnps)
+S3method(plot, ps)
+S3method(plot, mnps)
+S3method(plot, dxwts)
+S3method(plot, iptw)
+S3method(plot, mniptw)
+S3method(summary, ps)
+S3method(summary, mnps)
+S3method(summary, iptw)
+S3method(summary, mniptw)
+S3method(print, summary.ps)
+S3method(print, summary.mnps)
+S3method(print, summary.iptw)
+S3method(print, summary.mniptw)
+S3method(print, dxwts)
+
+
