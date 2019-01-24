@@ -1,5 +1,5 @@
 ## require(twang); data(lalonde); ps.lalonde <- ps(treat~age + educ + black + hispan + nodegree + married + re74 + re75, data = lalonde, stop.method = c("es.max", "es.mean"),estimand = "ATT", n.trees = 5000, verbose = FALSE)
-ps<-function(formula = formula(data),
+ps.fast<-function(formula = formula(data),
              data,                         # data
              n.trees=10000,                 # gbm options
              interaction.depth=3,
