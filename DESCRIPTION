@@ -6,7 +6,7 @@ Author: Greg Ridgeway, Dan McCaffrey, Andrew Morral, Beth Ann Griffin, Lane Burg
 	<burgette@rand.org>
 Maintainer: Lane Burgette <burgette@rand.org>
 Depends: R (>= 2.10), gbm (>= 1.5-3), survey, xtable, lattice,
-        latticeExtra
+        latticeExtra, MatrixModels, data.table
 Description: Provides functions for propensity score
         estimating and weighting, nonresponse weighting, and diagnosis
         of the weights. 

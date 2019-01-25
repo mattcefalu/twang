@@ -1,18 +1,28 @@
 ## require(twang); data(lalonde); ps.lalonde <- ps(treat~age + educ + black + hispan + nodegree + married + re74 + re75, data = lalonde, stop.method = c("es.max", "es.mean"),estimand = "ATT", n.trees = 5000, verbose = FALSE)
-ps.fast<-function(formula = formula(data),
+ps.fast<-function(formula ,
              data,                         # data
+             params=NULL,
              n.trees=10000,                 # gbm options
              interaction.depth=3,
              shrinkage=0.01,
              bag.fraction = 1.0,
+             n.minobsinnode = 10,
              perm.test.iters=0,
              print.level=2,                 # direct optimizer options
-             iterlim=1000,
+             #iterlim=1000,
              verbose=TRUE,
              estimand="ATE", 
              stop.method = c("ks.mean", "es.mean"), 
              sampw = NULL, multinom = FALSE,
              ks.exact=NULL,
+             booster="xgboost",
+             tree_method="hist",
+             save.propensities=FALSE,
+             file=NULL,
+             n.keep = 1,
+             n.grid = NULL,
+             n.grid.ks = 25,
+             n.grid.es = NULL,
              ...){
              	
 	
@@ -21,6 +31,15 @@ ps.fast<-function(formula = formula(data),
       sampW <- rep(1, nrow(data))
    }else{ 
       sampW <- unlist(sampw, use.names=F) 
+   }
+   
+   if (!is.null(n.grid)){
+      n.grid.ks = n.grid
+      n.grid.es = n.grid
+   }
+   
+   if ( n.trees/n.keep< max(n.grid.ks,n.grid.es) ){
+      stop('n.tress must be at least max(n.grid.ks,n.grid.es) times n.keep')
    }
 	
    type <- alert <- NULL
@@ -78,6 +97,10 @@ ps.fast<-function(formula = formula(data),
    Terms <- attr(mf, "terms")
    var.names <- attributes(Terms)$term.labels
    
+   # going to let the boosters handle the parsing of the equation. we only need to extract the variable names
+   # var.names = all.vars(formula)[-1]
+   # treat.var <- all.vars(formula)[1]
+   
    if(length(var.names) < 2) stop("At least two variables are needed in the right-hand side of the formula.\n")
    
    treat.var <- as.character(formula[[2]])
@@ -92,23 +115,55 @@ ps.fast<-function(formula = formula(data),
    alerts.stack <- textConnection("alert","w")
 
    # fit the propensity score model
-   if(verbose) cat("Fitting gbm model\n")
-   # need to reformulate formula to use this environment
-   form <- paste(deparse(formula, 500), collapse="") 
-
-   gbm1 <-gbm(formula(form),
-              data = data,
-              weights=sampW,
-              distribution = "bernoulli",
-              n.trees = n.trees,
-              interaction.depth = interaction.depth,
-              n.minobsinnode = 10,
-              shrinkage = shrinkage,
-   ### bag.fraction was 0.5.  revised 101210
-              bag.fraction = bag.fraction,
-              train.fraction = 1,
-              verbose = verbose,
-              keep.data = FALSE)
+   if(verbose) cat("Fitting boosted model\n")
+   
+   if (booster=="gbm"){
+      # need to reformulate formula to use this environment
+      form <- paste(deparse(formula, 5000), collapse="") 
+   
+      gbm1 <-gbm(formula(form),
+                 data = data,
+                 weights=sampW,
+                 distribution = "bernoulli",
+                 n.trees = n.trees,
+                 interaction.depth = interaction.depth,
+                 n.minobsinnode = n.minobsinnode,
+                 shrinkage = shrinkage,
+      ### bag.fraction was 0.5.  revised 101210
+                 bag.fraction = bag.fraction,
+                 train.fraction = 1,
+                 verbose = verbose,
+                 keep.data = FALSE)
+      
+      # predict propensity scores for all iterations
+      iters = (1:n.trees)[(1:n.trees)%%n.keep==0]
+      ps = plogis(predict(gbm1 , newdata = data , n.trees=iters))
+      
+   }else{
+      sparse.form = reformulate(c("-1",var.names))
+      sparse.data = model.Matrix(sparse.form , model.frame(terms(sparse.form),data=data[,var.names] , na.action=na.pass), drop.unused.levels=T , sparse = T)
+      #dtrain <- xgb.DMatrix(train$data, label=data[,treat.var])
+      
+      if (is.null(params)){
+         params = list(eta = shrinkage , max_depth = interaction.depth , subsample = bag.fraction , min_child_weight=n.minobsinnode , objective = "binary:logistic")
+         # if (save.propensities){
+         #    gbm1 <- xgboost(data=sparse.data , label=data[,treat.var], params=params, tree_method = tree_method, 
+         #                    nrounds=n.trees , verbose=verbose , 
+         #                    callbacks=list(cb.print.evaluation(),save.model(save_period=n.eval.propensity,save_name=file))) 
+         #    ps = readRDS(file=file)
+         # }else{
+            gbm1 <- xgboost(data=sparse.data , label=data[,treat.var], params=params, tree_method = tree_method, 
+                            feval=pred.xgboost , nrounds=n.trees , verbose=verbose , 
+                            callbacks=list(cb.print.evaluation() , cb.evaluation.log(n.keep = n.keep)))
+            iters = (1:n.trees)[(1:n.trees)%%n.keep==0]
+            ps = as.matrix(gbm1$evaluation_log)
+            #ps= #do.call(cbind,gbm1$evaluation_log$train_pred)
+         #}
+      }
+      # predict propensity scores for all iterations
+      #iters = 1:n.trees
+      #ps = plogis(predict(gbm1 , newdata = data , n.trees=iters))
+   }
 
    if(verbose) cat("Diagnosis of unweighted analysis\n")
    
@@ -126,10 +181,6 @@ ps.fast<-function(formula = formula(data),
                         estimand=estimand, multinom = multinom,
                         ks.exact=ks.exact)
    desc$unw$n.trees <- NA
-
-   # predict propensity scores for all iterations
-   iters = 1:n.trees
-   ps = plogis(predict(gbm1 , newdata = data , n.trees=iters))
    
    if (estimand=="ATE"){
      W = 1 / (1-ps) + data[,treat.var]*( 1/ps - 1/(1-ps)  )
@@ -140,37 +191,71 @@ ps.fast<-function(formula = formula(data),
    # adjust for sampling weights 
    W <- sweep(W,1,sampW,"*")
    
+   # setup balance data
    bal.data = gen.bal.data(data=data , var.names=var.names )
    factor.vars = bal.data$factor.vars
    numeric.vars = bal.data$numeric.vars
    bal.data = bal.data$bal.data
    
    # 25 point grid of iterations
-   iters.25 <- round(seq(1,gbm1$n.trees,length=25))
+   #iters.25 <- round(seq( 1 , length(iters)  ,length=25))
+   iters.grid.ks <- round(seq( 1 , length(iters)  ,length=n.grid.ks))
+   iters.grid.es <- round(seq( 1 , length(iters)  ,length=ifelse(is.null(n.grid.es) ,length(iters) ,n.grid.es )))
    
    std.effect = ks.effect = NULL
    if ( any(grepl("es.",stop.method.names)) ){
       if(verbose) cat("Calculating standardized differences\n")
-      std.effect = calcES(data=bal.data, w=W , treat=data[,treat.var],numeric.vars = numeric.vars , estimand=estimand , multinom=multinom , sw=sampW)
+      std.effect = calcES(data=bal.data, w=W[,iters.grid.es] , treat=data[,treat.var],numeric.vars = numeric.vars , estimand=estimand , multinom=multinom , sw=sampW)
+      
+      if (!is.null(n.grid.es)){
+         iters.es.mean = iters.es.max = NULL
+         if ( any(grepl("es.mean", stop.method.names)) ){
+            i <- which.min(apply(abs(std.effect),1,mean, na.rm=T)) +c(-1,1)
+            i[1] <- iters.grid.es[max(1,i[1])]
+            i[2] <- iters.grid.es[min(length(iters.grid.es),i[2])]
+            iters.es.mean =  which(iters <= iters[i[2]] & iters >= iters[i[1]]) #iters.25[i[1]]:iters.25[i[2]]
+         }
+         if ( any(grepl("es.max", stop.method.names)) ){
+            i <- which.min(apply(abs(std.effect),1,max, na.rm=T)) +c(-1,1)
+            i[1] <- iters.grid.es[max(1,i[1])]
+            i[2] <- iters.grid.es[min(length(iters.grid.es),i[2])]
+            iters.es.max =  which(iters <=iters[i[2]] & iters >=iters[i[1]])  #iters.25[i[1]]:iters.25[i[2]]
+         }
+         
+         # combine the intervals to do a finer search
+         iters.es = unique(c(iters.es.max , iters.es.mean))
+         
+         # save the grid
+         balance.es = std.effect
+         iters.es.plot = iters.grid.es
+         
+         std.effect = calcES(data=bal.data, w=W[,iters.es] , treat=data[,treat.var],numeric.vars = numeric.vars , estimand=estimand , multinom=multinom , sw=sampW)
+         #ks.effect = calcKS(data=bal.data,w=W[,iters.es],treat=data[,treat.var])
+         #colnames(std.effect) = colnames(bal.data)
+      }else{
+         iters.es = iters.grid.es
+         iters.es.plot = iters.grid.ks
+         balance.es = std.effect[iters.grid.ks,]
+      }
    }
    if ( any(grepl("ks.",stop.method.names)) ){
       if(verbose) cat("Calculating Kolmogorov–Smirnov statistics\n")
      
       # find the optimal interval for ks.mean and ks.max based on 25 point grid     
-      ks.effect = calcKS(data=bal.data,w=W[,iters.25],treat=data[,treat.var] , multinomATE=(estimand=="ATE" & multinom) , sw=sampW)
+      ks.effect = calcKS(data=bal.data,w=W[,iters.grid.ks],treat=data[,treat.var] , multinomATE=(estimand=="ATE" & multinom) , sw=sampW)
      
       iters.ks.mean = iters.ks.max = NULL
       if ( any(grepl("ks.mean", stop.method.names)) ){
          i <- which.min(apply(abs(ks.effect),1,mean, na.rm=T)) +c(-1,1)
-         i[1] <- max(1,i[1])
-         i[2] <- min(length(iters.25),i[2])
-         iters.ks.mean = iters.25[i[1]]:iters.25[i[2]]
+         i[1] <- iters.grid.ks[max(1,i[1])]
+         i[2] <- iters.grid.ks[min(length(iters.grid.ks),i[2])]
+         iters.ks.mean =  which(iters <= iters[i[2]] & iters >= iters[i[1]]) #iters.25[i[1]]:iters.25[i[2]]
       }
       if ( any(grepl("ks.max", stop.method.names)) ){
-         i <- which.min(apply(abs(ks.effect),1,mean, na.rm=T)) +c(-1,1)
-         i[1] <- max(1,i[1])
-         i[2] <- min(length(iters.25),i[2])
-         iters.ks.max = iters.25[i[1]]:iters.25[i[2]]
+         i <- which.min(apply(abs(ks.effect),1,max, na.rm=T)) +c(-1,1)
+         i[1] <- iters.grid.ks[max(1,i[1])]
+         i[2] <- iters.grid.ks[min(length(iters.grid.ks),i[2])]
+         iters.ks.max =  which(iters <=iters[i[2]] & iters >=iters[i[1]])  #iters.25[i[1]]:iters.25[i[2]]
       }
      
       # combine the intervals to do a finer search
@@ -184,7 +269,7 @@ ps.fast<-function(formula = formula(data),
    }
 
    # holds balance stats needed for plots
-   balance = NULL
+   balance = list()
    
    # allocate space for the propensity scores and weights
    p.s        <- data.frame(matrix(NA,nrow=nrow(data),
@@ -200,25 +285,29 @@ ps.fast<-function(formula = formula(data),
       # find the optimal values based on the precomputed statistics
       # and save the balance stat to meet plotting requirements
       if ( grepl("es.mean",stop.method.names[i.tp]) ) {
-         opt = list(minimum= which.min(apply(abs(std.effect),1,mean, na.rm=T)) )
-         balance = cbind(balance , apply(abs(std.effect[iters.25,]),1,mean, na.rm=T) )
+         opt = list(minimum= iters.es[which.min(apply(abs(std.effect),1,mean, na.rm=T))] )
+         balance = c(balance , list(es.mean = data.table(iter=iters[iters.es.plot] , value=apply(abs(balance.es),1,mean, na.rm=T)) )) #cbind(balance , apply(abs(std.effect[iters.25,]),1,mean, na.rm=T) )
       }
       if ( grepl("es.max",stop.method.names[i.tp]) ){
-         opt = list(minimum= which.min(apply(abs(std.effect),1,max, na.rm=T)) )
-         balance = cbind(balance , apply(abs(std.effect[iters.25,]),1,max, na.rm=T) )
+         opt = list(minimum= iters.es[which.min(apply(abs(std.effect),1,max, na.rm=T))] )
+         #balance = cbind(balance , apply(abs(std.effect[iters.25,]),1,max, na.rm=T) )
+         balance = c(balance , list(es.max = data.table(iter=iters[iters.es.plot] , value=apply(abs(balance.es),1,max, na.rm=T)) )) #cbind(balance , apply(abs(std.effect[iters.25,]),1,mean, na.rm=T) )
       }
       if ( grepl("ks.mean",stop.method.names[i.tp]) ){
          opt = list(minimum= iters.ks[which.min(apply(ks.effect,1,mean, na.rm=T))] )
-         balance = cbind(balance ,  apply(abs(balance.ks),1,mean, na.rm=T) )
+         balance = c(balance , list(ks.mean = data.table(iter=iters[iters.grid.ks] , value=apply(abs(balance.ks),1,mean, na.rm=T)) )) 
+         #balance = cbind(balance ,  apply(abs(balance.ks),1,mean, na.rm=T) )
       }
       if ( grepl("ks.max",stop.method.names[i.tp]) ){
          opt = list(minimum= iters.ks[which.min(apply(ks.effect,1,max, na.rm=T))] )
-         balance = cbind(balance ,  apply(abs(balance.ks),1,max, na.rm=T) )
+         balance = c(balance , list(ks.max = data.table(iter=iters[iters.grid.ks] , value=apply(abs(balance.ks),1,max, na.rm=T)) )) 
+         #balance = cbind(balance ,  apply(abs(balance.ks),1,max, na.rm=T) )
       }
+      
    
    
-      if(verbose) cat("   Optimized at",round(opt$minimum),"\n")
-      if(gbm1$n.trees-opt$minimum < 100) warning("Optimal number of iterations is close to the specified n.trees. n.trees is likely set too small and better balance might be obtainable by setting n.trees to be larger.")
+      if(verbose) cat("   Optimized at",iters[opt$minimum],"\n")
+      if(n.trees-iters[opt$minimum] < 100) warning("Optimal number of iterations is close to the specified n.trees. n.trees is likely set too small and better balance might be obtainable by setting n.trees to be larger.")
       
       # save propensity score weights
       p.s[,i.tp]  <- ps[,opt$minimum]
@@ -239,7 +328,7 @@ ps.fast<-function(formula = formula(data),
                              multinom = multinom,
                              ks.exact=ks.exact)
       
-      desc[[tp]]$n.trees <- ifelse(stop.method[[i.tp]]$direct, NA, round(opt$minimum))
+      desc[[tp]]$n.trees <- ifelse(stop.method[[i.tp]]$direct, NA, iters[opt$minimum])
    }
 
 

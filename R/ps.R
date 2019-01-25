@@ -11,6 +11,14 @@ ps<-function(formula = formula(data),
              stop.method = c("ks.mean", "es.mean"), 
              sampw = NULL, multinom = FALSE, version="fast",
              ks.exact=NULL,
+             booster="xgboost",
+             tree_method="hist",
+             save.propensities=FALSE,
+             file=NULL,
+             n.keep = 1,
+             n.grid = NULL,
+             n.grid.ks = 25,
+             n.grid.es = NULL,
              ...){
   
   if (version=="legacy"){
@@ -46,6 +54,14 @@ ps<-function(formula = formula(data),
                   sampw = sampw, 
                   multinom = multinom,
                   ks.exact=ks.exact,
+                  booster=booster,
+                  tree_method=tree_method,
+                  save.propensities=save.propensities,
+                  file=file,
+                  n.keep = n.keep,
+                  n.grid = n.grid,
+                  n.grid.ks = n.grid.ks,
+                  n.grid.es = n.grid.es,
                   ...))
   }
   
