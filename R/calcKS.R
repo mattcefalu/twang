@@ -12,6 +12,9 @@ calcKS <- function(data, w , treat , multinomATE=FALSE, sw=NULL ){
     # order of the data, dropping NA. Only numeric variables have NAs.
     index = order( data[,j] , na.last = NA)
     
+    # consider last occurance of unique values
+    dups = !duplicated(data[index,j],fromLast=T)
+    
     if (multinomATE){
       # handles the fact that W0 is a vector when multinomATE is true
       dW = abs( sweep(apply(W1[index,,drop=FALSE] , 2 , function(y) cumsum(y)/sum(y) ) , 1 ,  cumsum(sw[index])/sum(sw[index]) , "-" ) )
@@ -24,7 +27,7 @@ calcKS <- function(data, w , treat , multinomATE=FALSE, sw=NULL ){
       ks.effect = cbind(ks.effect , dW[sum(data[,j]==0),])
     }else{  
       # numeric ks is just the max
-      ks.effect = cbind(ks.effect , apply(dW , 2 , max))
+      ks.effect = cbind(ks.effect , apply(dW[dups,,drop=FALSE] , 2 , max))
     }
   }
   colnames(ks.effect) = colnames(data)
