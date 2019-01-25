@@ -119,7 +119,7 @@ ps.fast<-function(formula ,
    
    if (booster=="gbm"){
       # need to reformulate formula to use this environment
-      form <- paste(deparse(formula, 5000), collapse="") 
+      form <- paste(deparse(formula, 500), collapse="") 
    
       gbm1 <-gbm(formula(form),
                  data = data,
@@ -146,6 +146,7 @@ ps.fast<-function(formula ,
       
       if (is.null(params)){
          params = list(eta = shrinkage , max_depth = interaction.depth , subsample = bag.fraction , min_child_weight=n.minobsinnode , objective = "binary:logistic")
+      }
          # if (save.propensities){
          #    gbm1 <- xgboost(data=sparse.data , label=data[,treat.var], params=params, tree_method = tree_method, 
          #                    nrounds=n.trees , verbose=verbose , 
@@ -159,7 +160,6 @@ ps.fast<-function(formula ,
             ps = as.matrix(gbm1$evaluation_log)
             #ps= #do.call(cbind,gbm1$evaluation_log$train_pred)
          #}
-      }
       # predict propensity scores for all iterations
       #iters = 1:n.trees
       #ps = plogis(predict(gbm1 , newdata = data , n.trees=iters))
@@ -264,7 +264,8 @@ ps.fast<-function(formula ,
       # save the 25 point grid ks
       balance.ks = ks.effect
       
-      ks.effect = calcKS(data=bal.data,w=W[,iters.ks],treat=data[,treat.var])
+      ks.effect = calcKS(data=bal.data,w=W[,iters.ks],treat=data[,treat.var] , multinomATE=(estimand=="ATE" & multinom) , sw=sampW)
+
       colnames(ks.effect) = colnames(bal.data)
    }
 
@@ -294,12 +295,12 @@ ps.fast<-function(formula ,
          balance = c(balance , list(es.max = data.table(iter=iters[iters.es.plot] , value=apply(abs(balance.es),1,max, na.rm=T)) )) #cbind(balance , apply(abs(std.effect[iters.25,]),1,mean, na.rm=T) )
       }
       if ( grepl("ks.mean",stop.method.names[i.tp]) ){
-         opt = list(minimum= iters.ks[which.min(apply(ks.effect,1,mean, na.rm=T))] )
+         opt = list(minimum= iters.ks[which.min(apply(abs(ks.effect),1,mean, na.rm=T))] )
          balance = c(balance , list(ks.mean = data.table(iter=iters[iters.grid.ks] , value=apply(abs(balance.ks),1,mean, na.rm=T)) )) 
          #balance = cbind(balance ,  apply(abs(balance.ks),1,mean, na.rm=T) )
       }
       if ( grepl("ks.max",stop.method.names[i.tp]) ){
-         opt = list(minimum= iters.ks[which.min(apply(ks.effect,1,max, na.rm=T))] )
+         opt = list(minimum= iters.ks[which.min(apply(abs(ks.effect),1,max, na.rm=T))] )
          balance = c(balance , list(ks.max = data.table(iter=iters[iters.grid.ks] , value=apply(abs(balance.ks),1,max, na.rm=T)) )) 
          #balance = cbind(balance ,  apply(abs(balance.ks),1,max, na.rm=T) )
       }
@@ -347,7 +348,7 @@ ps.fast<-function(formula ,
                   datestamp  = date(),
                   parameters = terms,
                   alerts     = alert,
-                  iters = iters.25,
+                  iters = iters.grid.ks,
                   balance = balance,
                   es = std.effect,
                   ks = ks.effect,
