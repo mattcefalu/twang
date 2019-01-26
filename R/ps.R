@@ -1,9 +1,11 @@
 ps<-function(formula = formula(data),
              data,                         # data
-             n.trees=10000,                 # gbm options
-             interaction.depth=3,
-             shrinkage=0.01,
-             bag.fraction = 1.0,
+             # boosting options -- gbm version first, then xgboost name
+             n.trees=10000, nrounds=n.trees,
+             interaction.depth=3, max_depth=interaction.depth,
+             shrinkage=0.01, eta=shrinkage , 
+             bag.fraction = 1.0, subsample=bag.fraction,
+             params=NULL,
              perm.test.iters=0,
              print.level=2,       
              verbose=TRUE,
@@ -20,32 +22,53 @@ ps<-function(formula = formula(data),
              n.grid.ks = 25,
              n.grid.es = NULL,
              ...){
-  
-  if (version=="legacy"){
-    if ( !is.null(ks.exact) ){
-      warning("Option ks.exact is not allowed with version='legacy'")
-    }
-    return(ps.old(formula = formula,
-                  data=data,                         # data
-                  n.trees=n.trees,                 # gbm options
-                  interaction.depth=interaction.depth,
-                  shrinkage=shrinkage,
-                  bag.fraction = bag.fraction,
-                  perm.test.iters=perm.test.iters,
-                  print.level=print.level,       
-                  verbose=verbose,
-                  estimand=estimand, 
-                  stop.method = stop.method, 
-                  sampw = sampw, 
-                  multinom = multinom, 
-                  ...))
+   
+   ## throw some errors if the user specifies two versions of the same option
+   if (!missing(n.trees) & !missing(nrounds)) stop("Only one of n.trees and nrounds can be specified.")
+   if (!missing(interaction.depth) & !missing(max_depth)) stop("Only one of interaction.depth and max_depth can be specified.")
+   if (!missing(shrinkage) & !missing(eta)) stop("Only one of shrinkage and eta can be specified.")
+   if (!missing(bag.fraction) & !missing(subsample)) stop("Only one of shrinkage and eta can be specified.")
+   
+   # throw error if user specifies params with other options
+   if (!missing(interaction.depth) | !missing(max_depth) | !missing(shrinkage) | !missing(eta) | !missing(bag.fraction) | !missing(subsample) ){
+      if (!is.null(params)) stop("params cannot be specified with any of interaction.depth, max_depth, shrinkage, eta, bag.fraction, or subsample.")
+   }
+   
+   if (version=="legacy"){
+      ## throw some errors if the user specifies an option not allowed in legacy version of ps
+      if (!is.null(ks.exact))     stop("Option ks.exact is not allowed with version='legacy'")
+      if (!is.null(params))     stop("Option params is not allowed with version='legacy'")
+      if (!missing(booster))      stop("Option booster is not allowed with version='legacy'")
+      if (!missing(tree_method))  stop("Option tree_method is not allowed with version='legacy'")
+      if (!missing(n.keep))       stop("Option n.keep is not allowed with version='legacy'")
+      if (!missing(n.grid))       stop("Option n.grid is not allowed with version='legacy'")
+      if (!missing(n.grid.ks))    stop("Option n.grid.ks is not allowed with version='legacy'")
+      if (!missing(n.grid.es))    stop("Option n.grid.es is not allowed with version='legacy'")
+      
+      return(ps.old(formula = formula,
+                     data=data,                         # data
+                     n.trees=nrounds,                 # gbm options
+                     interaction.depth=max_depth,
+                     shrinkage=eta,
+                     bag.fraction = subsample,
+                     perm.test.iters=perm.test.iters,
+                     print.level=print.level,       
+                     verbose=verbose,
+                     estimand=estimand, 
+                     stop.method = stop.method, 
+                     sampw = sampw, 
+                     multinom = multinom, 
+                     ...))
   }else{
+    # throw error if user specifies params with booster=="gbm"
+    if ( booster=="gbm" & !is.null(params) ) stop("params cannot be specified when booster='gbm'.")
     return(ps.fast(formula = formula,
                   data=data,                         # data
-                  n.trees=n.trees,                 # gbm options
-                  interaction.depth=interaction.depth,
-                  shrinkage=shrinkage,
-                  bag.fraction = bag.fraction,
+                  n.trees=nrounds,                 # gbm options
+                  interaction.depth=max_depth,
+                  shrinkage=eta,
+                  bag.fraction = subsample,
+                  params=params,
                   perm.test.iters=perm.test.iters,
                   print.level=print.level,       
                   verbose=verbose,
