@@ -2,7 +2,7 @@ useDynLib(twang)
 
 export(ps, mnps, dx.wts, get.weights, bal.table, stop.methods, bal.stat, means.table, iptw, sensitivity, get.weights.unstab, get.weights.num)
 
-import(gbm, latticeExtra, survey, xtable, lattice,MatrixModels , data.table)
+import(gbm, latticeExtra, survey, xtable, lattice,MatrixModels , data.table , xgboost)
 
 importFrom("grDevices", dev.cur, dev.new)
 importFrom("graphics",plot, boxplot)
