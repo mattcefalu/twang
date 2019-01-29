@@ -82,10 +82,25 @@ bal.stat.fast <- function(data,vars=NULL,treat.var,w.all, sampw,
         ess <- ess1
       }
       if ( ifelse( is.null(ks.exact) , prod(ess)<10000 , ks.exact) ){
-        pval <- 1- .C("psmirnov2x", p = as.double(ret.ks[var,"ks"]), as.integer(ess[2]), as.integer(ess[1]), PACKAGE = "twang")$p
+         #PVAL <- 1 - .Call(C_pSmirnov2x, STATISTIC, n.x, n.y)
+        pval <- 1- .Call("pSmirnov2x", as.double(ret.ks[var,"ks"]), as.integer(ess[2]), as.integer(ess[1]))
       }else{
         #n <- n.x * n.y / (n.x + n.y)
-        pval <- 2*sum((-1)^(0:4)*exp(-2*(1:5)^2*(ret.ks[var,"ks"])^2*prod(ess)/sum(ess))) # .C("pkstwo", p=as.double(prod(ess)/sum(ess)*ret.ks[var,"ks"]) , as.integer(1), as.double(1e-06) , PACKAGE="twang")$p
+        #pval <- 2*sum((-1)^(0:4)*exp(-2*(1:5)^2*(ret.ks[var,"ks"])^2*prod(ess)/sum(ess))) # .C("pkstwo", p=as.double(prod(ess)/sum(ess)*ret.ks[var,"ks"]) , as.integer(1), as.double(1e-06) , PACKAGE="twang")$p
+         
+         ## copied from ks.test
+         pkstwo <- function(x, tol = 1e-06) {
+            if (is.numeric(x)) 
+               x <- as.double(x)
+            else stop("argument 'x' must be numeric")
+            p <- rep(0, length(x))
+            p[is.na(x)] <- NA
+            IND <- which(!is.na(x) & (x > 0))
+            if (length(IND)) 
+               p[IND] <- .Call("pKS2", p = x[IND], tol)
+            p
+         }
+         pval <- 1 - pkstwo(sqrt(prod(ess)/sum(ess))*ret.ks[var,"ks"])
       }
       ks.p = rbind(ks.p , data.frame( ks.pval=pval ,row.names = var))
   }
