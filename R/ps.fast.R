@@ -146,6 +146,10 @@ ps.fast<-function(formula ,
       
       if (is.null(params)){
          params = list(eta = shrinkage , max_depth = interaction.depth , subsample = bag.fraction , min_child_weight=n.minobsinnode , objective = "binary:logistic")
+      }else{
+         if( is.null(params$objective) ){
+            params$objective = "binary:logistic"
+         }
       }
          # if (save.propensities){
          #    gbm1 <- xgboost(data=sparse.data , label=data[,treat.var], params=params, tree_method = tree_method, 
