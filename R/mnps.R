@@ -1,124 +1,92 @@
-
-mnps <- function(formula = formula(data), data, n.trees = 10000,
-interaction.depth = 3,
-shrinkage = 0.01,
-bag.fraction = 1.0,
-perm.test.iters = 0,
-print.level = 2,
-iterlim = 1000,
-verbose =TRUE,
-estimand = "ATE",
-stop.method = "es.max",
-sampw = NULL,
-treatATT = NULL, ...){
-	stop.method <- levels(as.factor(stop.method))  ## alphbetizes for consitency in ordering of plots
-	multinom <- TRUE
-	
-	if(is.null(sampw)) sampw <- rep(1, nrow(data))
-	
-	
-	terms <- match.call()
+mnps<-function(formula,
+             data,                         # data
+             # boosting options -- gbm version first, then xgboost name
+             n.trees=10000, nrounds=n.trees,
+             interaction.depth=3, max_depth=interaction.depth,
+             shrinkage=0.01, eta=shrinkage , 
+             bag.fraction = 1.0, subsample=bag.fraction,
+             params=NULL,
+             perm.test.iters=0,
+             print.level=2,       
+             verbose=TRUE,
+             estimand="ATE", 
+             stop.method = c("es.max"), 
+             sampw = NULL, version="fast",
+             ks.exact=NULL,
+             booster="xgboost",
+             tree_method="hist",
+             save.propensities=FALSE,
+             file=NULL,
+             n.keep = 1,
+             n.grid = NULL,
+             n.grid.ks = 25,
+             n.grid.es = NULL,
+             treatATT = NULL,
+             ...){
    
-   # all this is just to extract the variable names
-   mf <- match.call(expand.dots = FALSE)
+   ## throw some errors if the user specifies two versions of the same option
+   if (!missing(n.trees) & !missing(nrounds)) stop("Only one of n.trees and nrounds can be specified.")
+   if (!missing(interaction.depth) & !missing(max_depth)) stop("Only one of interaction.depth and max_depth can be specified.")
+   if (!missing(shrinkage) & !missing(eta)) stop("Only one of shrinkage and eta can be specified.")
+   if (!missing(bag.fraction) & !missing(subsample)) stop("Only one of shrinkage and eta can be specified.")
    
-  
-   m <- match(c("formula", "data"), names(mf), 0)
-   mf <- mf[c(1, m)]
-   mf[[1]] <- as.name("model.frame")
-   mf$na.action <- na.pass
-#   mf$na.action <- NULL   
-#   mf$na.action <- "na.pass"
-   mf$subset <- rep(FALSE, nrow(data)) # drop all the data
-
-   mf <- eval(mf, parent.frame())
-   Terms <- attr(mf, "terms")
-   resp <- attr(mf, "response")
-   var.names <- attributes(Terms)$term.labels
-   treat.var <- as.character(formula[[2]])
-   
-   if(estimand == "ATT"){
-   	if(is.null(treatATT)) stop("Must specify the 'treated' condition via the treatATT argument \n
-   	when the estimand is set equal to ATT")
+   # throw error if user specifies params with other options
+   if (!missing(interaction.depth) | !missing(max_depth) | !missing(shrinkage) | !missing(eta) | !missing(bag.fraction) | !missing(subsample) ){
+      if (!is.null(params)) stop("params cannot be specified with any of interaction.depth, max_depth, shrinkage, eta, bag.fraction, or subsample.")
    }
    
-
-
-	respAll <- model.frame(formula, data = data, na.action = na.pass)[,1]
-	
-	if(!is.factor(respAll)) stop("The treatment variable must be a factor variable with at least 3 levels.")
-	
-	respLev <- levels(respAll)
-	M <- length(respLev)
-	if(M < 3) stop("The treatment variable must be a factor variable with at least 3 levels.")
-	
-	levExceptTreatATT <- NULL
-	
-	if(estimand == "ATT"){
-		if(!(treatATT %in% respLev)) stop("'treatATT' must be one of the levels of the treatment variable.")
-		else levExceptTreatATT <- respLev[respLev != treatATT]
-	}
-	
-	
-
-	if(estimand == "ATE"){
-		nFits <- M
-		
-		if(length(n.trees) == 1) n.trees <- rep(n.trees, nFits)
-		
-		hldFts <- vector(mode = "list", length = nFits)
-		
-		for(i in 1:nFits){
-			## fit GBMs, etc
-			currResp <- as.numeric(respAll == respLev[i])
-			currDat <- data.frame(currResp = currResp, data)
-			currFormula <- update(formula, currResp ~ .)
-			currPs <- ps(formula = currFormula, data = currDat, n.trees = n.trees[i], interaction.depth = interaction.depth,
-			shrinkage = shrinkage, bag.fraction = bag.fraction, perm.test.iters = perm.test.iters, print.level = print.level, 
-			iterlim = iterlim,
-			verbose = verbose, estimand = "ATE", stop.method = stop.method, sampw = sampw, multinom = TRUE)
-			
-			hldFts[[i]] <- currPs
-				
-		}
-		names(hldFts) <- respLev	
-	}
-	
-	if(estimand == "ATT"){
-		nFits <- M - 1
-		if(length(n.trees) == 1) n.trees <- rep(n.trees, nFits)
-		
-		hldFts <- vector(mode = "list", length = nFits)		
-		for(i in 1:nFits){
-			## subset data, do 
-			currDat <- data[respAll == treatATT | respAll == levExceptTreatATT[i], ]
-			currResp <- respAll[respAll == treatATT | respAll == levExceptTreatATT[i]]
-			sampwCurr <- sampw[respAll == treatATT | respAll == levExceptTreatATT[i]]
-#			currResp <- currResp == levExceptTreatATT[i]
-			currResp <- currResp == treatATT			
-			currDat <- data.frame(currResp = currResp, currDat)
-			currFormula <- update(formula, currResp ~ .)
-			currPs <- ps(formula = currFormula, data = currDat, n.trees = n.trees[i], interaction.depth = interaction.depth,
-			shrinkage = shrinkage, bag.fraction = bag.fraction, perm.test.iters = perm.test.iters, print.level = print.level, 
-			iterlim = iterlim,
-			verbose = verbose, estimand = "ATT", stop.method = stop.method, sampw = sampwCurr, multinom = TRUE)
-			
-			hldFts[[i]] <- currPs
-
-			
-		}
-		names(hldFts) <- levExceptTreatATT
-		}
-	
-	returnObj <- list(psList = hldFts, nFits = nFits, estimand = estimand, treatATT = treatATT, treatLev = respLev, levExceptTreatATT = levExceptTreatATT, data = data, treatVar = respAll, treat.var = treat.var, stopMethods = stop.method, sampw = sampw)
-	
-	class(returnObj) <- "mnps"
-
-
-	return(returnObj)
-
-
+   if (version=="legacy"){
+      ## throw some errors if the user specifies an option not allowed in legacy version of ps
+      if (!is.null(ks.exact))     stop("Option ks.exact is not allowed with version='legacy'")
+      if (!is.null(params))     stop("Option params is not allowed with version='legacy'")
+      if (!missing(booster))      stop("Option booster is not allowed with version='legacy'")
+      if (!missing(tree_method))  stop("Option tree_method is not allowed with version='legacy'")
+      if (!missing(n.keep))       stop("Option n.keep is not allowed with version='legacy'")
+      if (!missing(n.grid))       stop("Option n.grid is not allowed with version='legacy'")
+      if (!missing(n.grid.ks))    stop("Option n.grid.ks is not allowed with version='legacy'")
+      if (!missing(n.grid.es))    stop("Option n.grid.es is not allowed with version='legacy'")
+      
+      return(mnps.old(formula = formula,
+                    data=data,                         # data
+                    n.trees=nrounds,                 # gbm options
+                    interaction.depth=max_depth,
+                    shrinkage=eta,
+                    bag.fraction = subsample,
+                    perm.test.iters=perm.test.iters,
+                    print.level=print.level,       
+                    verbose=verbose,
+                    estimand=estimand, 
+                    stop.method = stop.method, 
+                    sampw = sampw, 
+                    treatATT = treatATT, 
+                    ...))
+   }else{
+      # throw error if user specifies params with booster=="gbm"
+      if ( booster=="gbm" & !is.null(params) ) stop("params cannot be specified when booster='gbm'.")
+      return(mnps.fast(formula = formula,
+                     data=data,                         # data
+                     n.trees=nrounds,                 # gbm options
+                     interaction.depth=max_depth,
+                     shrinkage=eta,
+                     bag.fraction = subsample,
+                     params=params,
+                     perm.test.iters=perm.test.iters,
+                     print.level=print.level,       
+                     verbose=verbose,
+                     estimand=estimand, 
+                     stop.method = stop.method, 
+                     sampw = sampw, 
+                     ks.exact=ks.exact,
+                     booster=booster,
+                     tree_method=tree_method,
+                     save.propensities=save.propensities,
+                     file=file,
+                     n.keep = n.keep,
+                     n.grid = n.grid,
+                     n.grid.ks = n.grid.ks,
+                     n.grid.es = n.grid.es,
+                     treatATT = treatATT, 
+                     ...))
+   }
+   
 }
-
-#mnps(formula = treat ~ age + educ, data = lalonde2, estimand = "ATT", treatATT = "0")
-#ft1 <- mnps(formula = treat ~ age + educ, data = lalonde2, estimand = "ATT", treatATT = "0")
