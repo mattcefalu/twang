@@ -15,14 +15,14 @@ mnps.fast <- function(formula,
                       sampw = NULL, 
                       version="fast",
                       ks.exact=NULL,
-                      booster="xgboost",
+                      booster="gbm",
                       tree_method="hist",
                       save.propensities=FALSE,
                       file=NULL,
                       n.keep = 1,
-                      n.grid = NULL,
-                      n.grid.ks = 25,
-                      n.grid.es = NULL,
+                      n.grid = 25,
+                      #n.grid.ks = 25,
+                      #n.grid.es = NULL,
                       treatATT = NULL,
                       ...){
    
@@ -90,7 +90,7 @@ mnps.fast <- function(formula,
          currFormula <- update(formula, currResp ~ .)
          currPs <- ps.fast(formula = currFormula, data = currDat, n.trees = nrounds[i], interaction.depth = max_depth,
                       shrinkage = eta, bag.fraction = subsample, perm.test.iters = perm.test.iters, print.level = print.level, 
-                      iterlim = iterlim,
+                      #iterlim = iterlim,
                       verbose = verbose, estimand = "ATE", stop.method = stop.method, sampw = sampw, multinom = TRUE, 
                       ks.exact=ks.exact,
                       booster=booster,
@@ -98,9 +98,10 @@ mnps.fast <- function(formula,
                       save.propensities=save.propensities,
                       file=file,
                       n.keep = n.keep,
-                      n.grid = n.grid,
-                      n.grid.ks = n.grid.ks,
-                      n.grid.es = n.grid.es)
+                      n.grid = n.grid
+                      #n.grid.ks = n.grid.ks,
+                      #n.grid.es = n.grid.es
+                      )
       
          hldFts[[i]] <- currPs
          
@@ -124,7 +125,7 @@ mnps.fast <- function(formula,
          currFormula <- update(formula, currResp ~ .)
          currPs <- ps.fast(formula = currFormula, data = currDat, n.trees = nrounds[i], interaction.depth = max_depth,
                       shrinkage = eta, bag.fraction = subsample, perm.test.iters = perm.test.iters, print.level = print.level, 
-                      iterlim = iterlim,
+                      #iterlim = iterlim,
                       verbose = verbose, estimand = "ATT", stop.method = stop.method, sampw = sampwCurr, multinom = TRUE,
                       ks.exact=ks.exact,
                       booster=booster,
@@ -132,9 +133,10 @@ mnps.fast <- function(formula,
                       save.propensities=save.propensities,
                       file=file,
                       n.keep = n.keep,
-                      n.grid = n.grid,
-                      n.grid.ks = n.grid.ks,
-                      n.grid.es = n.grid.es)
+                      n.grid = n.grid
+                      #n.grid.ks = n.grid.ks,
+                      #n.grid.es = n.grid.es
+                      )
          
          hldFts[[i]] <- currPs
          
