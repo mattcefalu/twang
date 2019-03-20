@@ -20,9 +20,9 @@ ps.fast<-function(formula ,
              save.propensities=FALSE,
              file=NULL,
              n.keep = 1,
-             n.grid = NULL,
-             n.grid.ks = 25,
-             n.grid.es = NULL,
+             n.grid = n.grid,
+             #n.grid.ks = 25,
+             #n.grid.es = NULL,
              ...){
              	
 	
@@ -33,13 +33,13 @@ ps.fast<-function(formula ,
       sampW <- unlist(sampw, use.names=F) 
    }
    
-   if (!is.null(n.grid)){
-      n.grid.ks = n.grid
-      n.grid.es = n.grid
-   }
+   # if (!is.null(n.grid)){
+   #    n.grid.ks = n.grid
+   #    n.grid.es = n.grid
+   # }
    
-   if ( n.trees/n.keep< max(n.grid.ks,n.grid.es) ){
-      stop('n.tress must be at least max(n.grid.ks,n.grid.es) times n.keep')
+   if ( n.trees/n.keep< n.grid ){
+      stop('n.tress must be at least n.grid times n.keep')
    }
 	
    type <- alert <- NULL
@@ -202,27 +202,27 @@ ps.fast<-function(formula ,
    bal.data = bal.data$bal.data
    
    # 25 point grid of iterations
-   #iters.25 <- round(seq( 1 , length(iters)  ,length=25))
-   iters.grid.ks <- round(seq( 1 , length(iters)  ,length=n.grid.ks))
-   iters.grid.es <- round(seq( 1 , length(iters)  ,length=ifelse(is.null(n.grid.es) ,length(iters) ,n.grid.es )))
+   iters.grid <- round(seq( 1 , length(iters)  ,length=n.grid))
+   #iters.grid.ks <- round(seq( 1 , length(iters)  ,length=n.grid.ks))
+   #iters.grid.es <- round(seq( 1 , length(iters)  ,length=ifelse(is.null(n.grid.es) ,length(iters) ,n.grid.es )))
    
    std.effect = ks.effect = NULL
    if ( any(grepl("es.",stop.method.names)) ){
       if(verbose) cat("Calculating standardized differences\n")
-      std.effect = calcES(data=bal.data, w=W[,iters.grid.es] , treat=data[,treat.var],numeric.vars = numeric.vars , estimand=estimand , multinom=multinom , sw=sampW)
+      std.effect = calcES(data=bal.data, w=W[,iters.grid] , treat=data[,treat.var],numeric.vars = numeric.vars , estimand=estimand , multinom=multinom , sw=sampW)
       
-      if (!is.null(n.grid.es)){
+      # if (!is.null(n.grid.es)){
          iters.es.mean = iters.es.max = NULL
          if ( any(grepl("es.mean", stop.method.names)) ){
             i <- which.min(apply(abs(std.effect),1,mean, na.rm=T)) +c(-1,1)
-            i[1] <- iters.grid.es[max(1,i[1])]
-            i[2] <- iters.grid.es[min(length(iters.grid.es),i[2])]
+            i[1] <- iters.grid[max(1,i[1])]
+            i[2] <- iters.grid[min(length(iters.grid),i[2])]
             iters.es.mean =  which(iters <= iters[i[2]] & iters >= iters[i[1]]) #iters.25[i[1]]:iters.25[i[2]]
          }
          if ( any(grepl("es.max", stop.method.names)) ){
             i <- which.min(apply(abs(std.effect),1,max, na.rm=T)) +c(-1,1)
-            i[1] <- iters.grid.es[max(1,i[1])]
-            i[2] <- iters.grid.es[min(length(iters.grid.es),i[2])]
+            i[1] <- iters.grid[max(1,i[1])]
+            i[2] <- iters.grid[min(length(iters.grid),i[2])]
             iters.es.max =  which(iters <=iters[i[2]] & iters >=iters[i[1]])  #iters.25[i[1]]:iters.25[i[2]]
          }
          
@@ -231,34 +231,34 @@ ps.fast<-function(formula ,
          
          # save the grid
          balance.es = std.effect
-         iters.es.plot = iters.grid.es
+         #iters.es.plot = iters.grid.es
          
          std.effect = calcES(data=bal.data, w=W[,iters.es] , treat=data[,treat.var],numeric.vars = numeric.vars , estimand=estimand , multinom=multinom , sw=sampW)
          #ks.effect = calcKS(data=bal.data,w=W[,iters.es],treat=data[,treat.var])
          #colnames(std.effect) = colnames(bal.data)
-      }else{
-         iters.es = iters.grid.es
-         iters.es.plot = iters.grid.ks
-         balance.es = std.effect[iters.grid.ks,]
-      }
+      # }else{ # this currently never gets visited
+      #    iters.es = iters.grid.es
+      #    iters.es.plot = iters.grid.ks
+      #    balance.es = std.effect[iters.grid.ks,]
+      # }
    }
    if ( any(grepl("ks.",stop.method.names)) ){
       if(verbose) cat("Calculating Kolmogorov–Smirnov statistics\n")
      
       # find the optimal interval for ks.mean and ks.max based on 25 point grid     
-      ks.effect = calcKS(data=bal.data,w=W[,iters.grid.ks],treat=data[,treat.var] , multinomATE=(estimand=="ATE" & multinom) , sw=sampW)
+      ks.effect = calcKS(data=bal.data,w=W[,iters.grid],treat=data[,treat.var] , multinomATE=(estimand=="ATE" & multinom) , sw=sampW)
      
       iters.ks.mean = iters.ks.max = NULL
       if ( any(grepl("ks.mean", stop.method.names)) ){
          i <- which.min(apply(abs(ks.effect),1,mean, na.rm=T)) +c(-1,1)
-         i[1] <- iters.grid.ks[max(1,i[1])]
-         i[2] <- iters.grid.ks[min(length(iters.grid.ks),i[2])]
+         i[1] <- iters.grid[max(1,i[1])]
+         i[2] <- iters.grid[min(length(iters.grid),i[2])]
          iters.ks.mean =  which(iters <= iters[i[2]] & iters >= iters[i[1]]) #iters.25[i[1]]:iters.25[i[2]]
       }
       if ( any(grepl("ks.max", stop.method.names)) ){
          i <- which.min(apply(abs(ks.effect),1,max, na.rm=T)) +c(-1,1)
-         i[1] <- iters.grid.ks[max(1,i[1])]
-         i[2] <- iters.grid.ks[min(length(iters.grid.ks),i[2])]
+         i[1] <- iters.grid[max(1,i[1])]
+         i[2] <- iters.grid[min(length(iters.grid),i[2])]
          iters.ks.max =  which(iters <=iters[i[2]] & iters >=iters[i[1]])  #iters.25[i[1]]:iters.25[i[2]]
       }
      
@@ -291,22 +291,23 @@ ps.fast<-function(formula ,
       # and save the balance stat to meet plotting requirements
       if ( grepl("es.mean",stop.method.names[i.tp]) ) {
          opt = list(minimum= iters.es[which.min(apply(abs(std.effect),1,mean, na.rm=T))] )
-         balance = c(balance , list(es.mean = data.table(iter=iters[iters.es.plot] , value=apply(abs(balance.es),1,mean, na.rm=T)) )) #cbind(balance , apply(abs(std.effect[iters.25,]),1,mean, na.rm=T) )
+         balance = cbind(balance , apply(abs(balance.es),1,mean, na.rm=T) )
+         #balance = c(balance , list(es.mean = data.table(iter=iters[iters.grid] , value=apply(abs(balance.es),1,mean, na.rm=T)) )) #cbind(balance , apply(abs(std.effect[iters.25,]),1,mean, na.rm=T) )
       }
       if ( grepl("es.max",stop.method.names[i.tp]) ){
          opt = list(minimum= iters.es[which.min(apply(abs(std.effect),1,max, na.rm=T))] )
-         #balance = cbind(balance , apply(abs(std.effect[iters.25,]),1,max, na.rm=T) )
-         balance = c(balance , list(es.max = data.table(iter=iters[iters.es.plot] , value=apply(abs(balance.es),1,max, na.rm=T)) )) #cbind(balance , apply(abs(std.effect[iters.25,]),1,mean, na.rm=T) )
+         balance = cbind(balance , apply(abs(balance.es),1,max, na.rm=T) )
+         #balance = c(balance , list(es.max = data.table(iter=iters[iters.grid] , value=apply(abs(balance.es),1,max, na.rm=T)) )) #cbind(balance , apply(abs(std.effect[iters.25,]),1,mean, na.rm=T) )
       }
       if ( grepl("ks.mean",stop.method.names[i.tp]) ){
          opt = list(minimum= iters.ks[which.min(apply(abs(ks.effect),1,mean, na.rm=T))] )
-         balance = c(balance , list(ks.mean = data.table(iter=iters[iters.grid.ks] , value=apply(abs(balance.ks),1,mean, na.rm=T)) )) 
-         #balance = cbind(balance ,  apply(abs(balance.ks),1,mean, na.rm=T) )
+         #balance = c(balance , list(ks.mean = data.table(iter=iters[iters.grid] , value=apply(abs(balance.ks),1,mean, na.rm=T)) )) 
+         balance = cbind(balance ,  apply(abs(balance.ks),1,mean, na.rm=T) )
       }
       if ( grepl("ks.max",stop.method.names[i.tp]) ){
          opt = list(minimum= iters.ks[which.min(apply(abs(ks.effect),1,max, na.rm=T))] )
-         balance = c(balance , list(ks.max = data.table(iter=iters[iters.grid.ks] , value=apply(abs(balance.ks),1,max, na.rm=T)) )) 
-         #balance = cbind(balance ,  apply(abs(balance.ks),1,max, na.rm=T) )
+         #balance = c(balance , list(ks.max = data.table(iter=iters[iters.grid] , value=apply(abs(balance.ks),1,max, na.rm=T)) )) 
+         balance = cbind(balance ,  apply(abs(balance.ks),1,max, na.rm=T) )
       }
       
    
@@ -349,13 +350,14 @@ ps.fast<-function(formula ,
                   sampw      = sampW, 
                   estimand   = estimand,
                   booster = booster , 
-                  version = version, 
+                  version = "fast", 
 #                  plot.info  = plot.info,
                   datestamp  = date(),
                   parameters = terms,
                   alerts     = alert,
-                  iters.ks = iters.grid.ks,
-                  iters.es = iters.grid.es,
+                  #iters.ks = iters.grid.ks,
+                  #iters.es = iters.grid.es,
+                  iters = iters.grid,
                   balance.ks = ks.effect,
                   balance.es = balance.es,
                   balance = balance,

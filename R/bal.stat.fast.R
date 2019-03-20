@@ -73,7 +73,7 @@ bal.stat.fast <- function(data,vars=NULL,treat.var,w.all, sampw,
       resid[index] = 0
       a = sweep(WX,1,resid,"*") # sweep(X,1,resid*w.all*index,"*")
       a = beta[2]/ sqrt(crossprod(a%*%t(D))[2,2]*N/(N-1) ) # sqrt( (D%*%t(a)%*%a%*%t(D)*N/(N-1))[2,2] )
-      ret.test = rbind(ret.test ,matrix( c(a , 2*pt(-abs(a) ,df=N-2 )) , nrow=1 , dimnames = list(var)) )
+      ret.test = rbind(ret.test ,matrix( c(a , 2*pt(-abs(a) ,df=N-2 )) , nrow=1 , dimnames = list(var , c("stat","p"))) )
       
       # ks stat pvalue
       if (any(index)){
