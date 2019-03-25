@@ -1,4 +1,5 @@
-pairwiseComparison <- function(x, collapse.to = c("pair","covariate","stop.method")[1], na.action = "level"){
+pairwiseComparison <- function(x, collapse.to = c("pair","covariate","stop.method")[1], na.action = "level",
+                               fast=F , ks.exact=NULL){
 	if(class(x) != "mnps") stop("pairwiseComparison only defined for mnps objects fit with estimand = \"ATE\"")
 	if(x$estimand != "ATE") stop("pairwiseComparison only defined for mnps objects fit with estimand = \"ATE\"")	
 	stop.method <- NULL
@@ -9,8 +10,12 @@ pairwiseComparison <- function(x, collapse.to = c("pair","covariate","stop.metho
 	treatInds2 <- NULL
 	for(i in 2:(nTreat)) treatInds2 <- c(treatInds2, i:nTreat)
 	subDt <- x$data
-	subDt[,x$treat.var] <- as.numeric(subDt[,x$treat.var] == levels(subDt[,x$treat.var])[1])	
-	tabForNames <- desc.wts(subDt, w = rep(1,nrow(subDt)), sampw = rep(1,nrow(subDt)), vars = x$psList[[1]]$gbm.obj$var.names, treat.var = x$treat.var, na.action = "level", verbose = FALSE, alerts.stack = 0, estimand = x$estimand, multinom = FALSE, fillNAs = TRUE)$bal.tab$results
+	subDt[,x$treat.var] <- as.numeric(subDt[,x$treat.var] == levels(subDt[,x$treat.var])[1])
+	if (fast){
+	   tabForNames <- desc.wts.fast(subDt, w = rep(1,nrow(subDt)), sampw = rep(1,nrow(subDt)), vars = x$psList[[1]]$gbm.obj$var.names, treat.var = x$treat.var, na.action = "level", verbose = FALSE, alerts.stack = 0, estimand = x$estimand, multinom = FALSE, fillNAs = TRUE , ks.exact=ks.exact)$bal.tab$results
+	}else{
+	   tabForNames <- desc.wts(subDt, w = rep(1,nrow(subDt)), sampw = rep(1,nrow(subDt)), vars = x$psList[[1]]$gbm.obj$var.names, treat.var = x$treat.var, na.action = "level", verbose = FALSE, alerts.stack = 0, estimand = x$estimand, multinom = FALSE, fillNAs = TRUE)$bal.tab$results
+	}
 	nRowBalTab <- nrow(tabForNames)
 	rwNms <- row.names(tabForNames)
 	
@@ -18,7 +23,11 @@ pairwiseComparison <- function(x, collapse.to = c("pair","covariate","stop.metho
 	for(i in 1:length(treatInds1)){
 		subDt <- x$data[x$data[,x$treat.var] %in% treatLevs[c(treatInds1[i], treatInds2[i])], ]
 		subDt[,x$treat.var] <- as.numeric(subDt[,x$treat.var] == treatLevs[treatInds1[i]])
-		bTab <- desc.wts(subDt, w = rep(1,nrow(subDt)), sampw = rep(1,nrow(subDt)), vars = x$psList[[1]]$gbm.obj$var.names, treat.var = x$treat.var, na.action = "level", verbose = FALSE, alerts.stack = 0, estimand = x$estimand, multinom = FALSE, fillNAs = TRUE)$bal.tab$results
+		if (fast){
+		   bTab <- desc.wts.fast(subDt, w = rep(1,nrow(subDt)), sampw = rep(1,nrow(subDt)), vars = x$psList[[1]]$gbm.obj$var.names, treat.var = x$treat.var, na.action = "level", verbose = FALSE, alerts.stack = 0, estimand = x$estimand, multinom = FALSE, fillNAs = TRUE , ks.exact=ks.exact)$bal.tab$results
+		}else{
+		   bTab <- desc.wts(subDt, w = rep(1,nrow(subDt)), sampw = rep(1,nrow(subDt)), vars = x$psList[[1]]$gbm.obj$var.names, treat.var = x$treat.var, na.action = "level", verbose = FALSE, alerts.stack = 0, estimand = x$estimand, multinom = FALSE, fillNAs = TRUE)$bal.tab$results
+		}
 		bTab <- bTab[rwNms,]
 		bTab[is.na(bTab$tx.mn),] <- ifelse(names(bTab) %in% c("p","ks.pval"), 1, 0)
 		hldBalTabs[[i]] <- bTab
@@ -37,7 +46,11 @@ pairwiseComparison <- function(x, collapse.to = c("pair","covariate","stop.metho
 			subDt <- x$data[x$data[,x$treat.var] %in% treatLevs[c(treatInds1[i], treatInds2[i])], ]
 			subW <- wgt[x$data[,x$treat.var] %in% treatLevs[c(treatInds1[i], treatInds2[i])]]
 			subDt[,x$treat.var] <- as.numeric(subDt[,x$treat.var] == treatLevs[treatInds1[i]])
-			bTab <- desc.wts(subDt, w = subW, sampw = rep(1,nrow(subDt)), vars = x$psList[[1]]$gbm.obj$var.names, treat.var = x$treat.var, na.action = "level", verbose = FALSE, alerts.stack = 0, estimand = x$estimand, multinom = FALSE, fillNAs = TRUE)$bal.tab$results
+			if (fast){
+			   bTab <- desc.wts.fast(subDt, w = subW, sampw = rep(1,nrow(subDt)), vars = x$psList[[1]]$gbm.obj$var.names, treat.var = x$treat.var, na.action = "level", verbose = FALSE, alerts.stack = 0, estimand = x$estimand, multinom = FALSE, fillNAs = TRUE , ks.exact=ks.exact)$bal.tab$results
+			}else{
+			   bTab <- desc.wts(subDt, w = subW, sampw = rep(1,nrow(subDt)), vars = x$psList[[1]]$gbm.obj$var.names, treat.var = x$treat.var, na.action = "level", verbose = FALSE, alerts.stack = 0, estimand = x$estimand, multinom = FALSE, fillNAs = TRUE)$bal.tab$results
+			}
 			bTab <- bTab[rwNms,]
 			bTab[is.na(bTab$tx.mn),] <- ifelse(names(bTab) %in% c("p","ks.pval"), 1, 0)
 			hldBalTabs[[i]] <- bTab
