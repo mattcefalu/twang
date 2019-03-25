@@ -43,8 +43,8 @@ mnps<-function(formula,
       if (!missing(tree_method))  stop("Option tree_method is not allowed with version='legacy'")
       if (!missing(n.keep))       stop("Option n.keep is not allowed with version='legacy'")
       if (!missing(n.grid))       stop("Option n.grid is not allowed with version='legacy'")
-      if (!missing(n.grid.ks))    stop("Option n.grid.ks is not allowed with version='legacy'")
-      if (!missing(n.grid.es))    stop("Option n.grid.es is not allowed with version='legacy'")
+      #if (!missing(n.grid.ks))    stop("Option n.grid.ks is not allowed with version='legacy'")
+      #if (!missing(n.grid.es))    stop("Option n.grid.es is not allowed with version='legacy'")
       
       return(mnps.old(formula = formula,
                     data=data,                         # data
