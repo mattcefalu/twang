@@ -27,7 +27,7 @@ summary.mnps <- function (object, ...){
 			ess = shell)
 	}
 	else {
-		hd1 <- pairwiseComparison(object, collapse.to = "stop.method" )
+		hd1 <- pairwiseComparison(object, collapse.to = "stop.method" , ks.exact = object$ks.exact)
 		retObj <- list(comp = hd1, ess = shell, estimand = object$estimand)
 	}
 	class(retObj) <- "summary.mnps"

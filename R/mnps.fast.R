@@ -145,7 +145,7 @@ mnps.fast <- function(formula,
       names(hldFts) <- levExceptTreatATT
    }
    
-   returnObj <- list(psList = hldFts, nFits = nFits, estimand = estimand, treatATT = treatATT, treatLev = respLev, levExceptTreatATT = levExceptTreatATT, data = data, treatVar = respAll, treat.var = treat.var, stopMethods = stop.method, sampw = sampw , balanceVars=var.names)
+   returnObj <- list(psList = hldFts, nFits = nFits, estimand = estimand, treatATT = treatATT, treatLev = respLev, levExceptTreatATT = levExceptTreatATT, data = data, treatVar = respAll, treat.var = treat.var, stopMethods = stop.method, sampw = sampw , balanceVars=var.names, ks.exact=ks.exact)
    
    class(returnObj) <- "mnps"
    
