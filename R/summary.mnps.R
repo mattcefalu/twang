@@ -1,8 +1,6 @@
 # Produces a summary table for mnps object 
 summary.mnps <- function (object, ...){
-   # fast or legacy version? legacy version doesnt output the version.
-   fast = !is.null(object$psList[[1]]$version)
-   
+
 	nFits <- object$nFits
 	summaryList <- vector(mode = "list", length = nFits)
 	for (i in 1:nFits) {
@@ -29,7 +27,7 @@ summary.mnps <- function (object, ...){
 			ess = shell)
 	}
 	else {
-		hd1 <- pairwiseComparison(object, collapse.to = "stop.method" , fast=fast)
+		hd1 <- pairwiseComparison(object, collapse.to = "stop.method" )
 		retObj <- list(comp = hd1, ess = shell, estimand = object$estimand)
 	}
 	class(retObj) <- "summary.mnps"
