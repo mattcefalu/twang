@@ -1,4 +1,4 @@
-plot.iptw <- function(x,plots="optimize", subset = NULL, color = TRUE, timePeriods = NULL, multiPage = FALSE, figureRows = NULL, ...)
+plot.iptw <- function(x,plots="optimize", subset = NULL, color = TRUE, timePeriods = NULL, multiPage = FALSE, figureRows = NULL, hline=c(0.1,0.5,0.8), ...)
 {
    # Creates diag.plot plots and sends to current device
    # x:     ps object 
@@ -26,7 +26,7 @@ plot.iptw <- function(x,plots="optimize", subset = NULL, color = TRUE, timePerio
    hdPt <- vector(mode = "list", length = length(timePeriods))
    
    for(i in 1:length(timePeriods)){
-   	hdPt[[i]] <- diag.plot.color(x$psList[[i]], plots, subset = subset, color = color, time = timePeriods[i], ...)
+   	hdPt[[i]] <- diag.plot.color(x$psList[[i]], plots, subset = subset, color = color, time = timePeriods[i], hline=hline,...)
    }
    
    	if(length(timePeriods) == 1) return(hdPt[[1]])

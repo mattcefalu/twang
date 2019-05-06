@@ -1,4 +1,4 @@
-plot.mniptw <- function(x,plots="optimize", pairwiseMax = TRUE, figureRows = NULL, color = TRUE, subset = NULL, treatments = NULL, singlePlot = NULL, multiPage = FALSE, timePeriods = NULL, ...)
+plot.mniptw <- function(x,plots="optimize", pairwiseMax = TRUE, figureRows = NULL, color = TRUE, subset = NULL, treatments = NULL, singlePlot = NULL, multiPage = FALSE, timePeriods = NULL, hline=c(0.1,0.5,0.8), ...)
 {
    # Creates diag.plot plots and sends to current device
    # x:     ps object 
@@ -26,7 +26,7 @@ plot.mniptw <- function(x,plots="optimize", pairwiseMax = TRUE, figureRows = NUL
    hdPt <- vector(mode = "list", length = length(timePeriods))
    
    	for(i in 1:length(timePeriods)){
-   		hdPt[[i]] <- plot(x$psList[[timePeriods[i]]], plots = plots, subset = subset, color = color, time = timePeriods[i], print = FALSE, ...)
+   		hdPt[[i]] <- plot(x$psList[[timePeriods[i]]], plots = plots, subset = subset, color = color, time = timePeriods[i], print = FALSE, hline=hline, ...)
    	}
    
    	#if(length(timePeriods) == 1) return(hdPt[[1]])
