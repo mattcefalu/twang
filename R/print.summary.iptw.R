@@ -5,7 +5,7 @@ print.summary.iptw <- function(x, ...)
       	for(i in 1:nSum){	
       		cat("Summary for time period ", x$uniqueTimes[i], ": \n")
       		print(x$summaryList[[i]])
-      		
+      		if (i<nSum) cat("\n")
       	}
 
       invisible(x)
