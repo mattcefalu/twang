@@ -1,5 +1,5 @@
 ##require(twang); data(AOD); AOD$crimjust[198:202] <- NA; mnps.AOD <- mnps(treat ~ illact + crimjust + subprob + subdep + white, data = AOD, estimand = "ATE", stop.method = c("ks.max","es.max"), n.trees = 1000, treatATT = 'community')
-plot.mnps <- function(x,plots="optimize", pairwiseMax = TRUE, figureRows = NULL, color = TRUE, subset = NULL, treatments = NULL, singlePlot = NULL, multiPage = FALSE, time = NULL, print = TRUE, ...){
+plot.mnps <- function(x,plots="optimize", pairwiseMax = TRUE, figureRows = NULL, color = TRUE, subset = NULL, treatments = NULL, singlePlot = NULL, multiPage = FALSE, time = NULL, print = TRUE, hline=c(0.1,0.5,0.8), ...){
 	
 	stop.method <- tmt1 <- tmt2 <- sig <- NULL   
 
@@ -155,7 +155,7 @@ plot.mnps <- function(x,plots="optimize", pairwiseMax = TRUE, figureRows = NULL,
    				ylab = "Absolute standard difference", xlab = NULL, 
    				main = ptNm,
    				panel = function(...){
-   					panel.abline(h=c(.2,.5,.8), col="gray80")
+   					panel.abline(h=hline, col="gray80")
    					panel.xyplot(...)
 		   		})
    			ptHold <- pt1.1
@@ -390,7 +390,7 @@ plot.mnps <- function(x,plots="optimize", pairwiseMax = TRUE, figureRows = NULL,
    			ylim = c(-.05, yMax), type = "l", col = ltBl, as.table = TRUE, main = ptNm, 
    			ylab = "Absolute standardized difference \n (maximum pairwise)", xlab = NULL, par.settings = list(strip.background = list(col=stripBgCol)),
    			panel = function(...){
-   				panel.abline(h=c(.2,.5,.8), col="gray80")
+   				panel.abline(h=hline, col="gray80")
    				panel.xyplot(...)
 		   	})
    		nullPlot <- FALSE

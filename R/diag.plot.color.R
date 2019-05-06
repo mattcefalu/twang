@@ -64,7 +64,7 @@ if (plots == "optimize" || plots == 1) {
    		subset = subsetHold, par.settings = list(strip.background = list(col=stripBgCol)),
    		ylab = "Absolute standard difference", xlab = xlb, ...,
    		panel = function(...){
-   			panel.abline(h=c(.2,.5,.8), col="gray80")
+   			panel.abline(h=switch(2-is.null(dots$hline) , c(0.1,0.5,0.8) , dots$hline), col="gray80")
    			panel.xyplot(...)
    		
    		})
