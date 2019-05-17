@@ -23,7 +23,7 @@ variables on the right side.}
 \item{data}{A dataset that includes the treatment indicator as well as the
 potential confounding variables.}
 
-\item{n.trees}{Number of gbm iterations passed on to \link{gbm}.}
+\item{n.trees}{Number of gbm iterations passed on to \link{gbm}. Default: 10000.}
 
 \item{interaction.depth}{A positive integer denoting the tree depth used in
 gradient boosting. Only one of \code{interaction.depth} and
@@ -93,6 +93,8 @@ search of the region most likely to minimize the \code{stop.method}. A
 value of \code{n.grid=50} uses a 50 point grid from \code{1:n.trees}. It
 finds the minimum, say at grid point 35. It then looks for the actual
 minimum between grid points 34 and 36. Default: 25.}
+
+\item{...}{Additional arguments that are passed to ps function.}
 }
 \value{
 Returns an object of class \code{ps}, a list containing
