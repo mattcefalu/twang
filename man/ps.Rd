@@ -15,59 +15,59 @@ ps(formula = formula(data), data, n.trees = 10000, nrounds = n.trees,
   ...)
 }
 \arguments{
-\item{formula}{an object of class "\code{\link{formula}}": a symbolic
+\item{formula}{An object of class \link{formula}: a symbolic
 description of the propensity score model to be fit with the treatment
 indicator on the left side of the formula and the potential confounding
 variables on the right side.}
 
-\item{data}{a dataset that includes the treatment indicator as well as the
+\item{data}{A dataset that includes the treatment indicator as well as the
 potential confounding variables.}
 
-\item{n.trees}{a positive integer denoting the maximum number of iterations
-to be used in the gradient boosting algorithm. Only one of \code{n.trees}
-and \code{nrounds} can be specified. Default: 10000}
+\item{n.trees}{Number of gbm iterations passed on to \link{gbm}.}
 
-\item{interaction.depth}{a positive integer denoting the tree depth used in
+\item{interaction.depth}{A positive integer denoting the tree depth used in
 gradient boosting. Only one of \code{interaction.depth} and
-\code{max_depth} can be specified. Default: 3}
+\code{max_depth} can be specified. Default: 3.}
 
-\item{shrinkage}{a numeric value between 0 and 1 denoting the learning rate.
-See \code{\link[gbm]{gbm}} for more details. Only one of \code{shrinkage}
-and \code{eta} can be specified. Default: 0.01}
+\item{shrinkage}{A numeric value between 0 and 1 denoting the learning rate.
+See \link{gbm} for more details. Only one of \code{shrinkage}
+and \code{eta} can be specified. Default: 0.01.}
 
-\item{bag.fraction}{a numeric value between 0 and 1 denoting the fraction of
+\item{bag.fraction}{A numeric value between 0 and 1 denoting the fraction of
 the observations randomly selected in each iteration of the gradient
-boosting algorithm to propose the next tree. See \code{\link[gbm]{gbm}} for
+boosting algorithm to propose the next tree. See \link{gbm} for
 more details. Only one of \code{bag.fraction} and \code{subsample} can be
-specified. Default: 1}
+specified. Default: 1.0.}
 
-\item{perm.test.iters}{a non-negative integer giving the number of iterations
+\item{params}{...}
+
+\item{perm.test.iters}{A non-negative integer giving the number of iterations
 of the permutation test for the KS statistic. If \code{perm.test.iters=0}
 then the function returns an analytic approximation to the p-value. Setting
 \code{perm.test.iters=200} will yield precision to within 3\% if the true
-p-value is 0.05. Use \code{perm.test.iters=500} to be within 2\%. Default:
-0}
+p-value is 0.05. Use \code{perm.test.iters=500} to be within 2\%. Default: 0.}
 
-\item{print.level}{the amount of detail to print to the screen}
+\item{print.level}{The amount of detail to print to the screen. Default: 2.}
 
-\item{verbose}{if TRUE, lots of information will be printed to monitor the
-the progress of the fitting}
+\item{verbose}{If \code{TRUE}, lots of information will be printed to monitor the
+the progress of the fitting. Default: \code{TRUE}.}
 
 \item{estimand}{"ATE" (average treatment effect) or "ATT" (average treatment
 effect on the treated) : the causal effect of interest. ATE estimates the
 change in the outcome if the treatment were applied to the entire
 population versus if the control were applied to the entire population. ATT
 estimates the analogous effect, averaging only over the treated population.
-Default: "ATE"}
+Default: "ATE".}
 
-\item{stop.method}{a character vector of the method or methods to be used to
-optimize the balance of pretreatment variables. Current options are
-\code{ks.mean}, \code{ks.max}, \code{es.mean}, and \code{es.max}. \code{ks}
-refers to the Kolmogorov-Smirnov statistic and \code{es} refers to
-standardized effect size. These are summarized across the pretreatment
-variables by either the maximum (\code{.max}) or the mean (\code{.mean}).}
+\item{stop.method}{A method or methods of measuring and summarizing balance across pretreatment
+variables. Current options are \code{ks.mean}, \code{ks.max}, \code{es.mean}, and \code{es.max}. \code{ks} refers to the
+Kolmogorov-Smirnov statistic and es refers to standardized effect size. These are summarized
+across the pretreatment variables by either the maximum (\code{.max}) or the mean (\code{.mean}).
+Default: \code{c("ks.mean", "es.mean")}.}
 
 \item{sampw}{Optional sampling weights.}
+
+\item{multinom}{\code{TRUE} if used for multinomial propensity scores. Default: \code{FALSE}.}
 
 \item{version}{Legacy?}
 
@@ -78,21 +78,63 @@ distribution from an unweighted two-sample Kolmogorov-Smirnov test. If
 if the product of the effective sample sizes is less than 10,000.
 Otherwise, an approximation based on the asymptotic distribution is used.
 \strong{Warning:} setting \code{ks.exact = TRUE} will add substantial
-computation time for larger sample sizes.}
+computation time for larger sample sizes. Default: \code{NULL}.}
 
-\item{booster}{gbm or xgboost}
+\item{booster}{\code{gbm} or \code{xgboost}. Default: \code{gbm}.}
 
-\item{tree_method}{xgboost param}
+\item{tree_method}{\code{xgboost} param. Default: "hist".}
 
-\item{n.keep}{a numeric variable indicating the algorithm should only
+\item{n.keep}{A numeric variable indicating the algorithm should only
 consider every \code{n.keep}-th iteration of the propensity score model and
-optimize balance over this set instead of all iterations.}
+optimize balance over this set instead of all iterations. Default: 1.}
 
-\item{n.grid}{a numeric variable that sets the grid size for an initial
+\item{n.grid}{A numeric variable that sets the grid size for an initial
 search of the region most likely to minimize the \code{stop.method}. A
 value of \code{n.grid=50} uses a 50 point grid from \code{1:n.trees}. It
 finds the minimum, say at grid point 35. It then looks for the actual
-minimum between grid points 34 and 36.}
+minimum between grid points 34 and 36. Default: 25.}
+}
+\value{
+Returns an object of class \code{ps}, a list containing
+\itemize{
+\item \code{gbm.obj} The returned \link{gbm} object.
+\item \code{treat} The treatment variable.
+\item \code{desc} A list containing balance tables for each method selected in
+\code{stop.methods}. Includes a component for the unweighted
+analysis names \dQuote{unw}. Each \code{desc} component includes
+a list with the following components
+\itemize{
+\item \code{ess} The effective sample size of the control group.
+\item \code{n.treat} The number of subjects in the treatment group.
+\item \code{n.ctrl} The number of subjects in the control group.
+\item \code{max.es} The largest effect size across the covariates.
+\item \code{mean.es} The mean absolute effect size.
+\item \code{max.ks} The largest KS statistic across the covariates.
+\item \code{mean.ks} The average KS statistic across the covariates.
+\item \code{bal.tab} a (potentially large) table summarizing the quality of the
+weights for equalizing the distribution of features across
+the two groups. This table is best extracted using the
+\link{bal.table} method. See the help for \link{bal.table} for details
+on the table's contents.
+\item \code{n.trees} The estimated optimal number of \link{gbm}
+iterations to optimize the loss function for the associated
+\code{stop.methods}.
+\item \code{ps} a data frame containing the estimated propensity scores. Each
+column is associated with one of the methods selected in \code{stop.methods}.
+\item \code{w} a data frame containing the propensity score weights. Each
+column is associated with one of the methods selected in \code{stop.methods}.
+If sampling weights are given then these are incorporated into these weights.
+\item \code{estimand} The estimand of interest (ATT or ATE).
+}
+\item \code{datestamp} Records the date of the analysis.
+\item \code{parameters} Saves the \code{ps} call.
+\item \code{alerts} Text containing any warnings accumulated during the estimation.
+\item \code{iters} A sequence of iterations used in the GBM fits used by \code{plot} function.
+\item \code{balance} The balance measures for the pretreatment covariates, with a column for each
+\code{stop.method}.
+\item \code{n.trees} Maximum number of trees considered in GBM fit.
+\item \code{data} Data as specified in the \code{data} argument.
+}
 }
 \description{
 \code{ps} calculates propensity scores using gradient boosted logistic
@@ -100,19 +142,24 @@ regression and diagnoses the resulting propensity scores using a variety of
 methods
 }
 \details{
-For user more comfortable with the options of \code{\link[xgboost]{xgboost}},
+For user more comfortable with the options of \link{xgboost},
 the options for \code{ps} controlling the behavior of the gradient boosting
-algorithm can be specified using the \code{\link[xgboost]{xgboost}} naming
+algorithm can be specified using the \link{xgboost} naming
 scheme. This includes \code{nrounds}, \code{max_depth}, \code{eta}, and
 \code{subsample}. In addition, the list of parameters passed to
-\code{\link[xgboost]{xgboost}} can be specified with \code{params}.
+\link{xgboost} can be specified with \code{params}.
 
 Note that unlike earlier versions of \code{twang}, the plotting functions are
-no longer included in the \code{ps} function. See  \code{\link{plot}} for
+no longer included in the \code{ps} function. See  \link{plot} for
 details of the plots.
 }
 \references{
 Dan McCaffrey, G. Ridgeway, Andrew Morral (2004). "Propensity
-  Score Estimation with Boosted Regression for Evaluating Adolescent
-  Substance Abuse Treatment", \emph{Psychological Methods} 9(4):403-425.
+Score Estimation with Boosted Regression for Evaluating Adolescent
+Substance Abuse Treatment", \emph{Psychological Methods} 9(4):403-425.
 }
+\seealso{
+\link{gbm}
+}
+\keyword{models,}
+\keyword{multivariate}
