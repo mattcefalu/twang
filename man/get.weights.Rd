@@ -16,7 +16,7 @@ get.weights(ps1, stop.method = NULL, estimand = NULL,
 the treated (ATT) or the average treatment effect on the population (ATE). By default,
 \code{get.weights} will use the estimand used to fit the \code{ps} object.}
 
-\item{withSampw}{Whether to return weights with sample weights multiplied in, if they were
+\item{withSampW}{Whether to return weights with sample weights multiplied in, if they were
 provided in the original \code{ps} or \code{mnps} call. Default: \code{TRUE}.}
 }
 \value{

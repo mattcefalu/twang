@@ -41,7 +41,9 @@ of \code{ps} objects (i.e., the number of distinct time points).}
 frame on a different page. This is intended for situations where the graphical output is being
 saved to a file. Default: \code{FALSE}.}
 
-\item{figureRows}{The figure rows, passed to \link[lattice:displayPlots]{lattice::displayPlots}. Default: \code{NULL}.}
+\item{figureRows}{The figure rows, passed to \link{displayPlots}. Default: \code{NULL}.}
+
+\item{hline}{Arguments passed to \code{panel.abline}.}
 
 \item{...}{Additional arguments.}
 }

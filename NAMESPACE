@@ -1,22 +1,23 @@
 useDynLib(twang)
 
-export(ps, mnps, dx.wts, get.weights, bal.table, stop.methods, bal.stat, means.table, iptw, sensitivity, get.weights.unstab, get.weights.num)
+export(ps, mnps, dx.wts, get.weights, bal.table, stop.methods, bal.stat, means.table, iptw, sensitivity, get.weights.unstab,
+       get.weights.num, displayPlots)
 
 import(gbm, survey, xtable, lattice , data.table , xgboost , ggplot2)
-importFrom("MatrixModels" , model.Matrix)
-importFrom("latticeExtra",as.layer)
+importFrom("MatrixModels", model.Matrix)
+importFrom("latticeExtra", as.layer)
 
 importFrom("grDevices", dev.cur, dev.new)
-importFrom("graphics",plot, boxplot)
+importFrom("graphics", plot, boxplot)
 
 importFrom("stats", approx, as.formula, cor, fitted, formula,
-              median, model.extract, model.frame, na.pass, nlm,
-              optimize, predict, quasibinomial, runif, terms,
-              update, var)
+           median, model.extract, model.frame, na.pass, nlm,
+           optimize, predict, quasibinomial, runif, terms,
+           update, var, chisq.test, model.matrix, pf, plogis, pt,
+           reformulate, xtabs)
 
 S3method(boxplot, ps)
 S3method(boxplot, mnps)
-S3method(ggplot, ps)
 S3method(plot, ps)
 S3method(plot, mnps)
 S3method(plot, dxwts)
@@ -35,5 +36,3 @@ S3method(print, summary.mnps)
 S3method(print, summary.iptw)
 S3method(print, summary.mniptw)
 S3method(print, dxwts)
-
-

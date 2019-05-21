@@ -243,8 +243,8 @@ ps.fast<-function(formula ,
       # }
    }
    if ( any(grepl("ks.",stop.method.names)) ){
-      if(verbose) cat("Calculating Kolmogorov–Smirnov statistics\n")
-     
+      if(verbose) cat("Calculating Kolmogorov-Smirnov statistics\n")
+
       # find the optimal interval for ks.mean and ks.max based on 25 point grid     
       ks.effect = calcKS(data=bal.data,w=W[,iters.grid],treat=data[,treat.var] , multinomATE=(estimand=="ATE" & multinom) , sw=sampW)
      

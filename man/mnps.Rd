@@ -23,11 +23,19 @@ confounding variables on the right side.}
 
 \item{n.trees}{Number of gbm iterations passed on to \link{gbm}. Default: 10000.}
 
+\item{nrounds}{Equivalent to \code{n.trees}.}
+
 \item{interaction.depth}{\code{interaction.depth} passed on to \link{gbm}. Default: 3.}
+
+\item{max_depth}{Equivalent to \code{interaction.depth}.}
 
 \item{shrinkage}{\code{shrinkage} passed on to \link{gbm}. Default: 0.01.}
 
+\item{eta}{Equivalent to \code{shrinkage}.}
+
 \item{bag.fraction}{\code{bag.fraction} passed on to \link{gbm}. Default: 1.0.}
+
+\item{subsample}{Equivalent to \code{bag.fraction}.}
 
 \item{params}{...}
 

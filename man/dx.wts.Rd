@@ -29,7 +29,7 @@ Ignored if \code{x} is a ps object. Default: \code{TRUE}.}
 \item{sampw}{Optional sampling weights. If \code{x} is a \code{ps} object, then the
 sampling weights should have been passed to \link{ps} and
 not specified here. \code{dx.wts} will issue a warning if
-\code{x} is a \code{ps object and}sampw` is also specified.}
+\code{x} is a \code{ps object and }sampw` is also specified.}
 
 \item{perm.test.iters}{A non-negative integer giving the number of iterations
 of the permutation test for the KS statistic. If \code{perm.test.iters=0},

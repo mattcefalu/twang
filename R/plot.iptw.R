@@ -28,7 +28,8 @@
 #' @param multiPage When multiple frames of a figure are produced, `multiPage = TRUE` will print each
 #'   frame on a different page. This is intended for situations where the graphical output is being
 #'   saved to a file. Default: `FALSE`.
-#' @param figureRows The figure rows, passed to [lattice::displayPlots]. Default: `NULL`.
+#' @param figureRows The figure rows, passed to [displayPlots]. Default: `NULL`.
+#' @param hline Arguments passed to `panel.abline`.
 #' @param ... Additional arguments.
 #'
 #' @references Dan McCaffrey, G. Ridgeway, Andrew Morral (2004). "Propensity

@@ -17,9 +17,13 @@
 #'   confounding variables on the right side.
 #' @param data The dataset, includes treatment assignment as well as covariates.
 #' @param n.trees Number of gbm iterations passed on to [gbm]. Default: 10000.
+#' @param nrounds Equivalent to `n.trees`.
 #' @param interaction.depth `interaction.depth` passed on to [gbm]. Default: 3.
+#' @param max_depth Equivalent to `interaction.depth`.
 #' @param shrinkage `shrinkage` passed on to [gbm]. Default: 0.01.
+#' @param eta Equivalent to `shrinkage`.
 #' @param bag.fraction `bag.fraction` passed on to [gbm]. Default: 1.0.
+#' @param subsample Equivalent to `bag.fraction`.
 #' @param params ...
 #' @param perm.test.iters A non-negative integer giving the number of iterations
 #'   of the permutation test for the KS statistic. If `perm.test.iters=0`

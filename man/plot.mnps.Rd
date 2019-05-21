@@ -58,6 +58,8 @@ saved to a file.}
 
 \item{print}{If \code{FALSE}, the figure is returned but not printed. Default: \code{TRUE}.}
 
+\item{hline}{Arguments passed to \code{panel.abline}.}
+
 \item{...}{Additional arguments.}
 }
 \description{
@@ -72,7 +74,7 @@ Score Estimation with Boosted Regression for Evaluating Adolescent
 Substance Abuse Treatment", \emph{Psychological Methods} 9(4):403-425.
 }
 \seealso{
-\link{mpns}
+\link{mnps}
 }
 \keyword{models,}
 \keyword{multivariate}

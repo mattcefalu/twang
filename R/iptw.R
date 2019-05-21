@@ -16,17 +16,21 @@
 #' @param priorTreatment For long format fits, includes treatment levels from previous times if `TRUE`. This
 #'   argument is ignored for wide format fits. Default: `TRUE`.
 #' @param n.trees Number of gbm iterations passed on to [gbm].
+#' @param nrounds Equivalent to `n.trees`.
 #' @param interaction.depth A positive integer denoting the tree depth used in
 #'   gradient boosting. Only one of `interaction.depth` and
 #'   `max_depth` can be specified. Default: 3.
+#' @param max_depth Equivalent to `interaction.depth`.
 #' @param shrinkage A numeric value between 0 and 1 denoting the learning rate.
 #'   See [gbm] for more details. Only one of `shrinkage`
 #'   and `eta` can be specified. Default: 0.01.
+#' @param eta Equivalent to `shrinkage`.
 #' @param bag.fraction A numeric value between 0 and 1 denoting the fraction of
 #'   the observations randomly selected in each iteration of the gradient
 #'   boosting algorithm to propose the next tree. See [gbm] for
 #'   more details. Only one of `bag.fraction` and `subsample` can be
 #'   specified. Default: 1.0.
+#' @param subsample Equivalent to `bag.fraction`.
 #' @param params ...
 #' @param perm.test.iters A non-negative integer giving the number of iterations
 #'   of the permutation test for the KS statistic. If `perm.test.iters=0`

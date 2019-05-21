@@ -25,19 +25,27 @@ potential confounding variables.}
 
 \item{n.trees}{Number of gbm iterations passed on to \link{gbm}. Default: 10000.}
 
+\item{nrounds}{Equivalent to \code{n.trees}.}
+
 \item{interaction.depth}{A positive integer denoting the tree depth used in
 gradient boosting. Only one of \code{interaction.depth} and
 \code{max_depth} can be specified. Default: 3.}
 
+\item{max_depth}{Equivalent to \code{interaction.depth}.}
+
 \item{shrinkage}{A numeric value between 0 and 1 denoting the learning rate.
 See \link{gbm} for more details. Only one of \code{shrinkage}
 and \code{eta} can be specified. Default: 0.01.}
+
+\item{eta}{Equivalent to \code{shrinkage}.}
 
 \item{bag.fraction}{A numeric value between 0 and 1 denoting the fraction of
 the observations randomly selected in each iteration of the gradient
 boosting algorithm to propose the next tree. See \link{gbm} for
 more details. Only one of \code{bag.fraction} and \code{subsample} can be
 specified. Default: 1.0.}
+
+\item{subsample}{Equivalent to \code{bag.fraction}.}
 
 \item{params}{...}
 

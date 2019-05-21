@@ -39,13 +39,14 @@
 #'   saved to a file.
 #' @param time For use with `iptw`.
 #' @param print If `FALSE`, the figure is returned but not printed. Default: `TRUE`.
+#' @param hline Arguments passed to `panel.abline`.
 #' @param ... Additional arguments.
 #'
 #' @references Dan McCaffrey, G. Ridgeway, Andrew Morral (2004). "Propensity
 #'   Score Estimation with Boosted Regression for Evaluating Adolescent
 #'   Substance Abuse Treatment", *Psychological Methods* 9(4):403-425.
 #'
-#' @seealso [mpns]
+#' @seealso [mnps]
 #' @keywords models, multivariate
 #'
 #' @method plot mnps

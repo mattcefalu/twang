@@ -10,7 +10,7 @@
 #' @param estimand Indicates whether the weights are for the average treatment effect on
 #'   the treated (ATT) or the average treatment effect on the population (ATE). By default,
 #'   `get.weights` will use the estimand used to fit the `ps` object.
-#' @param withSampw Whether to return weights with sample weights multiplied in, if they were
+#' @param withSampW Whether to return weights with sample weights multiplied in, if they were
 #'   provided in the original `ps` or `mnps` call. Default: `TRUE`.
 #'
 #' @return Returns a vector of weights.

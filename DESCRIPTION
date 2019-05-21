@@ -5,12 +5,21 @@ Title: Toolkit for Weighting and Analysis of Nonequivalent Groups
 Author: Greg Ridgeway, Dan McCaffrey, Andrew Morral, Beth Ann Griffin, Lane Burgette, Matthew Cefalu
 	<Matthew_Cefalu@rand.org>
 Maintainer: Matthew Cefalu <Matthew_Cefalu@rand.org>
-Depends: R (>= 2.10), gbm (>= 1.5-3), survey, xtable, lattice,
-        latticeExtra, MatrixModels, data.table, xgboost, ggplot2
+Depends: 
+    R (>= 2.10), 
+    gbm (>= 1.5-3),
+    survey,
+    xtable,
+    lattice,
+    latticeExtra,
+    MatrixModels,
+    data.table,
+    xgboost,
+    ggplot2
 Description: Provides functions for propensity score
         estimating and weighting, nonresponse weighting, and diagnosis
-        of the weights. 
-License: GPL (>= 2)
+        of the weights.
+License: GPL + file LICENSE
 Encoding: UTF-8
 NeedsCompilation: yes
 Repository: CRAN
