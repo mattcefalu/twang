@@ -164,7 +164,7 @@ ps<-function(formula = formula(data),
    subsample    <- if (!is.null(args$subsample)) args$subsample else bag.fraction
    nrounds      <- if (!is.null(args$nrounds)) args$nrounds else n.trees
    eta          <- if (!is.null(args$eta)) args$eta else shrinkage
-   
+
    # throw some errors if the user specifies two versions of the same option
    if (!missing(n.trees) & ('nrounds' %in% args_named))             stop("Only one of n.trees and nrounds can be specified.")
    if (!missing(interaction.depth) & ('max_depth' %in% args_named)) stop("Only one of interaction.depth and max_depth can be specified.")

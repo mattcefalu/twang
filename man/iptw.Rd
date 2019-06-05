@@ -6,14 +6,12 @@
 \usage{
 iptw(formula, data, timeInvariant = NULL, cumulative = TRUE,
   timeIndicators = NULL, ID = NULL, priorTreatment = TRUE,
-  n.trees = 10000, nrounds = n.trees, interaction.depth = 3,
-  max_depth = interaction.depth, shrinkage = 0.01, eta = shrinkage,
-  bag.fraction = 1, subsample = bag.fraction, params = NULL,
-  perm.test.iters = 0, print.level = 2, verbose = TRUE,
-  stop.method = c("es.max"), sampw = NULL, version = "fast",
-  ks.exact = NULL, booster = "gbm", tree_method = "hist",
-  save.propensities = FALSE, file = NULL, n.keep = 1, n.grid = 25,
-  ...)
+  n.trees = 10000, interaction.depth = 3, shrinkage = 0.01,
+  bag.fraction = 1, perm.test.iters = 0, print.level = 2,
+  verbose = TRUE, stop.method = c("es.max"), sampw = NULL,
+  version = "fast", ks.exact = NULL, booster = "gbm",
+  tree_method = "hist", save.propensities = FALSE, file = NULL,
+  n.keep = 1, n.grid = 25, ...)
 }
 \arguments{
 \item{formula}{Either a single formula (long format) or a list with formulas.}
@@ -35,29 +33,19 @@ argument is ignored for wide format fits. Default: \code{TRUE}.}
 
 \item{n.trees}{Number of gbm iterations passed on to \link{gbm}.}
 
-\item{nrounds}{Equivalent to \code{n.trees}.}
-
 \item{interaction.depth}{A positive integer denoting the tree depth used in
 gradient boosting. Only one of \code{interaction.depth} and
 \code{max_depth} can be specified. Default: 3.}
 
-\item{max_depth}{Equivalent to \code{interaction.depth}.}
-
 \item{shrinkage}{A numeric value between 0 and 1 denoting the learning rate.
 See \link{gbm} for more details. Only one of \code{shrinkage}
 and \code{eta} can be specified. Default: 0.01.}
-
-\item{eta}{Equivalent to \code{shrinkage}.}
 
 \item{bag.fraction}{A numeric value between 0 and 1 denoting the fraction of
 the observations randomly selected in each iteration of the gradient
 boosting algorithm to propose the next tree. See \link{gbm} for
 more details. Only one of \code{bag.fraction} and \code{subsample} can be
 specified. Default: 1.0.}
-
-\item{subsample}{Equivalent to \code{bag.fraction}.}
-
-\item{params}{...}
 
 \item{perm.test.iters}{A non-negative integer giving the number of iterations
 of the permutation test for the KS statistic. If \code{perm.test.iters=0}
@@ -78,7 +66,12 @@ Default: \code{c("es.max")}.}
 
 \item{sampw}{Optional sampling weights.}
 
-\item{version}{Legacy?}
+\item{version}{"gbm", "xgboost", or "legacy", indicating which version of the twang package to use.
+\itemize{
+\item \code{"gbm"} Uses gradient boosting from the \code{gbm} package.
+\item \code{"xgboost"} Uses gradient boosting from the \code{xgboost} package.
+\item \code{"legacy"} Uses the prior implementation of the `ps`` function.
+}}
 
 \item{ks.exact}{\code{NULL} or a logical indicating whether the
 Kolmogorov-Smirnov p-value should be based on an approximation of exact
