@@ -1,7 +1,7 @@
 #' Propensity score estimation
 #'
-#' `mnps` calculates propensity scores and diagnoses them using a variety of
-#' methods, but centered on using boosted logistic regression as implemented in [gbm].
+#' `mnps` mnps calculates propensity scores for more than two treatment groups using gradient boosted
+#' logistic regression, and diagnoses the resulting propensity scores using a variety of methods.
 #' 
 #' `formula` should be something like `"treatment ~ X1 + X2 + X3"`. The treatment variable
 #' should be a variable with three or more levels. There is no need to specify interaction
@@ -17,14 +17,9 @@
 #'   confounding variables on the right side.
 #' @param data The dataset, includes treatment assignment as well as covariates.
 #' @param n.trees Number of gbm iterations passed on to [gbm]. Default: 10000.
-#' @param nrounds Equivalent to `n.trees`.
 #' @param interaction.depth `interaction.depth` passed on to [gbm]. Default: 3.
-#' @param max_depth Equivalent to `interaction.depth`.
 #' @param shrinkage `shrinkage` passed on to [gbm]. Default: 0.01.
-#' @param eta Equivalent to `shrinkage`.
 #' @param bag.fraction `bag.fraction` passed on to [gbm]. Default: 1.0.
-#' @param subsample Equivalent to `bag.fraction`.
-#' @param params ...
 #' @param perm.test.iters A non-negative integer giving the number of iterations
 #'   of the permutation test for the KS statistic. If `perm.test.iters=0`
 #'   then the function returns an analytic approximation to the p-value. Setting
@@ -45,7 +40,10 @@
 #'   across the pretreatment variables by either the maximum (`.max`) or the mean (`.mean`). 
 #'   Default: `c("es.mean")`.
 #' @param sampw Optional sampling weights.
-#' @param version Legacy?
+#' @param version "gbm", "xgboost", or "legacy", indicating which version of the twang package to use.
+#'   * `"gbm"` Uses gradient boosting from the `gbm` package.
+#'   * `"xgboost"` Uses gradient boosting from the `xgboost` package.
+#'   * `"legacy"` Uses the prior implementation of the `ps`` function.
 #' @param ks.exact `NULL` or a logical indicating whether the
 #'   Kolmogorov-Smirnov p-value should be based on an approximation of exact
 #'   distribution from an unweighted two-sample Kolmogorov-Smirnov test. If
@@ -70,7 +68,7 @@
 #'   used to specify which treatment condition is considered 'the treated'.
 #'   It must be one of the levels of the treatment variable. It is ignored for
 #'   ATE analyses.
-#' @param ... Additional arguments that are passed to ps function.
+#' @param ... Additional arguments that are passed to `ps` function.
 #'
 #' @return Returns an object of class `mnps`, which consists of the following.  
 #'   * `psList` A list of `ps` objects with length equal to the number of time periods.
@@ -95,13 +93,17 @@
 #'
 #' @export
 mnps<-function(formula,
-               data,                         # data
+               data,
                # boosting options -- gbm version first, then xgboost name
-               n.trees=10000, nrounds=n.trees,
-               interaction.depth=3, max_depth=interaction.depth,
-               shrinkage=0.01, eta=shrinkage , 
-               bag.fraction = 1.0, subsample=bag.fraction,
-               params=NULL,
+               n.trees=10000,
+               # nrounds=n.trees,
+               interaction.depth=3,
+               # max_depth=interaction.depth,
+               shrinkage=0.01,
+               # eta=shrinkage , 
+               bag.fraction = 1.0,
+               # subsample=bag.fraction,
+               # params=NULL,
                perm.test.iters=0,
                print.level=2,       
                verbose=TRUE,
@@ -115,26 +117,36 @@ mnps<-function(formula,
                file=NULL,
                n.keep = 1,
                n.grid = 25,
-               #n.grid.ks = 25,
-               #n.grid.es = NULL,
+               # n.grid.ks = 25,
+               # n.grid.es = NULL,
                treatATT = NULL,
                ...){
    
-   ## throw some errors if the user specifies two versions of the same option
-   if (!missing(n.trees) & !missing(nrounds)) stop("Only one of n.trees and nrounds can be specified.")
-   if (!missing(interaction.depth) & !missing(max_depth)) stop("Only one of interaction.depth and max_depth can be specified.")
-   if (!missing(shrinkage) & !missing(eta)) stop("Only one of shrinkage and eta can be specified.")
-   if (!missing(bag.fraction) & !missing(subsample)) stop("Only one of shrinkage and eta can be specified.")
+   # collect named arguments from dots
+   args         <- list(...)
+   args_named   <- names(args)
+
+   params       <- args$params
+   max_depth    <- if (!is.null(args$max_depth)) args$max_depth else interaction.depth
+   subsample    <- if (!is.null(args$subsample)) args$subsample else bag.fraction
+   nrounds      <- if (!is.null(args$nrounds)) args$nrounds else n.trees
+   eta          <- if (!is.null(args$eta)) args$eta else shrinkage
+   
+   # throw some errors if the user specifies two versions of the same option
+   if (!missing(n.trees) & ('nrounds' %in% args_named))             stop("Only one of n.trees and nrounds can be specified.")
+   if (!missing(interaction.depth) & ('max_depth' %in% args_named)) stop("Only one of interaction.depth and max_depth can be specified.")
+   if (!missing(shrinkage) & ('eta' %in% args_named))               stop("Only one of shrinkage and eta can be specified.")
+   if (!missing(bag.fraction) & ('subsample' %in% args_named))      stop("Only one of shrinkage and eta can be specified.")
    
    # throw error if user specifies params with other options
-   if (!missing(interaction.depth) | !missing(max_depth) | !missing(shrinkage) | !missing(eta) | !missing(bag.fraction) | !missing(subsample) ){
+   if (!missing(interaction.depth) | ('max_depth' %in% args_named) | !missing(shrinkage) | ('eta' %in% args_named) | !missing(bag.fraction) | ('subsample' %in% args_named) ){
       if (!is.null(params)) stop("params cannot be specified with any of interaction.depth, max_depth, shrinkage, eta, bag.fraction, or subsample.")
    }
    
    if (version=="legacy"){
       ## throw some errors if the user specifies an option not allowed in legacy version of ps
       if (!is.null(ks.exact))     stop("Option ks.exact is not allowed with version='legacy'")
-      if (!is.null(params))     stop("Option params is not allowed with version='legacy'")
+      if (!is.null(params))       stop("Option params is not allowed with version='legacy'")
       if (!missing(booster))      stop("Option booster is not allowed with version='legacy'")
       if (!missing(tree_method))  stop("Option tree_method is not allowed with version='legacy'")
       if (!missing(n.keep))       stop("Option n.keep is not allowed with version='legacy'")
@@ -144,7 +156,7 @@ mnps<-function(formula,
       
       return(mnps.old(formula = formula,
                     data=data,                         # data
-                    n.trees=nrounds,                 # gbm options
+                    n.trees=nrounds,                   # gbm options
                     interaction.depth=max_depth,
                     shrinkage=eta,
                     bag.fraction = subsample,

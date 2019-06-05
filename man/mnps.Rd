@@ -4,10 +4,8 @@
 \alias{mnps}
 \title{Propensity score estimation}
 \usage{
-mnps(formula, data, n.trees = 10000, nrounds = n.trees,
-  interaction.depth = 3, max_depth = interaction.depth,
-  shrinkage = 0.01, eta = shrinkage, bag.fraction = 1,
-  subsample = bag.fraction, params = NULL, perm.test.iters = 0,
+mnps(formula, data, n.trees = 10000, interaction.depth = 3,
+  shrinkage = 0.01, bag.fraction = 1, perm.test.iters = 0,
   print.level = 2, verbose = TRUE, estimand = "ATE",
   stop.method = c("es.max"), sampw = NULL, version = "fast",
   ks.exact = NULL, booster = "gbm", tree_method = "hist",
@@ -23,21 +21,11 @@ confounding variables on the right side.}
 
 \item{n.trees}{Number of gbm iterations passed on to \link{gbm}. Default: 10000.}
 
-\item{nrounds}{Equivalent to \code{n.trees}.}
-
 \item{interaction.depth}{\code{interaction.depth} passed on to \link{gbm}. Default: 3.}
-
-\item{max_depth}{Equivalent to \code{interaction.depth}.}
 
 \item{shrinkage}{\code{shrinkage} passed on to \link{gbm}. Default: 0.01.}
 
-\item{eta}{Equivalent to \code{shrinkage}.}
-
 \item{bag.fraction}{\code{bag.fraction} passed on to \link{gbm}. Default: 1.0.}
-
-\item{subsample}{Equivalent to \code{bag.fraction}.}
-
-\item{params}{...}
 
 \item{perm.test.iters}{A non-negative integer giving the number of iterations
 of the permutation test for the KS statistic. If \code{perm.test.iters=0}
@@ -65,7 +53,12 @@ Default: \code{c("es.mean")}.}
 
 \item{sampw}{Optional sampling weights.}
 
-\item{version}{Legacy?}
+\item{version}{"gbm", "xgboost", or "legacy", indicating which version of the twang package to use.
+\itemize{
+\item \code{"gbm"} Uses gradient boosting from the \code{gbm} package.
+\item \code{"xgboost"} Uses gradient boosting from the \code{xgboost} package.
+\item \code{"legacy"} Uses the prior implementation of the `ps`` function.
+}}
 
 \item{ks.exact}{\code{NULL} or a logical indicating whether the
 Kolmogorov-Smirnov p-value should be based on an approximation of exact
@@ -99,7 +92,7 @@ used to specify which treatment condition is considered 'the treated'.
 It must be one of the levels of the treatment variable. It is ignored for
 ATE analyses.}
 
-\item{...}{Additional arguments that are passed to ps function.}
+\item{...}{Additional arguments that are passed to \code{ps} function.}
 }
 \value{
 Returns an object of class \code{mnps}, which consists of the following.
@@ -117,8 +110,8 @@ Returns an object of class \code{mnps}, which consists of the following.
 }
 }
 \description{
-\code{mnps} calculates propensity scores and diagnoses them using a variety of
-methods, but centered on using boosted logistic regression as implemented in \link{gbm}.
+\code{mnps} mnps calculates propensity scores for more than two treatment groups using gradient boosted
+logistic regression, and diagnoses the resulting propensity scores using a variety of methods.
 }
 \details{
 \code{formula} should be something like \code{"treatment ~ X1 + X2 + X3"}. The treatment variable
