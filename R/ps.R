@@ -157,9 +157,9 @@ ps<-function(formula = formula(data),
    # collect named arguments from dots
    args         <- list(...)
    args_named   <- names(args)
-   
+
    params       <- args$params
-   multinom     <- args$multinom
+   multinom     <- if (!is.null(args$multinom)) args$multinom else FALSE
    max_depth    <- if (!is.null(args$max_depth)) args$max_depth else interaction.depth
    subsample    <- if (!is.null(args$subsample)) args$subsample else bag.fraction
    nrounds      <- if (!is.null(args$nrounds)) args$nrounds else n.trees
