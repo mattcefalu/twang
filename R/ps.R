@@ -106,6 +106,7 @@ ps<-function(formula = formula(data),
              n.grid = 25,
              #n.grid.ks = 25,
              #n.grid.es = NULL,
+             moderator = NULL,
              ...){
    
    ## throw some errors if the user specifies two versions of the same option
@@ -129,6 +130,7 @@ ps<-function(formula = formula(data),
       if (!missing(n.grid))       stop("Option n.grid is not allowed with version='legacy'")
       #if (!missing(n.grid.ks))    stop("Option n.grid.ks is not allowed with version='legacy'")
       #if (!missing(n.grid.es))    stop("Option n.grid.es is not allowed with version='legacy'")
+      if (!is.null(moderator))     stop("Option moderator is not allowed with version='legacy'")
       
       return(ps.old(formula = formula,
                      data=data,                         # data
@@ -170,6 +172,7 @@ ps<-function(formula = formula(data),
                   n.grid = n.grid,
                  # n.grid.ks = n.grid.ks,
                   #n.grid.es = n.grid.es,
+                 moderator = moderator,
                   ...))
   }
   
