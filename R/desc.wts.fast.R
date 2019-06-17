@@ -7,7 +7,7 @@ desc.wts.fast <-function(data,w, sampw = sampw,
                     verbose=TRUE,
                     alerts.stack,
                     estimand, multinom = FALSE, fillNAs = FALSE,
-                    ks.exact=NULL){
+                    ks.exact=NULL, moderator.var = NULL){
   
   if(is.null(vars)) vars <- names(data)[names(data)!=treat.var]
   
@@ -27,7 +27,7 @@ desc.wts.fast <-function(data,w, sampw = sampw,
                         treat.var=treat.var1,
                         na.action=na.action,
                         estimand=estimand, multinom = multinom, fillNAs = fillNAs,
-                        ks.exact=ks.exact)
+                        ks.exact=ks.exact,moderator.var=moderator.var)
   pval.maxks <- NA
   # compute permutation p-values for KS statistic
   if(perm.test.iters>0)
@@ -67,7 +67,8 @@ desc.wts.fast <-function(data,w, sampw = sampw,
                              treat.var=treat.var1,
                              na.action=na.action,
                              get.means=FALSE,
-                             estimand=estimand, multinom = multinom)
+                             estimand=estimand, multinom = multinom,
+                             moderator.var=moderator.var)
       # if a bootstrap sample is missing a level need to make sure
       #   these still align
       j <- match(rownames(bal.temp$results),names(pval.var))
