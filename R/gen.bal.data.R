@@ -1,4 +1,4 @@
-gen.bal.data <- function(data,var.names){
+gen.bal.data <- function(data,var.names,mod.name=NULL){
 
   # keeps track of factor variables and numeric variables
   factor.vars = var.names[sapply(data[,var.names],class)=="factor"]
@@ -6,7 +6,7 @@ gen.bal.data <- function(data,var.names){
   
   # construct a dataset that is used to optimize balance 
   # numeric vars must be first columns to ensure names are not altered due to factor expansion
-  bal.data = data[,numeric.vars]
+  bal.data = data[,numeric.vars,drop = FALSE]
   
   # expand factor variables into series of indicators
   for (vars in factor.vars){
@@ -26,9 +26,13 @@ gen.bal.data <- function(data,var.names){
   colnames(NAdata) = paste0(colnames(NAdata),":<NA>")
   bal.data = cbind(bal.data , NAdata[,apply(NAdata,2,any),drop=F])
   
+  if (!is.null(mod.name)) {
+    bal.data <- cbind(bal.data, data[,mod.name,drop = FALSE])
+  }
+  
   # handles factors or NAs that have names that expand to the same name as a numeric
   #bal.data = data.frame(bal.data)
   colnames(bal.data) = make.unique(colnames(bal.data))
   
-  return(list(bal.data=bal.data , numeric.vars=numeric.vars , factor.vars=factor.vars))
+  return(list(bal.data=bal.data , numeric.vars=numeric.vars , factor.vars=factor.vars, moderator.var = mod.name))
 }
