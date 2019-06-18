@@ -76,6 +76,10 @@
 #'   value of \code{n.grid=50} uses a 50 point grid from \code{1:n.trees}. It
 #'   finds the minimum, say at grid point 35. It then looks for the actual
 #'   minimum between grid points 34 and 36.
+#' @param moderator a string containing the name of the moderator variable, which
+#'   must correspond to a factor variable in \code{data} that appears on the right-hand
+#'   side of \code{formula}. If non-\code{NULL}, balance will be assessed not only
+#'   overall, but also within subgroups of the moderator.
 #'   
 #' @references Dan McCaffrey, G. Ridgeway, Andrew Morral (2004). "Propensity
 #'   Score Estimation with Boosted Regression for Evaluating Adolescent
