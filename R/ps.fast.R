@@ -107,7 +107,7 @@ ps.fast <- function(formula ,
   #Process moderator
   if (length(moderator) > 0) {
     if (length(moderator) > 1 || !is.character(moderator)) stop("moderator must be a string of length 1 containing the name of the moderator variable.\n")
-    if (!moderator %in% var.names) stop("The moderator variable must appear on the ride-hand side of the formula.\n")
+    if (!moderator %in% var.names) stop("The moderator variable must appear on the right-hand side of the formula.\n")
     if (is.character(data[[moderator]])) data[[moderator]] <- factor(data[[moderator]])
     if (!is.factor(data[[moderator]])) stop("The moderator variable must be a factor variable.\n")
     if (any(is.na(data[[moderator]]))) stop("The moderator variable cannot have any missing values.\n")
@@ -130,22 +130,23 @@ ps.fast <- function(formula ,
   if(verbose) cat("Fitting boosted model\n")
   
   if (booster=="gbm"){
-    # need to reformulate formula to use this environment
-    form <- paste(deparse(formula, 500), collapse="") 
-    
-    gbm1 <-gbm(formula(form),
-               data = data,
-               weights=sampW,
-               distribution = "bernoulli",
-               n.trees = n.trees,
-               interaction.depth = interaction.depth,
-               n.minobsinnode = n.minobsinnode,
-               shrinkage = shrinkage,
-               ### bag.fraction was 0.5.  revised 101210
-               bag.fraction = bag.fraction,
-               train.fraction = 1,
-               verbose = verbose,
-               keep.data = FALSE)
+
+    #Using do.call eliminates scoping issues because list() evaluates arguments
+    #before sending them to gbm().
+    gbm1 <- do.call(gbm, 
+                    list(formula,
+                         data = data,
+                         weights=sampW,
+                         distribution = "bernoulli",
+                         n.trees = n.trees,
+                         interaction.depth = interaction.depth,
+                         n.minobsinnode = n.minobsinnode,
+                         shrinkage = shrinkage,
+                         ### bag.fraction was 0.5.  revised 101210
+                         bag.fraction = bag.fraction,
+                         train.fraction = 1,
+                         verbose = verbose,
+                         keep.data = FALSE))
     
     # predict propensity scores for all iterations
     iters = (1:n.trees)[(1:n.trees)%%n.keep==0]
@@ -163,6 +164,13 @@ ps.fast <- function(formula ,
         params$objective = "binary:logistic"
       }
     }
+    
+    if (verbose) {
+      callback.list <- list(cb.print.evaluation(), cb.evaluation.log(n.keep=n.keep))
+    }
+    else {
+      callback.list <- list(cb.evaluation.log(n.keep=n.keep))
+    }
     # if (save.propensities){
     #    gbm1 <- xgboost(data=sparse.data , label=data[,treat.var], params=params, tree_method = tree_method, 
     #                    nrounds=n.trees , verbose=verbose , 
@@ -170,8 +178,7 @@ ps.fast <- function(formula ,
     #    ps = readRDS(file=file)
     # }else{
     gbm1 <- xgboost(data=sparse.data , label=data[,treat.var], params=params, tree_method = tree_method, 
-                    feval=pred.xgboost , nrounds=n.trees , verbose=verbose , weight = sampW, 
-                    callbacks=list(cb.print.evaluation() , cb.evaluation.log(n.keep = n.keep)))
+                    feval=pred.xgboost , nrounds=n.trees , verbose=verbose , weight = sampW, callbacks = callback.list)
     iters = (1:n.trees)[(1:n.trees)%%n.keep==0]
     ps = as.matrix(gbm1$evaluation_log)
     #ps= #do.call(cbind,gbm1$evaluation_log$train_pred)
