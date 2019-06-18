@@ -1,4 +1,10 @@
-# Produces a summary table for ps object 
+#' Produces a summary table for `iptw` object
+#'
+#' @param x An `iptw` object
+#' @param ... Additional arguments.
+#'
+#' @method print summary.iptw
+#' @export
 print.summary.iptw <- function(x, ...)
 {
       	nSum <- length(x$summaryList)      	

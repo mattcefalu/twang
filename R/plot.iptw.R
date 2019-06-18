@@ -40,6 +40,7 @@
 #' @keywords models, multivariate
 #'
 #' @method plot iptw
+#' @export
 plot.iptw <- function(x,
                       plots = "optimize",
                       subset = NULL,

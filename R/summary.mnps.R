@@ -15,6 +15,7 @@
 #' @keywords models
 #'
 #' @method summary mnps
+#' @export
 summary.mnps <- function (object, ...){
 
 	nFits <- object$nFits

@@ -1,4 +1,10 @@
-# Produces a summary table for ps object 
+#' Produces a summary table for `mnps` object
+#'
+#' @param x An `mnps` object
+#' @param ... Additional arguments.
+#'
+#' @method print summary.mnps
+#' @export
 print.summary.mnps <- function(x, ...)
 {
       dots <- list(...)

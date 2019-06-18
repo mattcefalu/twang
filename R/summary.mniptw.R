@@ -1,3 +1,10 @@
+#' Summarize a `mniptw` object
+#'
+#' @param object An `mniptw` object.
+#' @param ... Additional arguments.
+#'
+#' @method summary mniptw
+#' @export
 summary.mniptw <- function (object, ...){
 	nFits <- object$nFits
 	summaryList <- vector(mode = "list", length = nFits)

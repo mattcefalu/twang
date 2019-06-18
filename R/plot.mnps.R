@@ -50,6 +50,7 @@
 #' @keywords models, multivariate
 #'
 #' @method plot mnps
+#' @export
 plot.mnps <- function(x,plots = "optimize",
                       pairwiseMax = TRUE,
                       figureRows = NULL,

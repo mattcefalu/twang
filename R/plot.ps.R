@@ -33,6 +33,7 @@
 #' @keywords models, multivariate
 #'
 #' @method plot ps
+#' @export
 plot.ps <- function(x, plots = "optimize", subset = NULL, color = TRUE, ...)
 {
    # Creates diag.plot plots and sends to current device
