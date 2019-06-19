@@ -31,8 +31,7 @@ in the two-sided one-sample and two-sample cases.
 #include <Rmath.h>		/* constants */
 
 /* Two-sample two-sided asymptotic distribution */
-static void 
-pkstwo(int n, double *x, double tol)
+static void pkstwo(int n, double *x, double tol)
 {
    /* x[1:n] is input and output
    *
@@ -54,7 +53,7 @@ pkstwo(int n, double *x, double tol)
          * the value for x < 0.2, and use the standard expansion otherwise.)
    *
       */
-      double new, old, s, w, z;
+   double new, old, s, w, z;
    int i, k, k_max;
    
    k_max = (int) sqrt(2 - log(tol));
@@ -98,7 +97,7 @@ static double psmirnov2x(double *x, int m, int n)
    md = (double) m;
    nd = (double) n;
    /*
-      q has 0.5/mn added to ensure that rounding error doesn't
+   q has 0.5/mn added to ensure that rounding error doesn't
    turn an equality into an inequality, eg abs(1/2-4/5)>3/10 
    */
    q = (0.5 + floor(*x * md * nd - 1e-7)) / (md * nd);
@@ -130,7 +129,7 @@ SEXP pSmirnov2x(SEXP statistic, SEXP snx, SEXP sny)
    int nx = asInteger(snx), ny = asInteger(sny);
    double st = asReal(statistic);
    return ScalarReal(psmirnov2x(&st, nx, ny));
-   }
+}
 
 /* Two-sample two-sided asymptotic distribution */
 SEXP pKS2(SEXP statistic, SEXP stol)
