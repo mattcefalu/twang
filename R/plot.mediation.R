@@ -33,51 +33,105 @@ plot.mediation <- function(x,
                            model_subset = NULL,
                            ...) {
 
+  # TODO : We need a separate impelmentation for outcome mediation
+  if (class(x) != 'weighted') {
+    stop('Plotting only implemented for weighted mediation objects.')
+  }
+
   # TODO : We'll probably want to fix / clean up this function ...
   if (!is.null(model_subset) && !(model_subset %in% c(1, 2))) {
     stop("The `model_subset` must be NULL, 1, or 2.")
   }
 
-  # TODO : We'll probably want to change this ...
+  # TODO : We'll probably want to update this at some point
   if (plots == 'density'){
 
     mediator <- x$data[['M']]
+    treatment <- x$data[['A']]
+
+    # check if the mediator is a factor, because we'll be calculating
+    # things differently if the mediator is a factor vs numeric
+    mediator_as_factor <- is.factor(mediator)
+
     frames <- list()
     for (method in x$stopping_methods) {
-
+      
       # we need to scale the weights to sum to 1 for the density plot
-      # TODO : We'll want to change these to natural indirect weights, probably ...
-      weights <- x[['natural_indirect_weights']][[paste(method, 'ATT', sep='.')]]
+      # these may be the natural indirect weight or the natural direct weights
+      if ('natural_indirect_weights' %in% x) {
+        weights_type <- 'natural_indirect_weights'
+      } else {
+        weights_type <- 'natural_direct_weights'
+      }
+  
+      # extract the weights from the mediation object
+      weights <- x[[weights_type]][, paste(method, 'ATT', sep='.')]
+      
+      # create normalized weights by dividing by the sum of weights;
+      # we do this separately for treatment and control
+      weights <- weights / sum(weights[which(treatment == 0)])
+      mask <- which(treatment == 1)
+      weights[mask] <- (weights[mask] / sum(weights[mask]))
 
-      # we replace any NA values with zero
-      # TODO : Should we do this?
-      weights[is.na(weights)] <- 0
+      # if the mediator is a factor
+      if (mediator_as_factor) {
+  
+        # calculate aggregates for the weighted mediator, treatment
+        a1 <- aggregate(weights[which(treatment == 1)],
+                        by = list(M = factor(mediator[which(treatment == 1)])),
+                        FUN = sum)
+        a1['A'] <- 1
+  
+        # calculate aggregates for the weighted mediator, control
+        a0 <- aggregate(weights[which(treatment == 0)],
+                        by = list(M = factor(mediator[which(treatment == 0)])),
+                        FUN = sum)
+        a0['A'] <- 0
 
-      # we create normalized weights by dividing by the sum of weights
-      weights_normed <- weights / sum(weights)
+        # combine the aggregates
+        a1a0 <- rbind(a1, a0)
+        a1a0['method'] <- method
 
-      # we create a new data frame with the mediator, weights, and method
-      frames[[method]] <- data.frame(mediator = mediator,
-                                     weights = weights,
-                                     weights_normed = weights_normed,
-                                     method = factor(method))
+        # add the combined data frame into the master frames list
+        frames[[method]] <- a1a0
+      } else {
+  
+        # create a new data frame an add it to the master frames list
+        frames[[method]] <- data.frame(M = mediator,
+                                       A = treatment,
+                                       weights = weights,
+                                       method = method)
+        
+      }
+
     }
 
     new_data <- do.call(rbind, frames)
     rownames(new_data) <- 1:nrow(new_data)
 
-    if (is.factor(mediator)) {
-      new_plot <- lattice::barchart(weights ~ mediator | method,
-                                    data = new_data,
-                                    main = "Weights Distribtion vs Mediator, Bar Chart")
+    if (mediator_as_factor) {
+      new_plot <- lattice::barchart(x ~ factor(M) | factor(method),
+                                    groups = factor(A),
+                                    data = new_data,                                   
+                                    origin = 0, 
+                                    auto.key = TRUE,
+                                    ylab = "Proportion",
+                                    xlab = "Weighted Mediator",
+                                    main = "Weighted Mediation Histogram, Control vs. Treatment",
+                                    horiz = FALSE)
+      
 
     } else {
-      new_plot <- lattice::densityplot(~mediator | method,
+      new_plot <- lattice::densityplot(~M | factor(method),
+                                       groups = factor(A),
                                        data = new_data,
-                                       weights = weights_normed,
-                                       color = color,
-                                       aspect = 1,
-                                       main = "Weighted Mediator, Density Plot")
+                                       weights = weights,
+                                       plot.points = FALSE,
+                                       origin = 0, 
+                                       auto.key = TRUE,
+                                       ylab = "Density",
+                                       xlab = "Weighted Mediator",
+                                       main = "Weighted Mediation Density, Control vs. Treatment")
       
     }
     return(new_plot)

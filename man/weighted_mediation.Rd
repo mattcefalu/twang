@@ -4,12 +4,14 @@
 \alias{weighted_mediation}
 \title{Weighted mediation analysis.}
 \usage{
-weighted_mediation(a_treatment, m_mediator, x_covariates = NULL,
-  x_covariates_mediator = NULL, y_outcome = NULL, ps_n.trees = 10000,
+weighted_mediation(a_treatment, m_mediator, x_covariates,
+  y_outcome = NULL, ax_ps = NULL, ax_weights = NULL,
+  estimate_ax = FALSE, ax_covariates = NULL, ps_n.trees = 10000,
   ps_interaction.depth = 3, ps_shrinkage = 0.005,
-  ps_bag.fraction = 1, ps_perm.test.iters = 0, ps_iterlim = 1000,
-  ps_stop.method = c("ks.mean", "ks.max"), ps_sampw = NULL,
-  ps_obj = NULL, ps_weights = NULL, ...)
+  ps_bag.fraction = 1, ps_perm.test.iters = 0, ps_verbose = FALSE,
+  ps_stop.method = c("ks.mean", "ks.max"), ps_version = "fast",
+  ps_booster = "gbm", ps_sampw = NULL, ps_tree_method = "hist",
+  ps_n.keep = 1, ps_n.grid = 25, ...)
 }
 \arguments{
 \item{a_treatment}{integer
@@ -17,70 +19,112 @@ The treatement variable, a, which must be
 dichotomous.}
 
 \item{m_mediator}{numeric
-The mediator variable, m.}
+The mediator variable, m, which can be continuous,
+dichotomous, or categorical.}
 
 \item{x_covariates}{numeric
-The covariates, x
-(Default : \code{NULL}).}
+The covariates, x, for the mediation model, Model M.}
 
-\item{x_covariates_mediator}{numeric
-The covariates, x, if different for the mediator model
-(Default : \code{NULL}).}
-
-\item{y_outcome}{numeric
+\item{y_outcome}{numeric, optional
 The outcome variable, y. If this is not provided, then
-no outcomes will be calculated
+no effects will be calculated and a warning will be raised.
 (Default : \code{NULL}).}
 
-\item{ps_n.trees}{integer
-Number of gbm iterations passed on to \code{gbm}
+\item{ax_ps}{: ps object, optional
+If \code{ax_ps} is provided, then the Model A weights will be
+extracted from this object.
+(Default : \code{NULL}).}
+
+\item{ax_weights}{: numeric, optional
+If \code{ax_weights} is provided, then these will be used as
+the Model A weights.
+(Default : \code{NULL}).}
+
+\item{estimate_ax}{logical, optional
+If \code{estimate_ax=TRUE}, then Model A will be estimated,
+and the user does not have to provide Model A weights (\code{ax_weights})
+or a ps object (\code{ax_ps}) directly. If \code{ax_covariates} is provided,
+then the these covariates will be used to estimate the model p(A = a | X).
+Note that if \code{estimate_ax=TRUE}, Model A will be estimated regardless
+of whether \code{ax_weights} or \code{ax_ps} were provided.
+(Default : \code{NULL}).}
+
+\item{ax_covariates}{numeric, optional
+The covariates to use when calculating Model A, if \code{estimate_ax=TRUE}.
+If \code{ax_covariates} is not provided and \code{estimate_ax=TRUE}, then
+\code{x_covariates} will be used instead, and a warning will be raised.
+(Default : \code{NULL}).}
+
+\item{ps_n.trees}{integer, optional
+Number of gbm iterations passed on to \link{gbm} or \link{xgboost} in the \link{ps}
+function.
 (Default : \code{10000}).}
 
-\item{ps_interaction.depth}{integer
-Interaction.depth passed on to \code{gbm}
+\item{ps_interaction.depth}{integer, optional
+The tree depth passed on to \link{gbm} or \link{xgboost} in the \link{ps}
+function.
 (Default : \code{3}).}
 
-\item{ps_shrinkage}{numerc
-Shrinkage passed on to \code{gbm}
+\item{ps_shrinkage}{numerc, optional
+The learning rate passed on to \link{gbm} or \link{xgboost} in the \link{ps}
+function.
 (Default : \code{0.005}).}
 
-\item{ps_bag.fraction}{numerc
-Bag fraction passed on to \code{gbm}
+\item{ps_bag.fraction}{numerc, optional
+The fraction of observations randomly selected in each iterations,
+passed on to \link{gbm} or \link{xgboost} in the \link{ps} function.
 (Default : \code{1.0}).}
 
-\item{ps_perm.test.iters}{integer
+\item{ps_perm.test.iters}{integer, optional
 A non-negative integer giving the number of iterations
-of the permutation test, passed to \code{gbm}
+of the permutation test for KS, passed to \link{ps}.
 (Default : \code{0}).}
 
-\item{ps_iterlim}{integer
-Maximum number of iterations for the direct optimization
-(Default : \code{1000}).}
+\item{ps_verbose}{logical, optional
+If \code{TRUE}, lots of information will be printed to monitor the
+the progress of the \link{ps} fitting.
+(Default: \code{FALSE}).}
 
-\item{ps_stop.method}{integer
+\item{ps_stop.method}{integer, optional
 A method or methods of measuring and summarizing balance
 across pretreament variables. Current options are \code{ks.mean},
 \code{ks.max}, \code{es.mean}, and \code{es.max}
 (Default : \code{c("ks.mean", "ks.max")}).}
 
-\item{ps_sampw}{numeric
+\item{ps_version}{character, optional
+Which version of \link{ps} to use.
+* \code{"legacy"} Uses the prior implementation of the \code{ps`` function. * All other options use }ps.fast` implementation.
+(Default : "legacy")}
+
+\item{ps_booster}{character, optional
+\code{gbm} or \code{xgboost}
+(Default : 'gbm').}
+
+\item{ps_sampw}{numeric, optional
 Optional sampling weights
 (Default : \code{NULL}).}
 
-\item{ps_obj}{ps object
-Optional \code{ps} object. If this is provided
-it will be used instead of fitting a model
-with \code{x_covariates}.
-(Default : \code{NULL}).}
+\item{ps_tree_method}{character, optional
+Only used with \code{xgboost}. See \link{xgboost} for further details.
+(Default : "hist")}
 
-\item{ps_weights}{data frame
-Optional data.frame object. If this is provided
-it will be used instead of fitting a model
-with \code{x_covariates}.
-(Default : \code{NULL}).}
+\item{ps_n.keep}{integer, optional
+A numeric variable indicating the algorithm should only
+consider every \code{n.keep}-th iteration of the propensity score model and
+optimize balance over this set instead of all iterations. Only used
+with \code{xgboost}.
+(Default : `1``).}
 
-\item{...}{list
-Additional arguments passed to \link[twang:ps]{twang::ps}.}
+\item{ps_n.grid}{integer, optional
+A numeric variable that sets the grid size for an initial
+search of the region most likely to minimize the \code{stop.method}. A
+value of \code{n.grid=50} uses a 50 point grid from \code{1:n.trees}. It
+finds the minimum, say at grid point 35. It then looks for the actual
+minimum between grid points 34 and 36.Only used with \code{xgboost}.
+(Default: `25``).}
+
+\item{...}{list, optional
+Additional arguments passed to \link{ps}.}
 }
 \value{
 mediation object
@@ -90,7 +134,7 @@ The \code{mediation} object includes the following:
 \item \code{model_m} The model M \code{ps()} results.
 \item \code{model_a_weights} The model A weights.
 \item \code{model_m_weights} The model M weights.
-\item \code{natural_indirect_weights} The natural indirect weights.
+\item \code{natural_direct_weights} The natural direct weights.
 \item \code{data} The data set used to compute model M.
 \item \code{stopping_methods} The stopping methods passed to \code{stop.method}.
 \item \code{datestamp} The date when the analysis was run.
@@ -106,7 +150,7 @@ The \code{mediation} object includes the following:
 }
 }
 \description{
-Estimate causal mediation mechanism of a treatment under
+Estimate causal mediation mechanism of a treatment
 using propensity score weighting.
 }
 \details{

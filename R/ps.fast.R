@@ -207,6 +207,7 @@ ps.fast<-function(formula ,
    #iters.grid.es <- round(seq( 1 , length(iters)  ,length=ifelse(is.null(n.grid.es) ,length(iters) ,n.grid.es )))
    
    std.effect = ks.effect = NULL
+   balance.es <- NULL
    if ( any(grepl("es.",stop.method.names)) ){
       if(verbose) cat("Calculating standardized differences\n")
       std.effect = calcES(data=bal.data, w=W[,iters.grid] , treat=data[,treat.var],numeric.vars = numeric.vars , estimand=estimand , multinom=multinom , sw=sampW)
