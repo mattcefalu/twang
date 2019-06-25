@@ -66,15 +66,15 @@ bal.stat.fast <- function(data,vars=NULL,treat.var,w.all, sampw,
     treat_g <- treat[in.]
     w.all_g <- w.all[in.]
 
-    ret = calcES(data=bal.data_g, treat=treat_g, w=as.matrix(w.all_g), numeric.vars=numeric.vars, estimand=estimand, multinom=multinom, sw=sampw[in.], get.means=TRUE, moderator.var = NULL)
-    ret.ks = t(calcKS(data=bal.data_g, w=as.matrix(w.all_g), treat=treat_g, multinomATE=(estimand=="ATE" && multinom), sw=sampw[in.], moderator.var = NULL))
+    ret <- calcES(data=bal.data_g, treat=treat_g, w=as.matrix(w.all_g), numeric.vars=numeric.vars, estimand=estimand, multinom=multinom, sw=sampw[in.], get.means=TRUE, moderator.var = NULL)
+    ret.ks <- t(calcKS(data=bal.data_g, w=as.matrix(w.all_g), treat=treat_g, multinomATE=(estimand=="ATE" && multinom), sw=sampw[in.], moderator.var = NULL))
     colnames(ret.ks) = "ks"
     
     
-    ks.p = NULL
-    ret.test = NULL
+    # ks.p = NULL
+    # ret.test = NULL
 
-    for (var in factor.vars_g){
+    ret.test.factor.list <- lapply(factor.vars_g, function(var){
       x = data_g[in.,var]
       if((sum(is.na(x)) > 0) && (na.action %in% c("level","lowest"))){
         x <- factor(x, levels = c(levels(x), "<NA>"))
@@ -88,8 +88,8 @@ bal.stat.fast <- function(data,vars=NULL,treat.var,w.all, sampw,
       test <- cbind(stat,pval)
       colnames(test) <- c("stat","pval")
       rownames(test) <-  paste(var , levels(x) , sep=":")
-      ret.test = rbind(ret.test , test)
-    }
+      return(test)
+    })
     
     # only want to run t-test for those that arent a factor
     ## surveyglm always uses total sample, not number of non-NA
@@ -98,7 +98,8 @@ bal.stat.fast <- function(data,vars=NULL,treat.var,w.all, sampw,
     WX = sweep( X , 1 , w.all_g , "*")
     Di = crossprod( WX , X)
     ess1 <- sapply(split(w.all_g,treat_g), function(y){sum(y)^2/sum(y^2)})		
-    for (var in numeric.vars_g){
+    
+    ret.test.numeric.list <- lapply(numeric.vars_g, function(var){
       x = bal.data$bal.data[in.,var]
       index = is.na(x)
       x[index] = 0
@@ -112,9 +113,13 @@ bal.stat.fast <- function(data,vars=NULL,treat.var,w.all, sampw,
       resid[index] = 0
       a = sweep(WX,1,resid,"*") # sweep(X,1,resid*w.all*index,"*")
       a = beta[2]/ sqrt(crossprod(a%*%t(D))[2,2]*N/(N-1) ) # sqrt( (D%*%t(a)%*%a%*%t(D)*N/(N-1))[2,2] )
-      ret.test = rbind(ret.test, matrix(c(a, 2*pt(-abs(a), df=N-2)), nrow=1, dimnames = list(var, c("stat","pval"))))
-      
-      # ks stat pvalue
+      return(matrix(c(a, 2*pt(-abs(a), df=N-2)), nrow=1, dimnames = list(var, c("stat","pval"))))
+    })
+    
+    ks.p.list <- lapply(numeric.vars_g, function(var){
+      x = bal.data$bal.data[in.,var]
+      index = is.na(x)
+      x[index] = 0
       if (any(index)){
         ess <- sapply(split(w.all_g[!index],treat_g[!index]), function(y){sum(y)^2/sum(y^2)})	 # sapply(split(w,treat), function(y){sum(y)^2/sum(y^2)})		
       }else{
@@ -141,12 +146,14 @@ bal.stat.fast <- function(data,vars=NULL,treat.var,w.all, sampw,
         }
         pval <- 1 - pkstwo(sqrt(prod(ess)/sum(ess))*ret.ks[var,"ks"])
       }
-      ks.p = rbind(ks.p , data.frame( ks.pval=pval ,row.names = var))
-    }
+      return(data.frame(ks.pval=pval, row.names = var))
+    })
     
-    res = transform(merge(ret , ret.test , by="row.names"),row.names=Row.names , Row.names=NULL)
-    res = transform(merge(res , ret.ks , by="row.names"),row.names=Row.names , Row.names=NULL)
-    res = transform(merge(x=res , y=ks.p , by="row.names" , all.x=T),row.names=Row.names , Row.names=NULL)
+    ret.test <- do.call("rbind", c(ret.test.factor.list, ret.test.numeric.list))
+    ks.p <- do.call("rbind", ks.p.list)
+    
+    f <- function(x, y) {transform(merge(x, y, by="row.names", all.x = TRUE), row.names = Row.names, Row.names = NULL)}
+    res <- Reduce(f, list(ret, ret.test, ret.ks, ks.p))
     
     ## factors are given their chi2 p-value -- they are missing at this point
     res$ks.pval[grepl(":",rownames(res))] = res$pval[grepl(":",rownames(res))] 
