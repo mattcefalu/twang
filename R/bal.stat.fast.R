@@ -47,6 +47,8 @@ bal.stat.fast <- function(data,vars=NULL,treat.var,w.all, sampw,
       data_g <- data
       bal.data_g <- bal.data$bal.data[in.,!colnames(bal.data$bal.data) %in% moderator.var, drop = FALSE]
       vars_g <- vars
+      factor.vars_g <- factor.vars
+      numeric.vars_g <- numeric.vars
       if (g == "") g_name <- ""
       else g_name <- paste0(g, "_")
     }
@@ -56,6 +58,8 @@ bal.stat.fast <- function(data,vars=NULL,treat.var,w.all, sampw,
       data_g <- data[in.,!colnames(data) %in% paste(moderator.var, levels(moderator), sep = ":"), drop = FALSE]
       bal.data_g <- bal.data$bal.data[in.,!colnames(bal.data$bal.data) %in% c(moderator.var, paste(moderator.var, levels(moderator), sep = ":")), drop = FALSE]
       vars_g <- vars[vars != moderator.var]
+      factor.vars_g <- factor.vars[factor.vars != moderator.var]
+      numeric.vars_g <- numeric.vars
       g_name <- paste0(g, "_")
     }
     
@@ -69,8 +73,8 @@ bal.stat.fast <- function(data,vars=NULL,treat.var,w.all, sampw,
     
     ks.p = NULL
     ret.test = NULL
-    
-    for (var in factor.vars){
+
+    for (var in factor.vars_g){
       x = data_g[in.,var]
       if((sum(is.na(x)) > 0) && (na.action %in% c("level","lowest"))){
         x <- factor(x, levels = c(levels(x), "<NA>"))
@@ -81,8 +85,9 @@ bal.stat.fast <- function(data,vars=NULL,treat.var,w.all, sampw,
       
       stat <- c(test$statistic, rep(NA, nrow(test$p) - 1))
       pval <- c(test$p.value, rep(NA, nrow(test$p) -1))
-      test = cbind(stat,pval)
-      rownames(test) =  paste(var , levels(x) , sep=":")
+      test <- cbind(stat,pval)
+      colnames(test) <- c("stat","pval")
+      rownames(test) <-  paste(var , levels(x) , sep=":")
       ret.test = rbind(ret.test , test)
     }
     
@@ -93,7 +98,7 @@ bal.stat.fast <- function(data,vars=NULL,treat.var,w.all, sampw,
     WX = sweep( X , 1 , w.all_g , "*")
     Di = crossprod( WX , X)
     ess1 <- sapply(split(w.all_g,treat_g), function(y){sum(y)^2/sum(y^2)})		
-    for (var in numeric.vars){
+    for (var in numeric.vars_g){
       x = bal.data$bal.data[in.,var]
       index = is.na(x)
       x[index] = 0
@@ -107,7 +112,7 @@ bal.stat.fast <- function(data,vars=NULL,treat.var,w.all, sampw,
       resid[index] = 0
       a = sweep(WX,1,resid,"*") # sweep(X,1,resid*w.all*index,"*")
       a = beta[2]/ sqrt(crossprod(a%*%t(D))[2,2]*N/(N-1) ) # sqrt( (D%*%t(a)%*%a%*%t(D)*N/(N-1))[2,2] )
-      ret.test = rbind(ret.test ,matrix( c(a , 2*pt(-abs(a) ,df=N-2 )) , nrow=1 , dimnames = list(var , c("stat","p"))) )
+      ret.test = rbind(ret.test, matrix(c(a, 2*pt(-abs(a), df=N-2)), nrow=1, dimnames = list(var, c("stat","pval"))))
       
       # ks stat pvalue
       if (any(index)){
