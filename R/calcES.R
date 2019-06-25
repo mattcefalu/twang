@@ -3,7 +3,7 @@ calcES <- function(data,treat,w,numeric.vars,estimand,multinom=FALSE,sw=NULL,get
   # with get.means, only one weight can be specified 
   if (get.means){
     if (  ifelse( is.null(ncol(w)) , FALSE , ncol(w)>1) ){
-      stop("Only a single weight can be specified wtih get.means=TRUE")
+      stop("Only a single weight can be specified with get.means=TRUE")
     }
   }
   
