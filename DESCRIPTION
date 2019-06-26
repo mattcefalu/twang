@@ -17,6 +17,8 @@ Imports:
     data.table,
     xgboost,
     ggplot2
+Suggests:
+    testthat (>= 1.0.0)
 Description: Provides functions for propensity score
         estimating and weighting, nonresponse weighting, and diagnosis
         of the weights.

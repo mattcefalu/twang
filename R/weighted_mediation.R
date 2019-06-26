@@ -296,7 +296,8 @@ weighted_mediation <- function(a_treatment,
     # Collect the results for this stopping method, and add
     # them back into the original results object
     effects_name = paste(stopping_method, "effects", sep = "_")
-    results[[effects_name]] <- list("overall_effect" = overall_effect,
+    results[[effects_name]] <- list("datestamp" = date(),
+                                    "overall_effect" = overall_effect,
                                     "natural_direct_effect" = natural_direct,
                                     "natural_indirect_effect" = natural_indirect,
                                     "expected_treatment0_mediator0" = treatment0_mediator0,

@@ -45,6 +45,17 @@
 #' @param nsims integer
 #'   The number of simulations to perform.
 #'   (Default : `100`)
+#' @param ... list, optional
+#'   Additional arguments.
+#' @return mediation object
+#'   The `mediation` object includes the following:
+#'   - `datestamp` The date when the analysis was run.
+#'   - `overall_effect` The overall effect.
+#'   - `natural_direct_effect` The natural direct effect.
+#'   - `natural_indirect_effect` The natural indirect effect.
+#'   - `expected_treatment0_mediator0` E(Y(0, M(0)))
+#'   - `expected_treatment1_mediator1` E(Y(1, M(1)))
+#'   - `expected_treatment1_mediator0` E(Y(0, M(1)))
 #'
 #' @export
 outcome_mediation <- function(a_treatment,
@@ -238,10 +249,10 @@ outcome_mediation <- function(a_treatment,
   results <- list('overall_effect' = treatment1_mediator1 - treatment0_mediator0,
                   'natural_direct_effect' = treatment1_mediator0 - treatment0_mediator0,
                   'natural_indirect_effect' = treatment1_mediator1 - treatment1_mediator0,
-                  'treatment0_mediator0' = treatment0_mediator0,
-                  'treatment1_mediator1' = treatment1_mediator1,
-                  'treatment0_mediator1' = treatment0_mediator1,
-                  'treatment1_mediator0' = treatment1_mediator0)
+                  'expected_treatment0_mediator0' = treatment0_mediator0,
+                  'expected_treatment1_mediator1' = treatment1_mediator1,
+                  'expected_treatment0_mediator1' = treatment0_mediator1,
+                  'expected_treatment1_mediator0' = treatment1_mediator0)
   class(results) <- "mediation"
   class(results) <- "outcome"
   return(results)

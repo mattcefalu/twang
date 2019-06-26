@@ -90,6 +90,7 @@ plot.mediation <- function(x,
 
         # combine the aggregates
         a1a0 <- rbind(a1, a0)
+        a1a0['A'] <- factor(a1a0['A'])
         a1a0['method'] <- method
 
         # add the combined data frame into the master frames list
@@ -98,7 +99,7 @@ plot.mediation <- function(x,
   
         # create a new data frame an add it to the master frames list
         frames[[method]] <- data.frame(M = mediator,
-                                       A = treatment,
+                                       A = factor(treatment),
                                        weights = weights,
                                        method = method)
         
@@ -111,7 +112,7 @@ plot.mediation <- function(x,
 
     if (mediator_as_factor) {
       new_plot <- lattice::barchart(x ~ factor(M) | factor(method),
-                                    groups = factor(A),
+                                    groups = A,
                                     data = new_data,                                   
                                     origin = 0, 
                                     auto.key = TRUE,
@@ -123,7 +124,7 @@ plot.mediation <- function(x,
 
     } else {
       new_plot <- lattice::densityplot(~M | factor(method),
-                                       groups = factor(A),
+                                       groups = A,
                                        data = new_data,
                                        weights = weights,
                                        plot.points = FALSE,

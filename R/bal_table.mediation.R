@@ -2,6 +2,10 @@
 #'
 #' @name bal_table.mediation
 #' @rdname bal_table.mediation
+#' 
+#' @param x A `mediation` object
+#' @param ... list, optional
+#'   Additional arguments.
 #'
 #' @export
 bal_table.mediation <- function(x, ...) {

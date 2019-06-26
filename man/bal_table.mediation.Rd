@@ -6,6 +6,12 @@
 \usage{
 \method{bal_table}{mediation}(x, ...)
 }
+\arguments{
+\item{x}{A \code{mediation} object}
+
+\item{...}{list, optional
+Additional arguments.}
+}
 \description{
 Compute the balance table for mediation object.
 }

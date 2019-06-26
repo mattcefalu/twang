@@ -71,6 +71,22 @@ the progress of the fitting.
 \item{nsims}{integer
 The number of simulations to perform.
 (Default : \code{100})}
+
+\item{...}{list, optional
+Additional arguments.}
+}
+\value{
+mediation object
+The \code{mediation} object includes the following:
+\itemize{
+\item \code{datestamp} The date when the analysis was run.
+\item \code{overall_effect} The overall effect.
+\item \code{natural_direct_effect} The natural direct effect.
+\item \code{natural_indirect_effect} The natural indirect effect.
+\item \code{expected_treatment0_mediator0} E(Y(0, M(0)))
+\item \code{expected_treatment1_mediator1} E(Y(1, M(1)))
+\item \code{expected_treatment1_mediator0} E(Y(0, M(1)))
+}
 }
 \description{
 Outcome mediation with \link{gbm} or \link{xgboost}.

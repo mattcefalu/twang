@@ -6,6 +6,12 @@
 \usage{
 bal_table(x, ...)
 }
+\arguments{
+\item{x}{An object}
+
+\item{...}{list, optional
+Additional arguments.}
+}
 \description{
 Generic for balance table methods
 }
