@@ -190,18 +190,15 @@ outcome_mediation <- function(a_treatment,
   # do simulations
   res <- matrix(NA, nrow = nsims, ncol = 4)
   for(i in 1:nsims){
-    
-    #if (dist_m == 'bernoulli') {
-    m1 <- rbinom(n = n_obs, 1, prob = M1)
-    m0 <- rbinom(n = n_obs, 1, prob = M0)
-      
-    #  # TODO : This will need to be changed
-    #} else if (dist_m == 'gaussian') {
-    #  m1 <- rnorm(n = n_obs, mean = M1)
-    #  m0 <- rnorm(n = n_obs, mean = M0)
-    # } else {
-    #   stop('Something is wrong...')
-    # }
+
+    # TODO : This will need to be changed
+    if (dist_m == 'bernoulli') {
+      m1 <- rbinom(n = n_obs, 1, prob = M1)
+      m0 <- rbinom(n = n_obs, 1, prob = M0)
+    } else if (dist_m == 'gaussian') {
+      m1 <- rnorm(n = n_obs, mean = M1)
+      m0 <- rnorm(n = n_obs, mean = M0)
+    }
 
     if (booster == "gbm") {
       a1m1 <- list(newdata = data.frame('X' = x_covariates,
@@ -246,14 +243,15 @@ outcome_mediation <- function(a_treatment,
   treatment0_mediator1 <- res_means[3]
   treatment1_mediator0 <- res_means[4]
 
-  results <- list('overall_effect' = treatment1_mediator1 - treatment0_mediator0,
-                  'natural_direct_effect' = treatment1_mediator0 - treatment0_mediator0,
-                  'natural_indirect_effect' = treatment1_mediator1 - treatment1_mediator0,
-                  'expected_treatment0_mediator0' = treatment0_mediator0,
-                  'expected_treatment1_mediator1' = treatment1_mediator1,
-                  'expected_treatment0_mediator1' = treatment0_mediator1,
-                  'expected_treatment1_mediator0' = treatment1_mediator0)
+  results <- list(mediation_type = 'outcome',
+                  datestamp = date(),
+                  overall_effect = treatment1_mediator1 - treatment0_mediator0,
+                  natural_direct_effect = treatment1_mediator0 - treatment0_mediator0,
+                  natural_indirect_effect = treatment1_mediator1 - treatment1_mediator0,
+                  expected_treatment0_mediator0 = treatment0_mediator0,
+                  expected_treatment1_mediator1 = treatment1_mediator1,
+                  expected_treatment0_mediator1 = treatment0_mediator1,
+                  expected_treatment1_mediator0 = treatment1_mediator0)
   class(results) <- "mediation"
-  class(results) <- "outcome"
   return(results)
 }

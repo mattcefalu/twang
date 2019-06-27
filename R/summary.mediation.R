@@ -6,9 +6,12 @@
 #' @method summary mediation
 #' @export
 summary.mediation <- function(object, ...) {
-  
-  # TODO : We'll definitely want to fix / clean up this function
-  
+
+  # TODO : We need a separate impelmentation for outcome mediation
+  if (object$mediation_type != 'weighted') {
+    stop('Summary only implemented for weighted mediation objects.')
+  }
+
   # collect the descriptives for both models,
   # and put these into a named list, `models`
   model_a <- object$model_a$desc
@@ -16,41 +19,29 @@ summary.mediation <- function(object, ...) {
   models <- list("Model A" = model_a,
                  "Model M" = model_m)
   
-  # loop through through each model and each stopping
-  # method, and grab the balance table, then print
-  balance_tables = list()
-  for (model_name in names(models)) {
-    model <- models[[model_name]]
-    
-    for (idx in 1:length(model)) {
-      balance_table <- model[[idx]]$bal.tab$results
-      balance_tables[[paste(model_name, names(model)[[idx]], sep = ", ")]] <- balance_table
-    }
-  }
-  balance_tables <- do.call(rbind, balance_tables)
+  balance_tables <- bal_table(object)
   
   # loop through the effects and put them
   # into a single data frame, then print
-  effects_boolean <- sapply(names(object), function (x) grepl('_effects', x))
-  if (any(effects_boolean)) {
+  effects_names <- sapply(names(object), function (x) grepl('_effects', x))
+  if (any(effects_names)) {
     
-    effects <- object[effects_boolean]
-    results <- matrix(NA, nrow = 7, ncol = length(effects))
-    value_names = NULL
-    for (stopping_method_index in 1:length(effects)) {
+    effects <- object[effects_names]
+    results <- matrix(NA, nrow = 6, ncol = length(effects))
+    for (effect_idx in 1:length(effects)) {
       
-      if (stopping_method_index == 1) {
-        value_names <- names(effects[[stopping_method_index]])
+      if (effect_idx == 1) {
+        effects_columns <- names(effects[[effect_idx]])
       }
-      
-      for (value_index in 1:7) {
-        results[value_index, stopping_method_index] <- effects[[stopping_method_index]][[value_index]]
+
+      for (idx in 1:6) {
+        results[idx, effect_idx] <- effects[[effect_idx]][[idx]]
       }
       
     }
     results_table <- as.data.frame(results)
     colnames(results_table) <- names(effects)
-    rownames(results_table) <- value_names
+    rownames(results_table) <- effects_columns
     
     return(list('results_table' = results_table, 'balance_tables' = balance_tables))
     

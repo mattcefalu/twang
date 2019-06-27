@@ -254,7 +254,8 @@ weighted_mediation <- function(a_treatment,
 
   # Collect the results into a list; if we don't have a model for
   # Model A, then this will just be NULL
-  results <- list(model_a = model_a_res,
+  results <- list(mediation_type = 'weighted',
+                  model_a = model_a_res,
                   model_m = model_m_res,
                   model_a_weights = model_a_weights,
                   model_m_weights = model_m_weights,
@@ -263,7 +264,6 @@ weighted_mediation <- function(a_treatment,
                   stopping_methods = ps_stop.method,
                   datestamp = date())
   class(results) <- "mediation"
-  class(results) <- "weighted"  
 
   # If there is no `y_outcome`, we just return the results at this point;
   # otherwise, we move on to calculate the actual effects
@@ -296,13 +296,12 @@ weighted_mediation <- function(a_treatment,
     # Collect the results for this stopping method, and add
     # them back into the original results object
     effects_name = paste(stopping_method, "effects", sep = "_")
-    results[[effects_name]] <- list("datestamp" = date(),
-                                    "overall_effect" = overall_effect,
-                                    "natural_direct_effect" = natural_direct,
-                                    "natural_indirect_effect" = natural_indirect,
-                                    "expected_treatment0_mediator0" = treatment0_mediator0,
-                                    "expected_treatment1_mediator1" = treatment1_mediator1,
-                                    "expected_treatment1_mediator0" = treatment1_mediator0)
+    results[[effects_name]] <- list(overall_effect = overall_effect,
+                                    natural_direct_effect = natural_direct,
+                                    natural_indirect_effect = natural_indirect,
+                                    expected_treatment0_mediator0 = treatment0_mediator0,
+                                    expected_treatment1_mediator1 = treatment1_mediator1,
+                                    expected_treatment1_mediator0 = treatment1_mediator0)
 
   }
   return(results)

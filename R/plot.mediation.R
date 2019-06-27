@@ -34,7 +34,7 @@ plot.mediation <- function(x,
                            ...) {
 
   # TODO : We need a separate impelmentation for outcome mediation
-  if (class(x) != 'weighted') {
+  if (x$mediation_type != 'weighted') {
     stop('Plotting only implemented for weighted mediation objects.')
   }
 
@@ -55,17 +55,9 @@ plot.mediation <- function(x,
 
     frames <- list()
     for (method in x$stopping_methods) {
-      
-      # we need to scale the weights to sum to 1 for the density plot
-      # these may be the natural indirect weight or the natural direct weights
-      if ('natural_indirect_weights' %in% x) {
-        weights_type <- 'natural_indirect_weights'
-      } else {
-        weights_type <- 'natural_direct_weights'
-      }
   
       # extract the weights from the mediation object
-      weights <- x[[weights_type]][, paste(method, 'ATT', sep='.')]
+      weights <- x[['natural_direct_weights']][, paste(method, 'ATT', sep='.')]
       
       # create normalized weights by dividing by the sum of weights;
       # we do this separately for treatment and control
@@ -90,7 +82,6 @@ plot.mediation <- function(x,
 
         # combine the aggregates
         a1a0 <- rbind(a1, a0)
-        a1a0['A'] <- factor(a1a0['A'])
         a1a0['method'] <- method
 
         # add the combined data frame into the master frames list
@@ -99,7 +90,7 @@ plot.mediation <- function(x,
   
         # create a new data frame an add it to the master frames list
         frames[[method]] <- data.frame(M = mediator,
-                                       A = factor(treatment),
+                                       A = treatment,
                                        weights = weights,
                                        method = method)
         
@@ -112,7 +103,7 @@ plot.mediation <- function(x,
 
     if (mediator_as_factor) {
       new_plot <- lattice::barchart(x ~ factor(M) | factor(method),
-                                    groups = A,
+                                    groups = factor(A, levels = c(0, 1), labels = c('control', 'treatment')),
                                     data = new_data,                                   
                                     origin = 0, 
                                     auto.key = TRUE,
@@ -124,7 +115,7 @@ plot.mediation <- function(x,
 
     } else {
       new_plot <- lattice::densityplot(~M | factor(method),
-                                       groups = A,
+                                       groups = factor(A, levels = c(0, 1), labels = c('control', 'treatment')),
                                        data = new_data,
                                        weights = weights,
                                        plot.points = FALSE,

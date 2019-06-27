@@ -1,17 +1,15 @@
 #' Compute the balance table for mediation object.
 #'
-#' @name bal_table.mediation
-#' @rdname bal_table.mediation
-#' 
 #' @param x A `mediation` object
 #' @param ... list, optional
 #'   Additional arguments.
 #'
+#' @method bal_table mediation
 #' @export
 bal_table.mediation <- function(x, ...) {
 
   # TODO : We need a separate impelmentation for outcome mediation
-  if (class(x) != 'weighted') {
+  if (x$mediation_type != 'weighted') {
     stop('Balance table only implemented for weighted mediation objects.')
   }
 
