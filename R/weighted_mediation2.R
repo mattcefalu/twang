@@ -1,25 +1,146 @@
+#' Weighted mediation analysis.
+#'
+#' Estimate causal mediation mechanism of a treatment
+#' using propensity score weighting.
+#'
+#' For users comfortable with [ps], any options prefaced with
+#' `ps_` are passed directly to the `ps()` function.
+#'
+#' @param a_treatment integer
+#'   The treatement variable, a, which must be
+#'   dichotomous.
+#' @param m_mediator numeric
+#'   The mediator variable, m, which can be continuous,
+#'   dichotomous, or categorical.
+#' @param x_covariates numeric
+#'   The covariates, x, for the mediation model, Model M.
+#' @param y_outcome numeric, optional
+#'   The outcome variable, y. If this is not provided, then
+#'   no effects will be calculated and a warning will be raised.
+#'   (Default : `NULL`).
+#' @param ax_ps : ps object, optional
+#'   If `ax_ps` is provided, then the Model A weights will be
+#'   extracted from this object.
+#'   (Default : `NULL`).
+#' @param ax_weights : numeric, optional
+#'   If `ax_weights` is provided, then these will be used as
+#'   the Model A weights.
+#'   (Default : `NULL`).
+#' @param estimate_ax logical, optional
+#'   If `estimate_ax=TRUE`, then Model A will be estimated,
+#'   and the user does not have to provide Model A weights (`ax_weights`)
+#'   or a ps object (`ax_ps`) directly. If `ax_covariates` is provided,
+#'   then the these covariates will be used to estimate the model p(A = a | X).
+#'   Note that if `estimate_ax=TRUE`, Model A will be estimated regardless
+#'   of whether `ax_weights` or `ax_ps` were provided.
+#'   (Default : `NULL`).
+#' @param ax_covariates numeric, optional
+#'   The covariates to use when calculating Model A, if `estimate_ax=TRUE`.
+#'   If `ax_covariates` is not provided and `estimate_ax=TRUE`, then
+#'   `x_covariates` will be used instead, and a warning will be raised.
+#'   (Default : `NULL`).
+#' @param ps_n.trees integer, optional
+#'   Number of gbm iterations passed on to [gbm] or [xgboost] in the [ps]
+#'   function.
+#'   (Default : `10000`).
+#' @param ps_interaction.depth integer, optional
+#'   The tree depth passed on to [gbm] or [xgboost] in the [ps]
+#'   function.
+#'   (Default : `3`).
+#' @param ps_shrinkage numerc, optional
+#'   The learning rate passed on to [gbm] or [xgboost] in the [ps]
+#'   function.
+#'   (Default : `0.005`).
+#' @param ps_bag.fraction numerc, optional
+#'   The fraction of observations randomly selected in each iterations,
+#'   passed on to [gbm] or [xgboost] in the [ps] function.
+#'   (Default : `1.0`).
+#' @param ps_perm.test.iters integer, optional
+#'   A non-negative integer giving the number of iterations
+#'   of the permutation test for KS, passed to [ps].
+#'   (Default : `0`).
+#' @param ps_verbose logical, optional 
+#'   If `TRUE`, lots of information will be printed to monitor the
+#'   the progress of the [ps] fitting. 
+#'   (Default: `FALSE`).
+#' @param ps_stop.method integer, optional
+#'   A method or methods of measuring and summarizing balance
+#'   across pretreament variables. Current options are `ks.mean`,
+#'   `ks.max`, `es.mean`, and `es.max`
+#'   (Default : `c("ks.mean", "ks.max")`).
+#' @param ps_version character, optional
+#'  Which version of [ps] to use.
+#'     * `"legacy"` Uses the prior implementation of the `ps`` function.
+#'     * All other options use `ps.fast` implementation.
+#'   (Default : "legacy")
+#' @param ps_booster character, optional
+#'   `gbm` or `xgboost`
+#'   (Default : 'gbm').
+#' @param ps_sampw numeric, optional
+#'   Optional sampling weights
+#'   (Default : `NULL`).
+#' @param ps_tree_method character, optional
+#'   Only used with `xgboost`. See [xgboost] for further details. 
+#'   (Default : "hist")
+#' @param ps_n.keep  integer, optional
+#'   A numeric variable indicating the algorithm should only
+#'   consider every `n.keep`-th iteration of the propensity score model and
+#'   optimize balance over this set instead of all iterations. Only used
+#'   with `xgboost`.
+#'   (Default : `1``).
+#' @param ps_n.grid integer, optional
+#'   A numeric variable that sets the grid size for an initial
+#'   search of the region most likely to minimize the `stop.method`. A
+#'   value of `n.grid=50` uses a 50 point grid from `1:n.trees`. It
+#'   finds the minimum, say at grid point 35. It then looks for the actual
+#'   minimum between grid points 34 and 36.Only used with `xgboost`.
+#'   (Default: `25``).
+#' @param ... list, optional
+#'   Additional arguments passed to [ps].
+#' @return mediation object
+#'   The `mediation` object includes the following:
+#'   - `model_a` The model A `ps()` results.
+#'   - `model_m` The model M `ps()` results.
+#'   - `model_a_weights` The model A weights.
+#'   - `model_m_weights` The model M weights.
+#'   - `natural_direct_weights` The natural direct weights.
+#'   - `data` The data set used to compute model M.
+#'   - `stopping_methods` The stopping methods passed to `stop.method`.
+#'   - `datestamp` The date when the analysis was run.
+#'   - For each `stop.method`, a list with the following:
+#'     * `overall_effect` The overall effect.
+#'     * `natural_direct_effect` The natural direct effect.
+#'     * `natural_indirect_effect` The natural indirect effect.
+#'     * `expected_treatment0_mediator0` E(Y(0, M(0)))
+#'     * `expected_treatment1_mediator1` E(Y(1, M(1)))
+#'     * `expected_treatment1_mediator0` E(Y(0, M(1)))
+#'
+#' @seealso [ps]
+#' @keywords models, multivariate
+#'
+#' @export
 weighted_mediation2 <- function(a_treatment,
-                                m_mediator,
-                                x_covariates,
-                                y_outcome = NULL,
-                                ax_ps = NULL,
-                                ax_weights = NULL,
-                                estimate_ax = FALSE,
-                                ax_covariates = NULL,
-                                ps_n.trees = 10000,
-                                ps_interaction.depth = 3,
-                                ps_shrinkage = 0.005,
-                                ps_bag.fraction = 1.0,
-                                ps_perm.test.iters = 0,
-                                ps_verbose = FALSE,
-                                ps_stop.method = c("ks.mean", "ks.max"),
-                                ps_version = "legacy",
-                                ps_booster = "gbm",
-                                ps_sampw = NULL,
-                                ps_tree_method = "hist",
-                                ps_n.keep = 1,
-                                ps_n.grid = 25,
-                                ...) {
+                               m_mediator,
+                               x_covariates,
+                               y_outcome = NULL,
+                               ax_ps = NULL,
+                               ax_weights = NULL,
+                               estimate_ax = FALSE,
+                               ax_covariates = NULL,
+                               ps_n.trees = 10000,
+                               ps_interaction.depth = 3,
+                               ps_shrinkage = 0.005,
+                               ps_bag.fraction = 1.0,
+                               ps_perm.test.iters = 0,
+                               ps_verbose = FALSE,
+                               ps_stop.method = c("ks.mean", "ks.max"),
+                               ps_version = "fast",
+                               ps_booster = "gbm",
+                               ps_sampw = NULL,
+                               ps_tree_method = "hist",
+                               ps_n.keep = 1,
+                               ps_n.grid = 25,
+                               ...) {
   
   # Get the list of initial arguments for `ps()`
   ps_args <- list(formula = A ~ .,
@@ -32,7 +153,7 @@ weighted_mediation2 <- function(a_treatment,
                   stop.method = ps_stop.method, 
                   version = ps_version,
                   sampw = ps_sampw)
-  
+
   # If we are not using the legacy version of `ps()`,
   # then there are some additional arguments to pass
   if (ps_version != 'legacy'){
@@ -42,37 +163,10 @@ weighted_mediation2 <- function(a_treatment,
                                n.grid = ps_n.grid))
   }
   ps_args = c(ps_args, list(...))
-  
+
   # Check for nulls in treatment and mediator, which must exist
   check_missing(a_treatment)
   check_missing(m_mediator)
-  
-  # Check to make sure that either `a_weights` was provided, or `estimate_ax`
-  # was set to `TRUE`; otherwise, we raise an error
-  if (is.null(ax_ps) && is.null(ax_weights) && estimate_ax == FALSE) {
-    stop(paste("If no weights are provided via `ax_weights` and",
-               "no `ps` object is provided via `ax_ps,",
-               "then users must explicitly set `estimate_ax`",
-               "to `TRUE`.", sep = " "))
-  }
-  
-  # If `ax_ps` was provided, we check to make sure that it is actually a `ps` object
-  if (!is.null(ax_ps) && !(class(ax_ps) == 'ps')) {
-    stop(paste("The `ax_ps` argument, if provided, must be a",
-               "`ps` object, not",
-               class(ax_ps),
-               sep = " "))
-  }
-  
-  # If `estimate_ax == TRUE`, we check to see if `ax_covariates`
-  # was provided; if not, we raise a warning and set the value equal to `x_covariates`
-  if ((estimate_ax == TRUE) && is.null(ax_covariates)) {
-    warning(paste("The `estimate_ax` argument was set to `TRUE`,",
-                  "but no `ax_covariates` were provided; using `x_covariates`",
-                  "to estimate Model A instead.\n", sep=" "))
-    
-    ax_covariates <- x_covariates
-  }
   
   # Check whether `y_outcome` exists. If it doesn't, we print a
   # warning about outcomes being calculated; if it does, we check to make
@@ -80,7 +174,7 @@ weighted_mediation2 <- function(a_treatment,
   if (is.null(y_outcome)) {
     warning(paste("The `y_outcome` parameter is NULL. Therefore, only",
                   "weights will be returned; no effects will be calculated.\n",
-                  sep=" "))
+                  sep = " "))
   } else {
     check_missing(y_outcome)
   }
@@ -88,82 +182,114 @@ weighted_mediation2 <- function(a_treatment,
   # Check the number of unique values in `a_treatment`, which must equal 2 (for now)
   unique_treatment_categories <- length(unique(a_treatment))
   if (unique_treatment_categories != 2) {
-    stop(paste("The `a_treatment` argument must be ",
+    stop(paste("The `a_treatment` argument must be",
                "dichotomous, but this data has",
                unique_treatment_categories,
-               "unique values.", sep=" "))
+               "unique values.", sep = " "))
   }
-  
-  # Default `data_a` and `model_a_res` to `NULL`, since
-  # the user may have only provided weights directly for Model A 
-  data_a <- NULL
-  model_a_res <- NULL
-  
-  # Get the Model A weights, possibly by estimating the model
-  # if `estimate_ax == TRUE`
-  if (estimate_ax == TRUE) {
-    data_a <- data.frame("A" = (1 - a_treatment), "X" = ax_covariates)
+
+  # Case 1, the user provides the total effect weights, W_{A=0|X_A}, directly
+  if (!is.null(total_effect_wts)) {
+    
+    # We still need to estimate W_{A=0|X_M} because we don't know if X_A == X_M
+    data_a = data.frame("A" = a_treatment, "X" = x_covariates)
     model_a_res <- do.call(ps, c(list(data = data_a, estimand = "ATE"), ps_args))
-  } else if (!is.null(ax_ps)) {
-    model_a_res <- ax_ps
-  } else if (!is.null(ax_weights)) {
-    # If the number of columns in `ax_weights` does not match the
-    # number of stopping methods, then we raise an error
-    if (ncol(ax_weights) != length(ps_stop.method)) {
-      stop(paste("If you are using `ax_weights`, the number of columns must",
-                 "equal the length of `ps_stop.method`:",
-                 ncol(ax_weights), "!=", length(ps_stop.method), sep=" "))
+    model_a_wts <- 1 / (1 - model_a_res$ps)
+
+  } else {
+
+    # Case 2, the user provides the `ps` object directly, which contains
+    # the total effect weights, W_{A=0|X_A}
+    if (!is.null(total_effect_ps)) {
+
+      # We want to check if X_A is a subset of X_M and vice versa.
+      # This will raise an error if there are elements in X_A that are not in X_M
+      a_equals_m <- twang:::check_subset_equal(total_effect_ps$ps, x_covariates)
+      if (a_equals_m) {
+        # The total effect weights W_{A=0|X_A} and W_{A=0|X_M} are equivalent
+        total_effect_wts <- model_a_wts <- 1 / (1 - total_effect_ps$ps)
+
+      # If X_A is a subset of X_M, then we need to estimate P(A=0|X_M)
+      } else {
+        # The total effect weights are 1 / (1 - total_effect_ps)
+        total_effect_wts <- 1 / (1 - total_effect_ps$ps)
+
+        # We still need to estimate W_{A=0|X_M}
+        data_a = data.frame("A" = a_treatment, "X" = x_covariates)
+        model_a_res <- do.call(ps, c(list(data = data_a, estimand = "ATE"), ps_args))
+        model_a_wts <- 1 / (1 - model_a_res$ps)
+
+      }
+
+    # Case 3, we need to estimate W_{A=0|X_A} and W_{A=0|X_M} ourselves,
+    # but it is possible that they are the same thing
+    } else {
+
+      # If estimate_ax is not TRUE, then we raise an error
+      if (!isTRUE(estimate_total_effect_wts)) {
+        stop(paste('You have not provided `weights_ax` or `ps_ax`;',
+                   'Therefore, you must explicitly set `estimate_total_effect_wts=TRUE`.',
+                   sep = ' '))
+      }
+
+      # We want to check if X_A is a subset of X_M and vice versa.
+      # By default, we assume this is true; we only check if `ax_covariates`
+      # we provided. Note that this will raise an error if if there are
+      # elements in X_A that are not in X_M
+      a_equals_m <- TRUE
+      if (!is.null(ax_covariates)) {
+        a_equals_m <- twang:::check_subset_equal(ax_covariates, x_covariates)
+      } else {
+        # Since `ax_covariates` were not provided, we use `x_covariates`.
+        # Implicitly, this means that X_A will equal X_M.
+        ax_covariates <- x_covariates
+      }
+
+      # We need to estimate W_{A=0|X_M} no matter what
+      data_a = data.frame("A" = a_treatment, "X" = x_covariates)
+      model_a_res <- do.call(ps, c(list(data = data_a, estimand = "ATE"), ps_args))
+      model_a_wts <- 1 / (1 - model_a_res$ps)
+
+      if (!a_equals_m) {
+        # We need to estimate W_{A=0|X_A} because X_A != X_M
+        data_ax = data.frame("A" = a_treatment, "X" = ax_covariates)
+        model_ax_res <- do.call(ps, c(list(data = data_ax, estimand = "ATE"), ps_args))
+        total_effect_wts <- 1 / (1 - model_ax_res$ps)     
+      } else {
+        # We don't need to estimate W_{A=0|X_A} because X_A = X_M
+        total_effect_wts <- model_a_wts
+      }
     }
-    # Otherwise, we make sure that the names in `ax_weights` are
-    # the same as the stopping methods + estimand type
-    names(ax_weights) <- paste(ps_stop.method, "ATE", sep=".")
   }
-
-  # Create model for (1 - A) = X + M
-  data_m1 <- data.frame("A" = a_treatment, "X" = x_covariates, "M" = m_mediator)
-  data_m2 <- data.frame("A" = (1 - a_treatment), "X" = x_covariates, "M" = m_mediator)
-
-  model_m1_res <- do.call(ps, c(list(data = data_m1, estimand = "ATT"), ps_args))
-  model_m2_res <- do.call(ps, c(list(data = data_m2, estimand = "ATT"), ps_args))
-
-  # get the weights for Model A, and the natural indirect weights
-  model_m1_weights <- model_m1_res$w
-  model_m2_weights <- model_m2_res$w
-  model_a_weights <- if (!is.null(ax_weights)) ax_weights else model_a_res$w
-
-  # the below gives us E(Y(a, M(a'))) weighting, using the equation
-  # [p(A = a' | M = m, X = x) /  p(A = a | M = m, X = x)] *  [1 / p(A = a' | X = x)]
-
-  # we extract the natural indirect weights for A == 1;
-  # we multply by `1 / ((aw - 1) / aw)`, which is just Model A `ps`,
-  # since we may *only* have A weights from the user
-  natural_indirect_weights <- ((model_m2_res$ps /
-                                model_m1_res$ps) *
-                               (1 / ((model_a_weights - 1) / model_a_weights)))
-
-  # we extrat the natural indirect weights for A == 0
-  # we multply by `1 + (1 / (aw - 1))`, which is just Model A `ps`,
-  # since we may *only* have A weights from the user
-  mask <- which(data_m1[['A']] == 0)
-  natural_indirect_weights[mask, ] <- (((1 - model_m2_res$ps[mask, ]) /
-                                        (1 - model_m1_res$ps[mask, ])) *
-                                       (1 + (1 / (model_a_weights[mask, ] - 1))))
   
-  # collect the results into a list; if we don't have a model for
-  # model A, then we just make this NULL; we assign the entire
-  # list the class `ps_mediation
-  results <- list(mediation_type = 'weighted2',
-                  model_a_prime = model_a_res,
-                  model_m = model_m1_res,
-                  model_m_prime = model_m2_res,
-                  model_a_prime_weights = model_a_weights,
-                  model_m_weights = model_m1_weights,
-                  model_m_prime_weights = model_m2_weights,
-                  natural_indirect_weights = natural_indirect_weights,
-                  data = data_m1,
-                  stopping_methods = ps_stop.method,
+  # Create model for (1 - A) = X + M, which will give us the Model M weight
+  # that we are interested in: P(A = 0 | M, X_M) /  P(A = 1 | M, X_M)
+  data_m <- data.frame("A" = (1 - a_treatment), "X" = x_covariates, "M" = m_mediator)
+  model_m_res <- do.call(ps, c(list(data = data_m, estimand = "ATT"), ps_args))
+  model_m_wts <- model_m_res$w
+
+  # We calculate the NIE weights and the NDE weights. The only difference
+  # is that the NDE weights for the control group equal the total effects
+  # weights, W_{A=0 | X_A}
+  natural_indirect_wts <- model_m_wts * model_a_wts
+  natural_direct_wts <- natural_indirect_wts
+  natural_direct_wts[which(a_treatment == 0)] <- total_effect_wts[which(a_treatment == 0)]
+  
+  # We set that treatment variable back since we are going to return this data set
+  data_m[, 'A'] <- a_treatment
+
+  # Collect the results into a list
+  results <- list(natural_indirect_wts = natural_indirect_wts,
+                  natural_direct_wts = natural_direct_wts,
+                  total_effect_wts = total_effect_wts,
+                  model_a_wts = model_a_wts,
+                  model_m_wts = model_m_wts,
+                  model_m_res = model_m_res,
+                  model_a_res = model_a_res,
+                  data = data_m,
                   datestamp = date())
   class(results) <- "mediation"
+
   
   # If there is no `y_outcome`, we just return the results at this point;
   # otherwise, we move on to calculate the actual effects
@@ -176,22 +302,22 @@ weighted_mediation2 <- function(a_treatment,
   for (stopping_method in c(ps_stop.method)) {
     
     # Get the name of the stopping method column
-    stopping_method_a <- paste(stopping_method, "ATE", sep=".")
-    stopping_method_nie <- paste(stopping_method, "ATT", sep=".")
+    stopping_method_a <- paste(stopping_method, "ATE", sep = ".")
+    stopping_method_nde <- paste(stopping_method, "ATT", sep = ".")
     
     # Grab the weights from the `ps` object
-    weights_a <- results$model_a_prime_weights[, stopping_method_a]
-    weights_nie <- results$natural_indirect_weights[, stopping_method_nie]
+    weights_a <- results$model_a_wts[, stopping_method_a]
+    weights_nde <- results$natural_direct_weights[, stopping_method_nde]
     
     # Calculate the weighted means for each of the conditions
     treatment1_mediator1 <- weighted_mean(y_outcome, weights_a, a_treatment == 1)
     treatment0_mediator0 <- weighted_mean(y_outcome, weights_a, a_treatment == 0)
-    treatment1_mediator0 <- weighted_mean(y_outcome, weights_nie, a_treatment == 1)
+    treatment1_mediator0 <- weighted_mean(y_outcome, weights_nde, a_treatment == 1)
     
     # Calculate overall, natural direct, and natural indirect effects
     overall_effect <- treatment1_mediator1 - treatment0_mediator0
-    natural_direct <- treatment1_mediator0 - treatment0_mediator0
-    natural_indirect <- treatment1_mediator1 - treatment1_mediator0
+    natural_direct <- treatment1_mediator1 - treatment1_mediator0
+    natural_indirect <- treatment1_mediator0 - treatment0_mediator0
     
     # Collect the results for this stopping method, and add
     # them back into the original results object

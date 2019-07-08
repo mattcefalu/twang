@@ -43,3 +43,33 @@ weighted_mean <- function(x, weights, multiplier = NULL, na.rm = TRUE) {
   }
   return(sum(x * multiplier * weights, na.rm = na.rm) / sum(multiplier * weights, na.rm = na.rm))
 }
+
+#' Check whether the variables in d1 are a subset
+#' of the variables in d2. The data sets must be of
+#' equal length.
+is_subset <- function(d1, d2) {
+  stopifnot(dim(d1)[1] == dim(d2)[1])
+  dim(setdiff(d1, d2))[2] == 0
+}
+
+#' Check whether the Xs in a `ps` object are a 
+#' subset of the Xs in a data frame or matrix,
+#' and vice versa
+#'
+#' @export
+check_subset_equal <- function(y_vars, x_vars, raise_error = TRUE) {
+  
+  if (class(y_vars) == 'ps') {
+    y_names <- y_vars$gbm.obj$var.names
+    y_vars <- y_vars$data[y_names]
+  }
+
+  a_subset_m <- is_subset(y_vars, x_vars)
+  m_subset_a <- is_subset(x_vars, y_vars)
+  a_equal_m <- (a_subset_m == m_subset_a) && (a_subset_m == TRUE) && (m_subset_a == TRUE)
+
+  if (raise_error && !m_subset_a) {
+    stop('There are covariates in A that do not appear in M.')
+  }
+  return(a_equal_m)
+  }
