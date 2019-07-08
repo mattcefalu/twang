@@ -1,8 +1,51 @@
-### calculate weighted balance statistic
-bal.stat <- function(data,vars=NULL,treat.var,w.all, sampw, 
-                     get.means=TRUE,
-                     get.ks=TRUE,
-                     na.action="level", estimand, multinom, fillNAs = FALSE)
+#' Calculate weighted balance statistics
+#'
+#' `bal.stat` compares the treatment and control subjects by means, standard 
+#' deviations, effect size, and KS statistics
+#'
+#' `bal.stat` calls  auxiliary functions for each variable and assembles
+#' the results in a table.
+#'
+#' @param data A data frame containing the data
+#' @param vars A vector of character strings with the names of the variables 
+#'   on which the function will assess the balance
+#' @param treat.var The name of the treatment variable
+#' @param w.all Oobservation weights (e.g. propensity score weights, sampling 
+#'   weights, or both)
+#' @param sampw Sampling weights. These are passed in addition to `w.all` because
+#'   the "unweighted" results shoud be adjusted for sample weights (though not propensity
+#'   score weights).            
+#' @param get.means logical. If `TRUE` then `bal.stat` will compute means
+#'   and variances
+#' @param get.ks logical. If `TRUE` then `bal.stat` will compute KS statistics
+#' @param na.action A character string indicating how `bal.stat` should 
+#'   handle missing values. Current options are "level", "exclude", or "lowest"
+#' @param  estimand Either "ATT" or "ATE"
+#' @param multinom logical. `TRUE` if used for multinomial propensity scores.
+#' @param fillNAs logical. If `TRUE`, fills in zeros for missing values.
+#'
+#' @return `get.means` and `get.ks` manipulate the inclusion of certain 
+#'   columns in the returned result.
+#'
+#' @seealso The example for [ps] contains an example of the use of [bal.table]
+#' @keywords multivariate
+#'
+#' @references Dan McCaffrey, G. Ridgeway, Andrew Morral (2004). "Propensity
+#'   Score Estimation with Boosted Regression for Evaluating Adolescent
+#'   Substance Abuse Treatment", *Psychological Methods* 9(4):403-425.
+#'
+#' @export
+bal.stat <- function(data,
+                     vars = NULL,
+                     treat.var,
+                     w.all,
+                     sampw, 
+                     get.means = TRUE,
+                     get.ks = TRUE,
+                     na.action = "level",
+                     estimand,
+                     multinom,
+                     fillNAs = FALSE)
 {
    if(is.null(vars)) vars<-names(data)[names(data)!=treat.var]
 

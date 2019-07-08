@@ -13,16 +13,11 @@ mnps.fast <- function(formula,
                       estimand="ATE", 
                       stop.method = c("es.max"), 
                       sampw = NULL, 
-                      version="fast",
+                      version="gbm",
                       ks.exact=NULL,
-                      booster="gbm",
                       tree_method="hist",
-                      save.propensities=FALSE,
-                      file=NULL,
                       n.keep = 1,
                       n.grid = 25,
-                      #n.grid.ks = 25,
-                      #n.grid.es = NULL,
                       treatATT = NULL,
                       ...){
    
@@ -93,14 +88,10 @@ mnps.fast <- function(formula,
                       #iterlim = iterlim,
                       verbose = verbose, estimand = "ATE", stop.method = stop.method, sampw = sampw, multinom = TRUE, 
                       ks.exact=ks.exact,
-                      booster=booster,
+                      version=version,
                       tree_method=tree_method,
-                      save.propensities=save.propensities,
-                      file=file,
                       n.keep = n.keep,
                       n.grid = n.grid
-                      #n.grid.ks = n.grid.ks,
-                      #n.grid.es = n.grid.es
                       )
       
          hldFts[[i]] <- currPs
@@ -128,14 +119,10 @@ mnps.fast <- function(formula,
                       #iterlim = iterlim,
                       verbose = verbose, estimand = "ATT", stop.method = stop.method, sampw = sampwCurr, multinom = TRUE,
                       ks.exact=ks.exact,
-                      booster=booster,
+                      version=version,
                       tree_method=tree_method,
-                      save.propensities=save.propensities,
-                      file=file,
                       n.keep = n.keep,
                       n.grid = n.grid
-                      #n.grid.ks = n.grid.ks,
-                      #n.grid.es = n.grid.es
                       )
          
          hldFts[[i]] <- currPs

@@ -1,0 +1,6 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^packrat/
+^\.Rprofile$
+vignettes/twang.rnw
+inst/doc/twang.rnw

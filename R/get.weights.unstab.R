@@ -1,3 +1,20 @@
+#' Extract unstabilized propensity score weights for `iptw` fits
+#'
+#' Extracts propensity score weights from an `iptw` or `mniptw`  object.
+#'
+#' Weights are the reciprocal of the product of the probability of receiving
+#' the treatment received.
+#'
+#' @param x An `iptw` or `mniptw` object.
+#' @param stop.method The twop method used for the fit of interest.
+#' @param withSampW Returns weights with sample weights multiplied in, if they were 
+#'   provided in the original `iptw` call. Default: `TRUE`.
+#'
+#' @return Returns a data.frame of weights.
+#'
+#' @seealso [iptw]
+#'
+#' @export
 get.weights.unstab <- function(x, stop.method = NULL, withSampW = TRUE){
 	if(!((class(x) == "iptw") | class(x) == "mniptw")) stop("\"get.weights.unstab\" is only defined for iptw objects.")
 	if(class(x) == "iptw"){

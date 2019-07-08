@@ -1,4 +1,10 @@
-# Produces a summary table for ps object 
+#' Produces a summary table for `mniptw` object 
+#'
+#' @param x An `mniptw` object
+#' @param ... Additional arguments.
+#'
+#' @method print summary.mniptw
+#' @export
 print.summary.mniptw <- function(x, ...)
 {
       	nSum <- length(x$summaryList)      	
