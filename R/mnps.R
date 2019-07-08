@@ -3,11 +3,13 @@
 #' `mnps` mnps calculates propensity scores for more than two treatment groups using gradient boosted
 #' logistic regression, and diagnoses the resulting propensity scores using a variety of methods.
 #' 
-#' `formula` should be something like `"treatment ~ X1 + X2 + X3"`. The treatment variable
-#' should be a variable with three or more levels. There is no need to specify interaction
-#' terms in the formula. `interaction.depth` controls the level of interactions to allow in
-#' the propensity score model.
-#'
+#' For user more comfortable with the options of [xgboost],
+#' the options for `ps` controlling the behavior of the gradient boosting
+#' algorithm can be specified using the [xgboost] naming
+#' scheme. This includes `nrounds`, `max_depth`, `eta`, and
+#' `subsample`. In addition, the list of parameters passed to
+#' [xgboost] can be specified with `params`.
+#' 
 #' Note that unlike earlier versions of `twang`, the plotting functions are
 #' no longer included in the `ps` function. See  [plot] for
 #' details of the plots.
@@ -52,10 +54,6 @@
 #'   Otherwise, an approximation based on the asymptotic distribution is used.
 #'   **Warning:** setting `ks.exact = TRUE` will add substantial
 #'   computation time for larger sample sizes. Default: `NULL`.
-#' @param booster `gbm` or `xgboost`. Default: `gbm`.
-#' @param tree_method `xgboost` param. Default: "hist".
-#' @param save.propensities Whether to save the propensity scores. Default: `FALSE`.
-#' @param file Optional RDS file path where the `ps` object will be saved.
 #' @param n.keep A numeric variable indicating the algorithm should only
 #'   consider every `n.keep`-th iteration of the propensity score model and
 #'   optimize balance over this set instead of all iterations. Default: 1.
@@ -89,7 +87,7 @@
 #'   Score Estimation with Boosted Regression for Evaluating Adolescent
 #'   Substance Abuse Treatment", *Psychological Methods* 9(4):403-425.
 #'
-#' @seealso [ps]
+#' @seealso [ps], [gbm], [xgboost], [plot.mnps], [bal.table]
 #'
 #' @export
 mnps<-function(formula,
@@ -109,16 +107,10 @@ mnps<-function(formula,
                verbose=TRUE,
                estimand="ATE", 
                stop.method = c("es.max"), 
-               sampw = NULL, version="fast",
+               sampw = NULL, version="gbm",
                ks.exact=NULL,
-               booster="gbm",
-               tree_method="hist",
-               save.propensities=FALSE,
-               file=NULL,
                n.keep = 1,
                n.grid = 25,
-               # n.grid.ks = 25,
-               # n.grid.es = NULL,
                treatATT = NULL,
                ...){
    
@@ -126,11 +118,14 @@ mnps<-function(formula,
    args         <- list(...)
    args_named   <- names(args)
 
+   # parse hidden options and xgboost parameters
    params       <- args$params
    max_depth    <- if (!is.null(args$max_depth)) args$max_depth else interaction.depth
    subsample    <- if (!is.null(args$subsample)) args$subsample else bag.fraction
    nrounds      <- if (!is.null(args$nrounds)) args$nrounds else n.trees
    eta          <- if (!is.null(args$eta)) args$eta else shrinkage
+   tree_method  <- if (!is.null(args$tree_method)) args$tree_method else "hist"
+   
    
    # throw some errors if the user specifies two versions of the same option
    if (!missing(n.trees) & ('nrounds' %in% args_named))             stop("Only one of n.trees and nrounds can be specified.")
@@ -147,13 +142,10 @@ mnps<-function(formula,
       ## throw some errors if the user specifies an option not allowed in legacy version of ps
       if (!is.null(ks.exact))     stop("Option ks.exact is not allowed with version='legacy'")
       if (!is.null(params))       stop("Option params is not allowed with version='legacy'")
-      if (!missing(booster))      stop("Option booster is not allowed with version='legacy'")
       if (!missing(tree_method))  stop("Option tree_method is not allowed with version='legacy'")
       if (!missing(n.keep))       stop("Option n.keep is not allowed with version='legacy'")
       if (!missing(n.grid))       stop("Option n.grid is not allowed with version='legacy'")
-      #if (!missing(n.grid.ks))    stop("Option n.grid.ks is not allowed with version='legacy'")
-      #if (!missing(n.grid.es))    stop("Option n.grid.es is not allowed with version='legacy'")
-      
+
       return(mnps.old(formula = formula,
                     data=data,                         # data
                     n.trees=nrounds,                   # gbm options
@@ -169,8 +161,8 @@ mnps<-function(formula,
                     treatATT = treatATT, 
                     ...))
    }else{
-      # throw error if user specifies params with booster=="gbm"
-      if ( booster=="gbm" & !is.null(params) ) stop("params cannot be specified when booster='gbm'.")
+      # throw error if user specifies params with version=="gbm"
+      if ( version=="gbm" & !is.null(params) ) stop("params cannot be specified when version='gbm'.")
       return(mnps.fast(formula = formula,
                      data=data,                         # data
                      n.trees=nrounds,                 # gbm options
@@ -185,14 +177,10 @@ mnps<-function(formula,
                      stop.method = stop.method, 
                      sampw = sampw, 
                      ks.exact=ks.exact,
-                     booster=booster,
+                     version=version,
                      tree_method=tree_method,
-                     save.propensities=save.propensities,
-                     file=file,
                      n.keep = n.keep,
                      n.grid = n.grid,
-                     #n.grid.ks = n.grid.ks,
-                     #n.grid.es = n.grid.es,
                      treatATT = treatATT, 
                      ...))
    }

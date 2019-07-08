@@ -8,21 +8,16 @@ ps.fast<-function(formula ,
              bag.fraction = 1.0,
              n.minobsinnode = 10,
              perm.test.iters=0,
-             print.level=2,                 # direct optimizer options
-             #iterlim=1000,
+             print.level=2,                 
              verbose=TRUE,
              estimand="ATE", 
              stop.method = c("ks.mean", "es.mean"), 
              sampw = NULL, multinom = FALSE,
              ks.exact=NULL,
-             booster="gbm",
+             version="gbm",
              tree_method="hist",
-             save.propensities=FALSE,
-             file=NULL,
              n.keep = 1,
-             n.grid = n.grid,
-             #n.grid.ks = 25,
-             #n.grid.es = NULL,
+             n.grid = 25,
              ...){
              	
 	
@@ -32,11 +27,6 @@ ps.fast<-function(formula ,
    }else{ 
       sampW <- unlist(sampw, use.names=F) 
    }
-   
-   # if (!is.null(n.grid)){
-   #    n.grid.ks = n.grid
-   #    n.grid.es = n.grid
-   # }
    
    if ( n.trees/n.keep< n.grid ){
       stop('n.tress must be at least n.grid times n.keep')
@@ -117,7 +107,7 @@ ps.fast<-function(formula ,
    # fit the propensity score model
    if(verbose) cat("Fitting boosted model\n")
    
-   if (booster=="gbm"){
+   if (version=="gbm"){
       # need to reformulate formula to use this environment
       form <- paste(deparse(formula, 500), collapse="") 
    
@@ -349,16 +339,12 @@ ps.fast<-function(formula ,
                   w          = w,
                   sampw      = sampW, 
                   estimand   = estimand,
-                  booster = booster , 
-                  version = "fast", 
-#                  plot.info  = plot.info,
+                  version = version, 
                   datestamp  = date(),
                   parameters = terms,
                   alerts     = alert,
-                  #iters.ks = iters.grid.ks,
-                  #iters.es = iters.grid.es,
                   iters = iters.grid,
-                  balance.ks = ks.effect,
+                  balance.ks = balance.ks,
                   balance.es = balance.es,
                   balance = balance,
                   es = std.effect,
