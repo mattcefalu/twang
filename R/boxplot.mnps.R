@@ -1,4 +1,44 @@
-boxplot.mnps <- function(x, stop.method = NULL, color = TRUE, figureRows = NULL, singlePlot = NULL, multiPage = FALSE, time = NULL, print = TRUE,  ...){
+#' Boxplot for `mnps` objects
+#'
+#' This function produces a collection of diagnostic plots for mnps objects.
+#'
+#' This function produces lattice-style graphics of diagnostic plots. 
+#'
+#' @param x A `ps` object
+#' @param stop.method Only 1 `stop.method` can be presented at a time for `mnps` objects. 
+#'   Use a numeric indicator of which `stop.method` (among those specified when fitting
+#'   the `mnps` object) should be used.
+#' @param color If `FALSE`, a grayscale figure will be returned.
+#' @param figureRows The number of rows in the figure. Defaults to the number of panels.
+#' @param singlePlot If multiple sets of boxplots are produced, `singlePlot` can be used
+#'   to select only one. For example, `singlePlot = 2` would return only the second set
+#'   of boxplots.
+#' @param multiPage When multiple frames of a figure are produced, `multiPage = TRUE` will
+#'   print each frame on a different page. This is intended for situations where the graphical
+#'   output is being saved to a file.
+#' @param time For use with iptw fits.
+#' @param print If `FALSE`, the figure is returned but not printed.
+#' @param ... Additional arguments that are passed to boxplot function, which may bepassed to
+#'   the underlying `lattice` package plotting functions.
+#'
+#' @seealso [mnps]
+#' @keywords multivariate
+#'
+#' @references Dan McCaffrey, G. Ridgeway, Andrew Morral (2004). "Propensity
+#'   Score Estimation with Boosted Regression for Evaluating Adolescent
+#'   Substance Abuse Treatment", *Psychological Methods* 9(4):403-425.
+#'
+#' @method boxplot mnps
+#' @export
+boxplot.mnps <- function(x,
+                         stop.method = NULL,
+                         color = TRUE,
+                         figureRows = NULL,
+                         singlePlot = NULL,
+                         multiPage = FALSE,
+                         time = NULL,
+                         print = TRUE,
+                         ...){
 	
 	ptSymCol <- ifelse(color, "#0080ff", "black")	
 	bwCols <- list(col = ptSymCol)

@@ -1,4 +1,49 @@
-dx.wts <- function(x,  data, estimand, vars=NULL, treat.var, x.as.weights=TRUE, sampw = NULL, perm.test.iters = 0){
+#' Compute diagnostics assessing covariates balance.
+#'
+#' `dx.wts` takes a `ps` object or a set of propensity scores and 
+#' computes diagnostics assessing covariates balance.
+#'
+#' Creates a balance table that compares unweighted and weighted means and 
+#' standard deviations, computes effect sizes, and KS statistics to assess the 
+#' ability of the propensity scores to balance the treatment and control groups.
+#'
+#' @param x A data frame, matrix, or vector of propensity score weights or a ps 
+#'   object. `x` can also be a data frame, matrix, or vector of 
+#'   propensity scores if `x.as.weights=FALSE`.
+#' @param data A data frame.
+#' @param estimand The estimand of interest: either "ATT" or "ATE".
+#' @param vars A vector of character strings naming variables in `data` on 
+#'   which to assess balance.
+#' @param treat.var A character string indicating which variable in `data`
+#'   contains the 0/1 treatment group indicator.
+#' @param x.as.weights `TRUE` or `FALSE` indicating whether `x`
+#'   specifies propensity score weights or propensity scores. 
+#'   Ignored if `x` is a ps object. Default: `TRUE`.
+#' @param sampw Optional sampling weights. If `x` is a `ps` object, then the 
+#'   sampling weights should have been passed to [ps] and 
+#'   not specified here. `dx.wts` will issue a warning if 
+#'   `x` is a `ps object and `sampw` is also specified.
+#' @param perm.test.iters A non-negative integer giving the number of iterations
+#'   of the permutation test for the KS statistic. If `perm.test.iters=0`,
+#'   then the function returns an analytic approximation to the p-value. This
+#'   argument is ignored is `x` is a `ps` object. Setting
+#'   `perm.test.iters=200` will yield precision to within 3\% if the true
+#'   p-value is 0.05. Use `perm.test.iters=500` to be within 2\%.
+#'
+#' @return Returns a list containing
+#'   * `treat` The vector of 0/1 treatment assignment indicators.
+#'
+#' @seealso [ps]
+#'
+#' @export
+dx.wts <- function(x,
+                   data,
+                   estimand,
+                   vars = NULL,
+                   treat.var,
+                   x.as.weights = TRUE,
+                   sampw = NULL,
+                   perm.test.iters = 0){
 
 
 	

@@ -1,4 +1,21 @@
-# Produces a summary table for mnps object 
+#' Summarize a `mnps` object
+#'
+#' Computes summary information about a stored `mnps` object
+#'
+#' Compresses the information in the `desc` component of the `mnps` object
+#' into a short summary table describing the size of the dataset and the quality of
+#' the propensity score weights.
+#'
+#' @param object An `mnps` object.
+#' @param ... Additional arguments.
+#'
+#' @return See [mnps] for details on the returned table.
+#'
+#' @seealso [mnps]
+#' @keywords models
+#'
+#' @method summary mnps
+#' @export
 summary.mnps <- function (object, ...){
 
 	nFits <- object$nFits
