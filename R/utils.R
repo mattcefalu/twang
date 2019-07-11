@@ -72,4 +72,20 @@ check_subset_equal <- function(y_vars, x_vars, raise_error = TRUE) {
     stop('There are covariates in A that do not appear in M.')
   }
   return(a_equal_m)
+}
+
+#' Calculate the weights, given propensity scores
+#' 
+#' @export
+calculate_weights <- function(ps, indicator, use_opposite = FALSE) {
+
+  if (use_opposite) {
+    indexes <- which(indicator == 0)
+  } else {
+    indexes <- which(indicator == 1)
   }
+
+  weights <- 1 / (1 - ps)
+  weights[indexes,] <- 1 / ps[indexes,]
+  return(weights)
+}

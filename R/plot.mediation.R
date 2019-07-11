@@ -33,11 +33,6 @@ plot.mediation <- function(x,
                            model_subset = NULL,
                            ...) {
 
-  # TODO : We need a separate impelmentation for outcome mediation
-  if (x$mediation_type != 'weighted') {
-    stop('Plotting only implemented for weighted mediation objects.')
-  }
-
   # TODO : We'll probably want to fix / clean up this function ...
   if (!is.null(model_subset) && !(model_subset %in% c(1, 2))) {
     stop("The `model_subset` must be NULL, 1, or 2.")
@@ -57,13 +52,14 @@ plot.mediation <- function(x,
     for (method in x$stopping_methods) {
   
       # extract the weights from the mediation object
-      weights <- x[['natural_direct_weights']][, paste(method, 'ATT', sep='.')]
+      weights <- x[['natural_direct_wts']][, paste(method, 'ATT', sep='.')]
       
       # create normalized weights by dividing by the sum of weights;
       # we do this separately for treatment and control
-      weights <- weights / sum(weights[which(treatment == 0)])
-      mask <- which(treatment == 1)
-      weights[mask] <- (weights[mask] / sum(weights[mask]))
+      treat <- which(treatment == 1)
+      ctrl  <- which(treatment == 0)
+      weights <- weights / sum(weights[ctrl])
+      weights[treat] <- (weights[treat] / sum(weights[treat]))
 
       # if the mediator is a factor
       if (mediator_as_factor) {
@@ -132,7 +128,7 @@ plot.mediation <- function(x,
   args <- list(plots = plots, subset = subset, color = color)
 
   model_a <- x$model_a
-  model_m <- x$model_m
+  model_m <- x$model_m0
   model_names <- c('Model A', 'Model M')
 
   plot1 <- do.call(getS3method("plot", "ps"), c(list(model_a), args))

@@ -6,18 +6,6 @@
 #' @method summary mediation
 #' @export
 summary.mediation <- function(object, ...) {
-
-  # TODO : We need a separate impelmentation for outcome mediation
-  if (object$mediation_type != 'weighted') {
-    stop('Summary only implemented for weighted mediation objects.')
-  }
-
-  # collect the descriptives for both models,
-  # and put these into a named list, `models`
-  model_a <- object$model_a$desc
-  model_m <- object$model_m$desc
-  models <- list("Model A" = model_a,
-                 "Model M" = model_m)
   
   balance_tables <- bal_table(object)
   
@@ -27,14 +15,14 @@ summary.mediation <- function(object, ...) {
   if (any(effects_names)) {
     
     effects <- object[effects_names]
-    results <- matrix(NA, nrow = 6, ncol = length(effects))
+    results <- matrix(NA, nrow = 7, ncol = length(effects))
     for (effect_idx in 1:length(effects)) {
       
       if (effect_idx == 1) {
         effects_columns <- names(effects[[effect_idx]])
       }
 
-      for (idx in 1:6) {
+      for (idx in 1:7) {
         results[idx, effect_idx] <- effects[[effect_idx]][[idx]]
       }
       

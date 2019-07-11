@@ -189,10 +189,6 @@ weighted_mediation <- function(a_treatment,
                unique_treatment_categories,
                "unique values.", sep = " "))
   }
-  
-  # This is just a variable that we will use to 
-  # select the control group indexes
-  ctrl_grp_idx <- which(a_treatment == 0)
 
   # Case 1, the user provides the total effect weights, W_{A=0|X_A}, directly
   if (!is.null(total_effect_wts)) {
@@ -200,8 +196,7 @@ weighted_mediation <- function(a_treatment,
     # We still need to estimate W_{A=0|X_M} because we don't know if X_A == X_M
     data_a = data.frame("A" = a_treatment, "X" = x_covariates)
     model_a_res <- do.call(ps, c(list(data = data_a, estimand = "ATE"), ps_args))
-    model_a_wts <- 1 / (1 - model_a_res$ps)
-    model_a_wts[ctrl_grp_idx,] <- 1 / model_a_res$ps[ctrl_grp_idx,]
+    model_a_wts <- calculate_weights(model_a_res$ps, a_treatment, use_opposite = TRUE)
     
   } else {
     
@@ -214,35 +209,32 @@ weighted_mediation <- function(a_treatment,
       a_equals_m <- check_subset_equal(total_effect_ps$ps, x_covariates)
       if (a_equals_m) {
         # The total effect weights W_{A=0|X_A} and W_{A=0|X_M} are equivalent
-        total_effect_wts <- 1 / (1 - total_effect_ps$ps)
-        total_effect_wts[ctrl_grp_idx,] <- 1 / total_effect_ps$ps[ctrl_grp_idx,]
-        model_a_wts <- total_effect_wts
+        total_effect_wts <- calculate_weights(total_effect_ps$ps, a_treatment)
+        model_a_wts <- calculate_weights(total_effect_ps$ps, a_treatment, use_opposite = TRUE)
         
         # If X_A is a subset of X_M, then we need to estimate P(A=0|X_M)
       } else {
         # The total effect weights are 1 / (1 - total_effect_ps)
-        total_effect_wts <- 1 / (1 - total_effect_ps$ps)
-        total_effect_wts[ctrl_grp_idx,] <- 1 / total_effect_ps$ps[ctrl_grp_idx,]
+        total_effect_wts <- calculate_weights(total_effect_ps$ps, a_treatment)
         
         # We still need to estimate W_{A=0|X_M}
         data_a = data.frame("A" = a_treatment, "X" = x_covariates)
         model_a_res <- do.call(ps, c(list(data = data_a, estimand = "ATE"), ps_args))
-        model_a_wts <- 1 / (1 - model_a_res$ps)
-        model_a_wts[ctrl_grp_idx,] <- 1 / model_a_res$ps[ctrl_grp_idx,]
-        
+        model_a_wts <- calculate_weights(model_a_res$ps, a_treatment, use_opposite = TRUE)
+
       }
-      
+
       # Case 3, we need to estimate W_{A=0|X_A} and W_{A=0|X_M} ourselves,
       # but it is possible that they are the same thing
     } else {
-      
+
       # If estimate_ax is not TRUE, then we raise an error
       if (!isTRUE(estimate_total_effect_wts)) {
-        stop(paste('You have not provided `weights_ax` or `ps_ax`;',
+        stop(paste('You have not provided `total_effect_wts` or `total_effect_ps`;',
                    'Therefore, you must explicitly set `estimate_total_effect_wts=TRUE`.',
                    sep = ' '))
       }
-      
+
       # We want to check if X_A is a subset of X_M and vice versa.
       # By default, we assume this is true; we only check if `ax_covariates`
       # we provided. Note that this will raise an error if if there are
@@ -255,94 +247,99 @@ weighted_mediation <- function(a_treatment,
         # Implicitly, this means that X_A will equal X_M.
         ax_covariates <- x_covariates
       }
-      
+
       # We need to estimate W_{A=0|X_M} no matter what
       data_a = data.frame("A" = a_treatment, "X" = x_covariates)
       model_a_res <- do.call(ps, c(list(data = data_a, estimand = "ATE"), ps_args))
-      model_a_wts <- 1 / (1 - model_a_res$ps)
-      model_a_wts[ctrl_grp_idx,] <- 1 / model_a_res$ps[ctrl_grp_idx,]
+      model_a_wts <- calculate_weights(model_a_res$ps, a_treatment, use_opposite = TRUE)
       
       if (!a_equals_m) {
         # We need to estimate W_{A=0|X_A} because X_A != X_M
         data_ax = data.frame("A" = a_treatment, "X" = ax_covariates)
         model_ax_res <- do.call(ps, c(list(data = data_ax, estimand = "ATE"), ps_args))
-        total_effect_wts <- 1 / (1 - model_ax_res$ps)
-        total_effect_wts[ctrl_grp_idx,] <- 1 / model_ax_res$ps[ctrl_grp_idx,]
+        total_effect_wts <- calculate_weights(model_ax_res$ps, a_treatment)
       
       } else {
         # We don't need to estimate W_{A=0|X_A} because X_A = X_M
-        total_effect_wts <- model_a_wts
+        total_effect_wts <- calculate_weights(model_a_res$ps, a_treatment)
       }
     }
   }
-  
-  # Create model for (1 - A) = X + M, which will give us the Model M weight
-  # that we are interested in: P(A = 0 | M, X_M) /  P(A = 1 | M, X_M)
-  data_m <- data.frame("A" = (1 - a_treatment), "X" = x_covariates, "M" = m_mediator)
-  model_m_res <- do.call(ps, c(list(data = data_m, estimand = "ATT"), ps_args))
-  model_m_wts <- model_m_res$w
-  
-  # We calculate the NIE weights and the NDE weights. The only difference
-  # is that the NDE weights for the control group equal the total effects
-  # weights, W_{A=0 | X_A}
-  natural_indirect_wts <- model_m_wts * model_a_wts
-  natural_direct_wts <- natural_indirect_wts
-  natural_direct_wts[ctrl_grp_idx,] <- total_effect_wts[ctrl_grp_idx,]
-  
-  # We set that treatment variable back since we are going to return this data set
-  data_m[, 'A'] <- a_treatment
-  
+
+  # Esimate models for (1 - A) = X + M and A = X + M; together, 
+  # these will give us the model M weights of interest: 
+  #  - P(A = 0 | M, X_M) /  P(A = 1 | M, X_M)
+  #  - P(A = 1 | M, X_M) /  P(A = 0 | M, X_M)
+  data_m0 <- data.frame("A" = (1 - a_treatment), "X" = x_covariates, "M" = m_mediator)
+  data_m1 <- data.frame("A" = a_treatment, "X" = x_covariates, "M" = m_mediator)
+  model_m0_res <- do.call(ps, c(list(data = data_m0, estimand = "ATT"), ps_args))
+  model_m1_res <- do.call(ps, c(list(data = data_m1, estimand = "ATT"), ps_args)) 
+
+  # Grab the indexes for control group  
+  ctrl <- which(a_treatment == 0)
+
+  # Calculate the model M weights
+  model_m_wts <- (model_m0_res$ps / model_m1_res$ps)
+  model_m_wts[ctrl,] <- (model_m1_res$ps[ctrl,] / model_m0_res$ps[ctrl,])
+
+  # Calculate the NDE weights
+  natural_direct_wts <- model_m_wts * model_a_wts
+
+  # Calculate the NIE weights (which are just TE weights - NDE weights)
+  natural_indirect_wts <- total_effect_wts - natural_direct_wts
+
   # Collect the results into a list
   results <- list(natural_indirect_wts = natural_indirect_wts,
                   natural_direct_wts = natural_direct_wts,
                   total_effect_wts = total_effect_wts,
-                  model_a_wts = model_a_wts,
                   model_m_wts = model_m_wts,
-                  model_m_res = model_m_res,
-                  model_a_res = model_a_res,
+                  model_m0 = model_m0_res,
+                  model_m1 = model_m1_res,
+                  model_a_wts = model_a_wts,
+                  model_a = model_a_res,
                   stopping_methods = ps_stop.method,
-                  data = data_m,
+                  data = data_m1,
                   datestamp = date())
   class(results) <- "mediation"
-  
-  
+
   # If there is no `y_outcome`, we just return the results at this point;
   # otherwise, we move on to calculate the actual effects
   if (is.null(y_outcome)) {
     return(results)
   }
-  
+
   # If we have the `y_outcome`, we calculate the
   # effects for each stopping method
-  for (stopping_method in c(ps_stop.method)) {
-    
-    # Get the name of the stopping method column
-    stopping_method_a <- paste(stopping_method, "ATE", sep = ".")
-    stopping_method_nde <- paste(stopping_method, "ATT", sep = ".")
-    
+  stop_methods <- c(ps_stop.method)
+  for (idx in 1:length(stop_methods)) {
+
+    stop_method <- stop_methods[idx]
+
     # Grab the weights from the `ps` object
-    weights_a <- results$model_a_wts[, stopping_method_a]
-    weights_nde <- results$natural_direct_wts[, stopping_method_nde]
-    
+    te_wts <- results$total_effect_wts[, idx]
+    nd_wts <- results$natural_direct_wts[, idx]
+
     # Calculate the weighted means for each of the conditions
-    treatment1_mediator1 <- weighted_mean(y_outcome, weights_a, a_treatment == 1)
-    treatment0_mediator0 <- weighted_mean(y_outcome, weights_a, a_treatment == 0)
-    treatment1_mediator0 <- weighted_mean(y_outcome, weights_nde, a_treatment == 1)
-    
+    treatment1_mediator1 <- weighted_mean(y_outcome, te_wts, a_treatment == 1)
+    treatment0_mediator0 <- weighted_mean(y_outcome, te_wts, a_treatment == 0)
+    treatment1_mediator0 <- weighted_mean(y_outcome, nd_wts, a_treatment == 1)
+    treatment0_mediator1 <- weighted_mean(y_outcome, nd_wts, a_treatment == 0)
+
     # Calculate overall, natural direct, and natural indirect effects
-    overall_effect <- treatment1_mediator1 - treatment0_mediator0
-    natural_direct <- treatment1_mediator1 - treatment1_mediator0
-    natural_indirect <- treatment1_mediator0 - treatment0_mediator0
-    
+    total_effect <- treatment1_mediator1 - treatment0_mediator0
+    natural_direct <- treatment1_mediator0 - treatment0_mediator0
+    natural_indirect <- treatment1_mediator1 - treatment1_mediator0
+
     # Collect the results for this stopping method, and add
     # them back into the original results object
-    effects_name = paste(stopping_method, "effects", sep = "_")
-    results[[effects_name]] <- list(overall_effect = overall_effect,
+    effects_name = paste(stop_method, "effects", sep = "_")
+    results[[effects_name]] <- list(total_effect = total_effect,
                                     natural_direct_effect = natural_direct,
                                     natural_indirect_effect = natural_indirect,
                                     expected_treatment0_mediator0 = treatment0_mediator0,
                                     expected_treatment1_mediator1 = treatment1_mediator1,
-                                    expected_treatment1_mediator0 = treatment1_mediator0)
+                                    expected_treatment1_mediator0 = treatment1_mediator0,
+                                    expected_treatment0_mediator1 = treatment0_mediator1)
     
   }
   return(results)
