@@ -58,7 +58,7 @@ is_subset <- function(d1, d2) {
 #'
 #' @export
 check_subset_equal <- function(y_vars, x_vars, raise_error = TRUE) {
-  
+
   if (class(y_vars) == 'ps') {
     y_names <- y_vars$gbm.obj$var.names
     y_vars <- y_vars$data[y_names]
