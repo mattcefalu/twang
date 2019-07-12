@@ -192,6 +192,9 @@ weighted_mediation <- function(a_treatment,
 
   # Case 1, the user provides the total effect weights, W_{A=0|X_A}, directly
   if (!is.null(total_effect_wts)) {
+
+    # The total effects weights length must equal the number of stopping methods
+    stopifnot(ncol(total_effect_wts) == length(c(ps_stop.method)))
     
     # We still need to estimate W_{A=0|X_M} because we don't know if X_A == X_M
     data_a = data.frame("A" = a_treatment, "X" = x_covariates)
@@ -203,6 +206,9 @@ weighted_mediation <- function(a_treatment,
     # Case 2, the user provides the `ps` object directly, which contains
     # the total effect weights, W_{A=0|X_A}
     if (!is.null(total_effect_ps)) {
+      
+      # The total effects weights length must equal the number of stopping methods
+      stopifnot(ncol(total_effect_ps$w) == length(c(ps_stop.method)))
       
       # We want to check if X_A is a subset of X_M and vice versa.
       # This will raise an error if there are elements in X_A that are not in X_M
