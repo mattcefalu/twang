@@ -156,8 +156,6 @@ ps<-function(formula = formula(data),
    subsample    <- if (!is.null(args$subsample)) args$subsample else bag.fraction
    nrounds      <- if (!is.null(args$nrounds)) args$nrounds else n.trees
    eta          <- if (!is.null(args$eta)) args$eta else shrinkage
-   tree_method  <- if (!is.null(args$tree_method)) args$tree_method else "hist"
-   
 
    # throw some errors if the user specifies two versions of the same option
    if (!missing(n.trees) & ('nrounds' %in% args_named))             stop("Only one of n.trees and nrounds can be specified.")
@@ -174,7 +172,7 @@ ps<-function(formula = formula(data),
       ## throw some errors if the user specifies an option not allowed in legacy version of ps
       if (!is.null(ks.exact))     stop("Option ks.exact is not allowed with version='legacy'")
       if (!is.null(params))       stop("Option params is not allowed with version='legacy'")
-      if (!missing(tree_method))  stop("Option tree_method is not allowed with version='legacy'")
+      if (!is.null(args$tree_method))  stop("Option tree_method is not allowed with version='legacy'")
       if (!missing(n.keep))       stop("Option n.keep is not allowed with version='legacy'")
       if (!missing(n.grid))       stop("Option n.grid is not allowed with version='legacy'")
 
@@ -193,6 +191,8 @@ ps<-function(formula = formula(data),
                      multinom = multinom, 
                      ...))
   }else{
+    # xgboost tree method  
+    tree_method  <- if (!is.null(args$tree_method)) args$tree_method else "hist"
     # throw error if user specifies params with version=="gbm"
     if ( version=="gbm" & !is.null(params) ) stop("params cannot be specified when version='gbm'.")
     return(ps.fast(formula = formula,
@@ -213,8 +213,7 @@ ps<-function(formula = formula(data),
                   version = version,
                   tree_method = tree_method,
                   n.keep = n.keep,
-                  n.grid = n.grid,
-                  ...))
+                  n.grid = n.grid))
   }
   
 }
