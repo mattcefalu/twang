@@ -137,8 +137,21 @@ ps.fast<-function(formula ,
       if (is.null(params)){
          params = list(eta = shrinkage , max_depth = interaction.depth , subsample = bag.fraction , min_child_weight=n.minobsinnode , objective = "binary:logistic")
       }else{
+         # if params is specified, fill in default values for options not included in params
          if( is.null(params$objective) ){
             params$objective = "binary:logistic"
+         }
+         if( is.null(params$eta) ){
+            params$eta = shrinkage
+         }
+         if( is.null(params$max_depth) ){
+            params$max_depth = interaction.depth
+         }
+         if( is.null(params$subsample) ){
+            params$subsample = bag.fraction
+         }
+         if( is.null(params$min_child_weight) ){
+            params$min_child_weight = n.minobsinnode
          }
       }
 

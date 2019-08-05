@@ -128,11 +128,12 @@
 #' @export
 ps<-function(formula = formula(data),
              data,
-             # boosting options -- gbm version first, then xgboost name
+             # boosting options 
              n.trees = 10000,
              interaction.depth = 3,
              shrinkage = 0.01,
              bag.fraction = 1.0,
+             n.minobsinnode =10,
              perm.test.iters = 0,
              print.level = 2,       
              verbose = TRUE,
@@ -156,12 +157,14 @@ ps<-function(formula = formula(data),
    subsample    <- if (!is.null(args$subsample)) args$subsample else bag.fraction
    nrounds      <- if (!is.null(args$nrounds)) args$nrounds else n.trees
    eta          <- if (!is.null(args$eta)) args$eta else shrinkage
-
+   min_child_weight <- if (!is.null(args$min_child_weight)) args$min_child_weight else n.minobsinnode
+   
    # throw some errors if the user specifies two versions of the same option
    if (!missing(n.trees) & ('nrounds' %in% args_named))             stop("Only one of n.trees and nrounds can be specified.")
    if (!missing(interaction.depth) & ('max_depth' %in% args_named)) stop("Only one of interaction.depth and max_depth can be specified.")
    if (!missing(shrinkage) & ('eta' %in% args_named))               stop("Only one of shrinkage and eta can be specified.")
-   if (!missing(bag.fraction) & ('subsample' %in% args_named))      stop("Only one of shrinkage and eta can be specified.")
+   if (!missing(bag.fraction) & ('subsample' %in% args_named))      stop("Only one of bag.fraction and subsample can be specified.")
+   if (!missing(n.minobsinnode) & ('min_child_weight' %in% args_named))      stop("Only one of n.minobsinnode and min_child_weight can be specified.")
    
    # throw error if user specifies params with other options
    if (!missing(interaction.depth) | ('max_depth' %in% args_named) | !missing(shrinkage) | ('eta' %in% args_named) | !missing(bag.fraction) | ('subsample' %in% args_named) ){
@@ -201,6 +204,7 @@ ps<-function(formula = formula(data),
                   interaction.depth = max_depth,
                   shrinkage = eta,
                   bag.fraction = subsample,
+                  n.minobsinnode = min_child_weight,
                   params = params,
                   perm.test.iters = perm.test.iters,
                   print.level = print.level,       
