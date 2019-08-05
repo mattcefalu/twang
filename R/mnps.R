@@ -183,8 +183,7 @@ mnps<-function(formula,
                      tree_method=tree_method,
                      n.keep = n.keep,
                      n.grid = n.grid,
-                     treatATT = treatATT, 
-                     ...))
+                     treatATT = treatATT))
    }
    
 }

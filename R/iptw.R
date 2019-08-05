@@ -179,8 +179,7 @@ iptw <- function(formula,
                        version = version,
                        tree_method = tree_method,
                        n.keep = n.keep,
-                       n.grid = n.grid,
-                       ...))
+                       n.grid = n.grid))
    }
 	
 }
