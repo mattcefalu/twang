@@ -141,22 +141,19 @@ ps.fast<-function(formula ,
             params$objective = "binary:logistic"
          }
       }
-         # if (save.propensities){
-         #    gbm1 <- xgboost(data=sparse.data , label=data[,treat.var], params=params, tree_method = tree_method, 
-         #                    nrounds=n.trees , verbose=verbose , 
-         #                    callbacks=list(cb.print.evaluation(),save.model(save_period=n.eval.propensity,save_name=file))) 
-         #    ps = readRDS(file=file)
-         # }else{
-            gbm1 <- xgboost(data=sparse.data , label=data[,treat.var], params=params, tree_method = tree_method, 
-                            feval=pred.xgboost , nrounds=n.trees , verbose=verbose , weight = sampW, 
-                            callbacks=list(cb.print.evaluation() , cb.evaluation.log(n.keep = n.keep)))
-            iters = (1:n.trees)[(1:n.trees)%%n.keep==0]
-            ps = as.matrix(gbm1$evaluation_log)
-            #ps= #do.call(cbind,gbm1$evaluation_log$train_pred)
-         #}
-      # predict propensity scores for all iterations
-      #iters = 1:n.trees
-      #ps = plogis(predict(gbm1 , newdata = data , n.trees=iters))
+
+      if (verbose) {
+         callback.list <- list(cb.print.evaluation(), cb.evaluation.log(n.keep=n.keep))
+      }
+      else {
+         callback.list <- list(cb.evaluation.log(n.keep=n.keep))
+      }
+      
+      gbm1 <- xgboost(data=sparse.data , label=data[,treat.var], params=params, tree_method = tree_method, 
+                      feval=pred.xgboost , nrounds=n.trees , verbose=verbose , weight = sampW, 
+                      callbacks=callback.list)
+      iters = (1:n.trees)[(1:n.trees)%%n.keep==0]
+      ps = as.matrix(gbm1$evaluation_log)
    }
 
    if(verbose) cat("Diagnosis of unweighted analysis\n")
