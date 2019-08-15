@@ -30,6 +30,9 @@
 #'   the observations randomly selected in each iteration of the gradient
 #'   boosting algorithm to propose the next tree. See [gbm] for
 #'   more details. Default: 1.0.
+#' @param n.minobsinnode An integer specifying the minimum number of observations 
+#'   in the terminal nodes of the trees used in the gradient boosting.  See [gbm] for
+#'   more details. Default: 10.
 #' @param perm.test.iters A non-negative integer giving the number of iterations
 #'   of the permutation test for the KS statistic. If `perm.test.iters=0`
 #'   then the function returns an analytic approximation to the p-value. Setting
@@ -179,7 +182,8 @@ ps<-function(formula = formula(data),
       if (!is.null(args$tree_method))  stop("Option tree_method is not allowed with version='legacy'")
       if (!missing(n.keep))       stop("Option n.keep is not allowed with version='legacy'")
       if (!missing(n.grid))       stop("Option n.grid is not allowed with version='legacy'")
-
+      if (!missing(n.minobsinnode) | !is.null(args$min_child_weight)) stop("Options n.minobsinnode or min_child_weight are not allowed with version='legacy'")
+      
       return(ps.old(formula = formula,
                      data = data,                         # data
                      n.trees = nrounds,                   # gbm options

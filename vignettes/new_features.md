@@ -164,6 +164,17 @@ M <- ps(treat~age+black+hispan+married+nodegree+re74+re78 , data=lalonde , n.tre
 
     ## Error in ps.fast(formula = formula, data = data, n.trees = nrounds, interaction.depth = max_depth, : n.tress must be at least n.grid times n.keep
 
+#### Additional boosting options
+
+This version of **twang** allows the user to specify the **gbm** option `n.minobsinnode`, which controls the minimum number of observations in the terminal nodes of the trees.
+
+``` r
+M <- ps(treat~age+black+hispan+married+nodegree+re74+re78 , data=lalonde , n.minobsinnode = 100 , verbose=F)
+M$gbm.obj$n.minobsinnode
+```
+
+    ## [1] 100
+
 #### Using xgboost
 
 This version of **twang** supports the use of **xgboost** to perform the gradient boosting for the estimation of the propensity scores. The user request the use of **xgboost** through the `version="xgboost"` option. The behavior of **xgboost** can be controlled using the option names of **gbm**, but can also be controlled directly using the options of **xgboost**. This includes the use of `nrounds`, `max_depth`, `eta`, `subsample`, and `tree_method`. In addition, the list of parameters passed to **xgboost** can be specified with `params`. See <https://xgboost.readthedocs.io/en/latest/parameter.html> for a description of the different options.

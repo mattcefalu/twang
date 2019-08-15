@@ -19,9 +19,17 @@
 #'   confounding variables on the right side.
 #' @param data The dataset, includes treatment assignment as well as covariates.
 #' @param n.trees Number of gbm iterations passed on to [gbm]. Default: 10000.
-#' @param interaction.depth `interaction.depth` passed on to [gbm]. Default: 3.
-#' @param shrinkage `shrinkage` passed on to [gbm]. Default: 0.01.
-#' @param bag.fraction `bag.fraction` passed on to [gbm]. Default: 1.0.
+#' @param interaction.depth A positive integer denoting the tree depth used in
+#'   gradient boosting. Default: 3.
+#' @param shrinkage A numeric value between 0 and 1 denoting the learning rate.
+#'   See [gbm] for more details. Default: 0.01.
+#' @param bag.fraction A numeric value between 0 and 1 denoting the fraction of
+#'   the observations randomly selected in each iteration of the gradient
+#'   boosting algorithm to propose the next tree. See [gbm] for
+#'   more details. Default: 1.0.
+#' @param n.minobsinnode An integer specifying the minimum number of observations 
+#'   in the terminal nodes of the trees used in the gradient boosting.  See [gbm] for
+#'   more details. Default: 10.
 #' @param perm.test.iters A non-negative integer giving the number of iterations
 #'   of the permutation test for the KS statistic. If `perm.test.iters=0`
 #'   then the function returns an analytic approximation to the p-value. Setting
@@ -93,16 +101,12 @@
 #' @export
 mnps<-function(formula,
                data,
-               # boosting options -- gbm version first, then xgboost name
+               # boosting options
                n.trees=10000,
-               # nrounds=n.trees,
                interaction.depth=3,
-               # max_depth=interaction.depth,
                shrinkage=0.01,
-               # eta=shrinkage , 
                bag.fraction = 1.0,
-               # subsample=bag.fraction,
-               # params=NULL,
+               n.minobsinnode =10,
                perm.test.iters=0,
                print.level=2,       
                verbose=TRUE,
@@ -125,12 +129,14 @@ mnps<-function(formula,
    subsample    <- if (!is.null(args$subsample)) args$subsample else bag.fraction
    nrounds      <- if (!is.null(args$nrounds)) args$nrounds else n.trees
    eta          <- if (!is.null(args$eta)) args$eta else shrinkage
+   min_child_weight <- if (!is.null(args$min_child_weight)) args$min_child_weight else n.minobsinnode
    
    # throw some errors if the user specifies two versions of the same option
    if (!missing(n.trees) & ('nrounds' %in% args_named))             stop("Only one of n.trees and nrounds can be specified.")
    if (!missing(interaction.depth) & ('max_depth' %in% args_named)) stop("Only one of interaction.depth and max_depth can be specified.")
    if (!missing(shrinkage) & ('eta' %in% args_named))               stop("Only one of shrinkage and eta can be specified.")
    if (!missing(bag.fraction) & ('subsample' %in% args_named))      stop("Only one of shrinkage and eta can be specified.")
+   if (!missing(n.minobsinnode) & ('min_child_weight' %in% args_named))      stop("Only one of n.minobsinnode and min_child_weight can be specified.")
    
    # throw error if user specifies params with other options
    if (!missing(interaction.depth) | ('max_depth' %in% args_named) | !missing(shrinkage) | ('eta' %in% args_named) | !missing(bag.fraction) | ('subsample' %in% args_named) ){
@@ -145,7 +151,8 @@ mnps<-function(formula,
       if (!missing(n.keep))       stop("Option n.keep is not allowed with version='legacy'")
       if (!missing(n.grid))       stop("Option n.grid is not allowed with version='legacy'")
       if (!is.null(args$tree_method))  stop("Option tree_method is not allowed with version='legacy'")
-
+      if (!missing(n.minobsinnode) | !is.null(args$min_child_weight)) stop("Options n.minobsinnode or min_child_weight are not allowed with version='legacy'")
+      
       return(mnps.old(formula = formula,
                     data=data,                         # data
                     n.trees=nrounds,                   # gbm options
@@ -172,6 +179,7 @@ mnps<-function(formula,
                      interaction.depth=max_depth,
                      shrinkage=eta,
                      bag.fraction = subsample,
+                     n.minobsinnode = min_child_weight,
                      params=params,
                      perm.test.iters=perm.test.iters,
                      print.level=print.level,       

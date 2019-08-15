@@ -7,9 +7,10 @@
 iptw(formula, data, timeInvariant = NULL, cumulative = TRUE,
   timeIndicators = NULL, ID = NULL, priorTreatment = TRUE,
   n.trees = 10000, interaction.depth = 3, shrinkage = 0.01,
-  bag.fraction = 1, perm.test.iters = 0, print.level = 2,
-  verbose = TRUE, stop.method = c("es.max"), sampw = NULL,
-  version = "gbm", ks.exact = NULL, n.keep = 1, n.grid = 25, ...)
+  bag.fraction = 1, n.minobsinnode = 10, perm.test.iters = 0,
+  print.level = 2, verbose = TRUE, stop.method = c("es.max"),
+  sampw = NULL, version = "gbm", ks.exact = NULL, n.keep = 1,
+  n.grid = 25, ...)
 }
 \arguments{
 \item{formula}{Either a single formula (long format) or a list with formulas.}
@@ -40,7 +41,10 @@ See \link{gbm} for more details. Default: 0.01.}
 \item{bag.fraction}{A numeric value between 0 and 1 denoting the fraction of
 the observations randomly selected in each iteration of the gradient
 boosting algorithm to propose the next tree. See \link{gbm} for
-more details. Default: 1.0.}
+more details. Default: 1.0.
+@param n.minobsinnode An integer specifying the minimum number of observations
+in the terminal nodes of the trees used in the gradient boosting.  See \link{gbm} for
+more details. Default: 10.}
 
 \item{perm.test.iters}{A non-negative integer giving the number of iterations
 of the permutation test for the KS statistic. If \code{perm.test.iters=0}
