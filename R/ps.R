@@ -69,7 +69,8 @@
 #'   search of the region most likely to minimize the `stop.method`. A
 #'   value of `n.grid=50` uses a 50 point grid from `1:n.trees`. It
 #'   finds the minimum, say at grid point 35. It then looks for the actual
-#'   minimum between grid points 34 and 36. Default: 25.
+#'   minimum between grid points 34 and 36. If specified with `n.keep>1`, `n.grid` 
+#'   corresponds to a grid of points on the kept iterations as defined by ```n.keep```. Default: 25.
 #' @param ... Additional arguments that are passed to ps function.
 #'
 #' @return Returns an object of class `ps`, a list containing 

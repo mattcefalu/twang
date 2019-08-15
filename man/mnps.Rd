@@ -7,10 +7,8 @@
 mnps(formula, data, n.trees = 10000, interaction.depth = 3,
   shrinkage = 0.01, bag.fraction = 1, perm.test.iters = 0,
   print.level = 2, verbose = TRUE, estimand = "ATE",
-  stop.method = c("es.max"), sampw = NULL, version = "fast",
-  ks.exact = NULL, booster = "gbm", tree_method = "hist",
-  save.propensities = FALSE, file = NULL, n.keep = 1, n.grid = 25,
-  treatATT = NULL, ...)
+  stop.method = c("es.max"), sampw = NULL, version = "gbm",
+  ks.exact = NULL, n.keep = 1, n.grid = 25, treatATT = NULL, ...)
 }
 \arguments{
 \item{formula}{A formula for the propensity score model with the treatment
@@ -69,14 +67,6 @@ Otherwise, an approximation based on the asymptotic distribution is used.
 \strong{Warning:} setting \code{ks.exact = TRUE} will add substantial
 computation time for larger sample sizes. Default: \code{NULL}.}
 
-\item{booster}{\code{gbm} or \code{xgboost}. Default: \code{gbm}.}
-
-\item{tree_method}{\code{xgboost} param. Default: "hist".}
-
-\item{save.propensities}{Whether to save the propensity scores. Default: \code{FALSE}.}
-
-\item{file}{Optional RDS file path where the \code{ps} object will be saved.}
-
 \item{n.keep}{A numeric variable indicating the algorithm should only
 consider every \code{n.keep}-th iteration of the propensity score model and
 optimize balance over this set instead of all iterations. Default: 1.}
@@ -85,7 +75,8 @@ optimize balance over this set instead of all iterations. Default: 1.}
 search of the region most likely to minimize the \code{stop.method}. A
 value of \code{n.grid=50} uses a 50 point grid from \code{1:n.trees}. It
 finds the minimum, say at grid point 35. It then looks for the actual
-minimum between grid points 34 and 36. Default: 25.}
+minimum between grid points 34 and 36. If specified with \code{n.keep>1}, \code{n.grid}
+corresponds to a grid of points on the kept iterations as defined by \code{n.keep}. Default: 25.}
 
 \item{treatATT}{If the estimand is specified to be ATT, this argument is
 used to specify which treatment condition is considered 'the treated'.
@@ -114,10 +105,12 @@ Returns an object of class \code{mnps}, which consists of the following.
 logistic regression, and diagnoses the resulting propensity scores using a variety of methods.
 }
 \details{
-\code{formula} should be something like \code{"treatment ~ X1 + X2 + X3"}. The treatment variable
-should be a variable with three or more levels. There is no need to specify interaction
-terms in the formula. \code{interaction.depth} controls the level of interactions to allow in
-the propensity score model.
+For user more comfortable with the options of \link{xgboost},
+the options for \code{ps} controlling the behavior of the gradient boosting
+algorithm can be specified using the \link{xgboost} naming
+scheme. This includes \code{nrounds}, \code{max_depth}, \code{eta}, and
+\code{subsample}. In addition, the list of parameters passed to
+\link{xgboost} can be specified with \code{params}.
 
 Note that unlike earlier versions of \code{twang}, the plotting functions are
 no longer included in the \code{ps} function. See  \link{plot} for
@@ -129,7 +122,7 @@ Score Estimation with Boosted Regression for Evaluating Adolescent
 Substance Abuse Treatment", \emph{Psychological Methods} 9(4):403-425.
 }
 \seealso{
-\link{ps}
+\link{ps}, \link{gbm}, \link{xgboost}, \link{plot.mnps}, \link{bal.table}
 }
 \author{
 Lane Burgette \code{<burgette@rand.org>}, Beth Ann Griffin \code{<bethg@rand.org>},
