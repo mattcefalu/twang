@@ -3,7 +3,7 @@ title: "New features in twang 2.0"
 output: github_document
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, cache=F}
 knitr::opts_chunk$set(echo = TRUE)
 library(twang)
 data(lalonde)
@@ -13,7 +13,7 @@ data(lalonde)
 
 The **twang** package has undergone extensive revisions to improve computational efficiency. Off the shelf, **twang** should behave as it has in the past, i.e. code written for prior versions of **twang** should still run without modification. However, behind the scenes, there has been substantial revisions to improve the computational efficiency of the package. In certain situations, results from the updated version of **twang** will no longer replicate prior implementations. 
 
-The most up-to-date version of **twang** is available at [https://github.com/mattcefalu/twang/tree/fast] as part of the branch named **fast**. 
+The most up-to-date version of **twang** is available at https://github.com/mattcefalu/twang/tree/fast as part of the branch named **fast**. 
 
 ### Major improvements
 
@@ -28,8 +28,7 @@ The most up-to-date version of **twang** is available at [https://github.com/mat
 
 1.	Removed the direct optimizer, which was a hidden feature of **twang**. This option is now redudant with the default implementation. 
 2.	Missing data in **xgboost** is handled differently than in **gbm**. In **gbm**, missing values are placed in their own node, while in **xgboost** missing values are placed in the left or right node based on minimizing the objective function. 
-3.	Added default print methods for the ```ps```, ```mnps```, and ```iptw`` classes that print the basic summaries. 
-4. The default shrinkage value differs for **gbm** and **xgboost** to account for differences in the algorithms.
+3.	Added default print methods for the ```ps```, ```mnps```, and ```iptw``` classes that print the basic summaries. 
 
 ### Other changes
 
@@ -55,7 +54,7 @@ data(lalonde)
 
 Next, we will fit a propensity score model using the ```ps``` function with ```ks.exact=TRUE```. Setting ```ks.exact=TRUE``` is necessary to ensure the same algorithm for estimating the p-value of the KS statistics is used in all calculations. More details on the ```ks.exact``` option are provided below. 
 
-```{r}
+```{r, , cache=T}
 M1<-ps(treat~age+black+hispan+married+nodegree+re74+re78 , data=lalonde , estimand = "ATT" ,
        n.trees=5000 , stop.method = c("es.mean","ks.max") , ks.exact=T , verbose=F)
 w = get.weights(M1 , stop.method = "es.mean")
@@ -69,7 +68,7 @@ all( abs(bal.table(D1)$es.mean - bal.table(M1)$es.mean) < 10^{-14} )
 ```
 
 The same strategy can be used for testing when ```estimand="ATE"```. 
-```{r}
+```{r, cache=T}
 M2<-ps(treat~age+black+hispan+married+nodegree+re74+re78 , data=lalonde , estimand = "ATE" ,
        n.trees=5000 , stop.method = c("es.mean","ks.max") , ks.exact=T , verbose=F)
 w = get.weights(M2 , stop.method = "es.mean")
@@ -88,7 +87,7 @@ All options for the ```ps```, ```mnps```, and ```iptw``` are fully described in 
 
 #### Specifying the version of **twang**
 
-Version 2.0 of **twang** defaults to using updated balance and optimization routines. Once installed, the user does not need to modify any existing code to use the update functions that improves computational efficiency. However, if the user wishes to use the prior implementation of **twang**, they can requests this by specifying the ```version="legacy"``` option. 
+Version 2.0 of **twang** defaults to using updated balance and optimization routines. Once installed, the user does not need to modify any existing code to use the update functions that improves computational efficiency. However, if the user wishes to use the prior implementation of **twang**, they can request this by specifying the ```version="legacy"``` option. 
 
 ```{r , eval=F}
 M1<-ps(treat~age+black+hispan+married+nodegree+re74+re78 , data=lalonde , version="legacy" , verbose)
@@ -101,19 +100,23 @@ M1<-ps(treat~age+black+hispan+married+nodegree+re74+re78 , data=lalonde , versio
 ```
 
 
+#### Specifying the algorithm used to calculated the KS p-value
+
+Version 2.0 of **twang** updated the calculation of the weighted KS p-value to follow the behavior of ```ks.test```. Specifically, if ```ks.exact=NULL``` and the product of the effective sample sizes is less than 10,000, then an approximation based on the exact distribution of the unweighted KS statistic is used. This approximation via the exact distribution can also be requested directly ```ks.exact=TRUE```. Otherwise, an approximation based on the asymptotic distribution of the unweighted KS statistic is used. 
+
 #### Controlling the optimization
 
 Two new options were added that control how **twang** determines the iterations over which the algorithm optimizes balance. Before describing the options, we first describe how **twang** determines the optimal iteration. The algorithm first creates a grid of points, which is a 25 point grid by default, and assesses the balance at each iteration of the grid. The algorithm finds the optimal iteration based on this grid, and then does a finer search for the optimum between this grid point and its neighbors. For example, say we find that grid point 15 achieves the optimal balance, then the algorithm focuses it search for the optimal iteration between grid points 14 and 16 . 
 
 The option ```n.keep``` is a  numeric variable indicating that the algorithm should only consider every ```n.keep```-th iteration of the propensity score model and optimize balance over this set instead of all iterations. The default value is 1, which is to optimize over all iterations. Here, we specify ```n.keep=50``` and see that the optimal iteration is a multiple of 50.
 
-```{r}
+```{r, cache=T}
 ps(treat~age+black+hispan+married+nodegree+re74+re78 , data=lalonde , n.keep=50 , verbose=F)
 ```
 
 The option ```n.grid``` is numeric variable that sets the grid size for an initial search of the region most likely to minimize the stop.method. When ```n.keep=1```, a value of ```n.grid=50``` uses a 50 point grid from ```1:n.trees```. 
 
-```{r}
+```{r, cache=T}
 M <- ps(treat~age+black+hispan+married+nodegree+re74+re78 , data=lalonde , n.grid=50 , verbose=F)
 # how many points are in the initial grid?
 length(M$iters)
@@ -121,7 +124,7 @@ length(M$iters)
 
 The options ```n.grid``` and ```n.keep``` can be combined. The option ```n.grid``` corresponds to a grid of points on the kept iterations as defined by ```n.keep```. For example, ```n.keep=10``` with ```n.trees=5000``` will keep the iterations ```(10,20,...,5000)```. The option ```n.grid=10``` then splits this vector into 10 points. Thus, ```n.grid*n.keep``` must be less than or equal to ```n.trees```.
 
-```{r}
+```{r, cache=T}
 M <- ps(treat~age+black+hispan+married+nodegree+re74+re78 , data=lalonde , n.trees=5000, n.keep=10, n.grid=10 , verbose=F)
 summary(M)
 ```
@@ -134,17 +137,18 @@ M <- ps(treat~age+black+hispan+married+nodegree+re74+re78 , data=lalonde , n.tre
 
 This version of **twang** supports the use of **xgboost** to perform the gradient boosting for the estimation of the propensity scores. The user request the use of **xgboost** through the ```version="xgboost"``` option. The behavior of **xgboost** can be controlled using the option names of **gbm**, but can also be controlled directly using the options of **xgboost**. This includes the use of ```nrounds```, ```max_depth```, ```eta```, ```subsample```, and ```tree_method```. In addition, the list of parameters passed to **xgboost** can be specified with ```params```. See https://xgboost.readthedocs.io/en/latest/parameter.html for a description of the different options. 
 
-```{r}
+```{r, cache=T}
 ## the following model specifications are equivalent
 M3<-ps(treat~age+black+hispan+married+nodegree+re74+re78 , data=lalonde , verbose=F,
-       n.trees=5000 , shrinkage = 0.01 , interaction.depth = 3, version="xgboost")
+       n.trees=5000 , shrinkage = 0.05 , interaction.depth = 3, n.minobsinnode=15,  version="xgboost")
 M4<-ps(treat~age+black+hispan+married+nodegree+re74+re78 , data=lalonde , verbose=F,
-       nrounds=5000 , eta = 0.01 , max_depth = 3, min_child_weight=10, version="xgboost")
+       nrounds=5000 , eta = 0.05 , max_depth = 3, min_child_weight=15, version="xgboost")
 M5<-ps(treat~age+black+hispan+married+nodegree+re74+re78 , data=lalonde , verbose=F, 
-       nrounds=5000 , params=list(eta = 0.01 , max_depth = 3 , min_child_weight=10) , version="xgboost")
+       nrounds=5000 , params=list(eta = 0.05 , max_depth = 3 , min_child_weight=15) , version="xgboost")
 
-# verify this is true
-all.equal(M3,M4)
-all.equal(M4,M5)
+# verify this is true by checking balance. 
+all.equal(bal.table(M3),bal.table(M4))
+all.equal(bal.table(M4),bal.table(M5))
+
 ```
 
