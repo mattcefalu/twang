@@ -7,14 +7,8 @@
 #' @export
 summary.mediation <- function(object, ...) {
 
-  column_order <- c('model', 'tx.mn', 'tx.sd', 'ct.mn', 'ct.sd',
-                    'std.eff.sz', 'stat', 'p', 'ks', 'ks.pval')
-
-  # grab the balance table, reorder the columns, and split into
-  # multiple data frames using the `model` column
+  # grab the balance table
   balance_tables <- bal_table(object)
-  balance_tables <- balance_tables[,column_order]
-  balance_tables <- split(balance_tables, balance_tables$model)
 
   # loop through the effects and put them
   # into a single data frame, then print

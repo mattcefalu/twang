@@ -60,6 +60,13 @@ bal_table.mediation <- function(x, ...) {
   balance_a <- fix_med_balance_names(balance_a)
   balance_m <- fix_med_balance_names(balance_m)
   balance_nde <- fix_med_balance_names(balance_nde)
+  
+  column_order <- c('model', 'tx.mn', 'tx.sd', 'ct.mn', 'ct.sd',
+                    'std.eff.sz', 'stat', 'p', 'ks', 'ks.pval')
 
-  rbind(balance_a, balance_m, balance_nde)
+  balance_tables <- rbind(balance_a, balance_m, balance_nde)
+  balance_tables <- balance_tables[,column_order]
+  balance_tables <- split(balance_tables, balance_tables$model)
+  return(balance_tables)
+  
 }
