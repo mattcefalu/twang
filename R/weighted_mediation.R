@@ -71,8 +71,9 @@
 #' @param ps_version character, optional
 #'  Which version of [ps] to use.
 #'     * `"legacy"` Uses the prior implementation of the `ps`` function.
+#'     * `"fast` Uses the new `ps.fast` implementation.
 #'     * All other options use `ps.fast` implementation.
-#'   (Default : "legacy")
+#'   (Default : "fast")
 #' @param ps_booster character, optional
 #'   `gbm` or `xgboost`
 #'   (Default : 'gbm').
@@ -95,8 +96,6 @@
 #'   finds the minimum, say at grid point 35. It then looks for the actual
 #'   minimum between grid points 34 and 36.Only used with `xgboost`.
 #'   (Default: `25``).
-#' @param ... list, optional
-#'   Additional arguments passed to [ps].
 #' @return mediation object
 #'   The `mediation` object includes the following:
 #'   - `model_a_res` The model A `ps()` results.
@@ -141,8 +140,7 @@ weighted_mediation <- function(a_treatment,
                                ps_sampw = NULL,
                                ps_tree_method = "hist",
                                ps_n.keep = 1,
-                               ps_n.grid = 25,
-                               ...) {
+                               ps_n.grid = 25) {
   
   # Get the list of initial arguments for `ps()`
   ps_args <- list(formula = A ~ .,
@@ -164,7 +162,6 @@ weighted_mediation <- function(a_treatment,
                                n.keep = ps_n.keep,
                                n.grid = ps_n.grid))
   }
-  ps_args = c(ps_args, list(...))
   
   # Check for nulls in treatment and mediator, which must exist
   check_missing(a_treatment)
@@ -294,6 +291,11 @@ weighted_mediation <- function(a_treatment,
 
   # Calculate the NIE weights (which are just TE weights - NDE weights)
   natural_indirect_wts <- total_effect_wts - natural_direct_wts
+
+  # Let's remove the data from these `ps` objects, so they're not so bulky
+  model_m0_res[['data']] <- NULL
+  model_m1_res[['data']] <- NULL
+  model_a_res[['data']] <- NULL
 
   # Collect the results into a list
   results <- list(natural_indirect_wts = natural_indirect_wts,
