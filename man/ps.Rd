@@ -6,11 +6,10 @@
 \usage{
 ps(formula = formula(data), data, n.trees = 10000,
   interaction.depth = 3, shrinkage = 0.01, bag.fraction = 1,
-  perm.test.iters = 0, print.level = 2, verbose = TRUE,
-  estimand = "ATE", stop.method = c("ks.mean", "es.mean"),
-  sampw = NULL, version = "fast", ks.exact = NULL, booster = "gbm",
-  tree_method = "hist", save.propensities = FALSE, n.keep = 1,
-  n.grid = 25, ...)
+  n.minobsinnode = 10, perm.test.iters = 0, print.level = 2,
+  verbose = TRUE, estimand = "ATE", stop.method = c("ks.mean",
+  "es.mean"), sampw = NULL, version = "gbm", ks.exact = NULL,
+  n.keep = 1, n.grid = 25, ...)
 }
 \arguments{
 \item{formula}{An object of class \link{formula}: a symbolic
@@ -24,18 +23,19 @@ potential confounding variables.}
 \item{n.trees}{Number of gbm iterations passed on to \link{gbm}. Default: 10000.}
 
 \item{interaction.depth}{A positive integer denoting the tree depth used in
-gradient boosting. Only one of \code{interaction.depth} and
-\code{max_depth} can be specified. Default: 3.}
+gradient boosting. Default: 3.}
 
 \item{shrinkage}{A numeric value between 0 and 1 denoting the learning rate.
-See \link{gbm} for more details. Only one of \code{shrinkage}
-and \code{eta} can be specified. Default: 0.01.}
+See \link{gbm} for more details. Default: 0.01.}
 
 \item{bag.fraction}{A numeric value between 0 and 1 denoting the fraction of
 the observations randomly selected in each iteration of the gradient
 boosting algorithm to propose the next tree. See \link{gbm} for
-more details. Only one of \code{bag.fraction} and \code{subsample} can be
-specified. Default: 1.0.}
+more details. Default: 1.0.}
+
+\item{n.minobsinnode}{An integer specifying the minimum number of observations
+in the terminal nodes of the trees used in the gradient boosting.  See \link{gbm} for
+more details. Default: 10.}
 
 \item{perm.test.iters}{A non-negative integer giving the number of iterations
 of the permutation test for the KS statistic. If \code{perm.test.iters=0}
@@ -65,9 +65,9 @@ Default: \code{c("ks.mean", "es.mean")}.}
 
 \item{version}{"gbm", "xgboost", or "legacy", indicating which version of the twang package to use.
 \itemize{
-\item \code{"gbm"} Uses gradient boosting from the \code{gbm} package.
-\item \code{"xgboost"} Uses gradient boosting from the \code{xgboost} package.
-\item \code{"legacy"} Uses the prior implementation of the `ps`` function.
+\item \code{"gbm"} uses gradient boosting from the \code{gbm} package.
+\item \code{"xgboost"} uses gradient boosting from the \code{xgboost} package.
+\item \code{"legacy"} uses the prior implementation of the `ps`` function.
 }}
 
 \item{ks.exact}{\code{NULL} or a logical indicating whether the
@@ -79,12 +79,6 @@ Otherwise, an approximation based on the asymptotic distribution is used.
 \strong{Warning:} setting \code{ks.exact = TRUE} will add substantial
 computation time for larger sample sizes. Default: \code{NULL}.}
 
-\item{booster}{\code{gbm} or \code{xgboost}. Default: \code{gbm}.}
-
-\item{tree_method}{\code{xgboost} param. Default: "hist".}
-
-\item{save.propensities}{Whether to save the propensity scores. Default: \code{FALSE}.}
-
 \item{n.keep}{A numeric variable indicating the algorithm should only
 consider every \code{n.keep}-th iteration of the propensity score model and
 optimize balance over this set instead of all iterations. Default: 1.}
@@ -93,7 +87,8 @@ optimize balance over this set instead of all iterations. Default: 1.}
 search of the region most likely to minimize the \code{stop.method}. A
 value of \code{n.grid=50} uses a 50 point grid from \code{1:n.trees}. It
 finds the minimum, say at grid point 35. It then looks for the actual
-minimum between grid points 34 and 36. Default: 25.}
+minimum between grid points 34 and 36. If specified with \code{n.keep>1}, \code{n.grid}
+corresponds to a grid of points on the kept iterations as defined by \code{n.keep}. Default: 25.}
 
 \item{...}{Additional arguments that are passed to ps function.}
 }
@@ -101,7 +96,8 @@ minimum between grid points 34 and 36. Default: 25.}
 Returns an object of class \code{ps}, a list containing
 \itemize{
 \item \code{gbm.obj} The returned \link{gbm} object.
-\item \code{treat} The treatment variable.
+\item \code{treat} The vector of treatment indicators.
+\item \code{treat.var} The treatment variable.
 \item \code{desc} A list containing balance tables for each method selected in
 \code{stop.methods}. Includes a component for the unweighted
 analysis names \dQuote{unw}. Each \code{desc} component includes
@@ -133,8 +129,16 @@ If sampling weights are given then these are incorporated into these weights.
 \item \code{parameters} Saves the \code{ps} call.
 \item \code{alerts} Text containing any warnings accumulated during the estimation.
 \item \code{iters} A sequence of iterations used in the GBM fits used by \code{plot} function.
-\item \code{balance} The balance measures for the pretreatment covariates, with a column for each
+\item \code{balance} The balance measures for the pretreatment covariates used in plotting, with a column for each
 \code{stop.method}.
+\item \code{balance.ks} The KS balance measures for the pretreatment covariates used in plotting, with a column for each
+covariate.
+\item \code{balance.es} The standard differences for the pretreatment covariates used in plotting, with a column for each
+covariate.
+\item \code{ks} The KS balance measures for the pretreatment covariates on a finer grid, with a column for each
+covariate.
+\item \code{es} The standard differences for the pretreatment covariates on a finer grid, with a column for each
+covariate.
 \item \code{n.trees} Maximum number of trees considered in GBM fit.
 \item \code{data} Data as specified in the \code{data} argument.
 }
@@ -162,7 +166,7 @@ Score Estimation with Boosted Regression for Evaluating Adolescent
 Substance Abuse Treatment", \emph{Psychological Methods} 9(4):403-425.
 }
 \seealso{
-\link{gbm}
+\link{gbm}, \link{xgboost}, \link{plot.ps}, \link{bal.table}
 }
 \keyword{models,}
 \keyword{multivariate}

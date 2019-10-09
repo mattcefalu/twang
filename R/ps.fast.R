@@ -8,21 +8,16 @@ ps.fast<-function(formula ,
              bag.fraction = 1.0,
              n.minobsinnode = 10,
              perm.test.iters=0,
-             print.level=2,                 # direct optimizer options
-             #iterlim=1000,
+             print.level=2,                 
              verbose=TRUE,
              estimand="ATE", 
              stop.method = c("ks.mean", "es.mean"), 
              sampw = NULL, multinom = FALSE,
              ks.exact=NULL,
-             booster="gbm",
+             version="gbm",
              tree_method="hist",
-             save.propensities=FALSE,
-             file=NULL,
              n.keep = 1,
-             n.grid = n.grid,
-             #n.grid.ks = 25,
-             #n.grid.es = NULL,
+             n.grid = 25,
              ...){
              	
 	
@@ -32,11 +27,6 @@ ps.fast<-function(formula ,
    }else{ 
       sampW <- unlist(sampw, use.names=F) 
    }
-   
-   # if (!is.null(n.grid)){
-   #    n.grid.ks = n.grid
-   #    n.grid.es = n.grid
-   # }
    
    if ( n.trees/n.keep< n.grid ){
       stop('n.tress must be at least n.grid times n.keep')
@@ -117,7 +107,7 @@ ps.fast<-function(formula ,
    # fit the propensity score model
    if(verbose) cat("Fitting boosted model\n")
    
-   if (booster=="gbm"){
+   if (version=="gbm"){
       # need to reformulate formula to use this environment
       form <- paste(deparse(formula, 500), collapse="") 
    
@@ -147,26 +137,36 @@ ps.fast<-function(formula ,
       if (is.null(params)){
          params = list(eta = shrinkage , max_depth = interaction.depth , subsample = bag.fraction , min_child_weight=n.minobsinnode , objective = "binary:logistic")
       }else{
+         # if params is specified, fill in default values for options not included in params
          if( is.null(params$objective) ){
             params$objective = "binary:logistic"
          }
+         if( is.null(params$eta) ){
+            params$eta = shrinkage
+         }
+         if( is.null(params$max_depth) ){
+            params$max_depth = interaction.depth
+         }
+         if( is.null(params$subsample) ){
+            params$subsample = bag.fraction
+         }
+         if( is.null(params$min_child_weight) ){
+            params$min_child_weight = n.minobsinnode
+         }
       }
-         # if (save.propensities){
-         #    gbm1 <- xgboost(data=sparse.data , label=data[,treat.var], params=params, tree_method = tree_method, 
-         #                    nrounds=n.trees , verbose=verbose , 
-         #                    callbacks=list(cb.print.evaluation(),save.model(save_period=n.eval.propensity,save_name=file))) 
-         #    ps = readRDS(file=file)
-         # }else{
-            gbm1 <- xgboost(data=sparse.data , label=data[,treat.var], params=params, tree_method = tree_method, 
-                            feval=pred.xgboost , nrounds=n.trees , verbose=verbose , weight = sampW, 
-                            callbacks=list(cb.print.evaluation() , cb.evaluation.log(n.keep = n.keep)))
-            iters = (1:n.trees)[(1:n.trees)%%n.keep==0]
-            ps = as.matrix(gbm1$evaluation_log)
-            #ps= #do.call(cbind,gbm1$evaluation_log$train_pred)
-         #}
-      # predict propensity scores for all iterations
-      #iters = 1:n.trees
-      #ps = plogis(predict(gbm1 , newdata = data , n.trees=iters))
+
+      if (verbose) {
+         callback.list <- list(cb.print.evaluation(), cb.evaluation.log(n.keep=n.keep))
+      }
+      else {
+         callback.list <- list(cb.evaluation.log(n.keep=n.keep))
+      }
+      
+      gbm1 <- xgboost(data=sparse.data , label=data[,treat.var], params=params, tree_method = tree_method, 
+                      feval=pred.xgboost , nrounds=n.trees , verbose=verbose , weight = sampW, 
+                      callbacks=callback.list)
+      iters = (1:n.trees)[(1:n.trees)%%n.keep==0]
+      ps = as.matrix(gbm1$evaluation_log)
    }
 
    if(verbose) cat("Diagnosis of unweighted analysis\n")
@@ -206,8 +206,7 @@ ps.fast<-function(formula ,
    #iters.grid.ks <- round(seq( 1 , length(iters)  ,length=n.grid.ks))
    #iters.grid.es <- round(seq( 1 , length(iters)  ,length=ifelse(is.null(n.grid.es) ,length(iters) ,n.grid.es )))
    
-   std.effect = ks.effect = NULL
-   balance.es <- NULL
+   std.effect = ks.effect = balance.es = balance.ks = NULL
    if ( any(grepl("es.",stop.method.names)) ){
       if(verbose) cat("Calculating standardized differences\n")
       std.effect = calcES(data=bal.data, w=W[,iters.grid] , treat=data[,treat.var],numeric.vars = numeric.vars , estimand=estimand , multinom=multinom , sw=sampW)
@@ -350,16 +349,12 @@ ps.fast<-function(formula ,
                   w          = w,
                   sampw      = sampW, 
                   estimand   = estimand,
-                  booster = booster , 
-                  version = "fast", 
-#                  plot.info  = plot.info,
+                  version = version, 
                   datestamp  = date(),
                   parameters = terms,
                   alerts     = alert,
-                  #iters.ks = iters.grid.ks,
-                  #iters.es = iters.grid.es,
                   iters = iters.grid,
-                  balance.ks = ks.effect,
+                  balance.ks = balance.ks,
                   balance.es = balance.es,
                   balance = balance,
                   es = std.effect,

@@ -7,11 +7,10 @@
 iptw(formula, data, timeInvariant = NULL, cumulative = TRUE,
   timeIndicators = NULL, ID = NULL, priorTreatment = TRUE,
   n.trees = 10000, interaction.depth = 3, shrinkage = 0.01,
-  bag.fraction = 1, perm.test.iters = 0, print.level = 2,
-  verbose = TRUE, stop.method = c("es.max"), sampw = NULL,
-  version = "fast", ks.exact = NULL, booster = "gbm",
-  tree_method = "hist", save.propensities = FALSE, file = NULL,
-  n.keep = 1, n.grid = 25, ...)
+  bag.fraction = 1, n.minobsinnode = 10, perm.test.iters = 0,
+  print.level = 2, verbose = TRUE, stop.method = c("es.max"),
+  sampw = NULL, version = "gbm", ks.exact = NULL, n.keep = 1,
+  n.grid = 25, ...)
 }
 \arguments{
 \item{formula}{Either a single formula (long format) or a list with formulas.}
@@ -34,18 +33,18 @@ argument is ignored for wide format fits. Default: \code{TRUE}.}
 \item{n.trees}{Number of gbm iterations passed on to \link{gbm}.}
 
 \item{interaction.depth}{A positive integer denoting the tree depth used in
-gradient boosting. Only one of \code{interaction.depth} and
-\code{max_depth} can be specified. Default: 3.}
+gradient boosting. Default: 3.}
 
 \item{shrinkage}{A numeric value between 0 and 1 denoting the learning rate.
-See \link{gbm} for more details. Only one of \code{shrinkage}
-and \code{eta} can be specified. Default: 0.01.}
+See \link{gbm} for more details. Default: 0.01.}
 
 \item{bag.fraction}{A numeric value between 0 and 1 denoting the fraction of
 the observations randomly selected in each iteration of the gradient
 boosting algorithm to propose the next tree. See \link{gbm} for
-more details. Only one of \code{bag.fraction} and \code{subsample} can be
-specified. Default: 1.0.}
+more details. Default: 1.0.
+@param n.minobsinnode An integer specifying the minimum number of observations
+in the terminal nodes of the trees used in the gradient boosting.  See \link{gbm} for
+more details. Default: 10.}
 
 \item{perm.test.iters}{A non-negative integer giving the number of iterations
 of the permutation test for the KS statistic. If \code{perm.test.iters=0}
@@ -82,14 +81,6 @@ Otherwise, an approximation based on the asymptotic distribution is used.
 \strong{Warning:} setting \code{ks.exact = TRUE} will add substantial
 computation time for larger sample sizes. Default: \code{NULL}.}
 
-\item{booster}{\code{gbm} or \code{xgboost}. Default: \code{gbm}.}
-
-\item{tree_method}{\code{xgboost} param. Default: "hist".}
-
-\item{save.propensities}{Whether to save the propensity scores. Default: \code{FALSE}.}
-
-\item{file}{Optional RDS file path where the \code{ps} object will be saved.}
-
 \item{n.keep}{A numeric variable indicating the algorithm should only
 consider every \code{n.keep}-th iteration of the propensity score model and
 optimize balance over this set instead of all iterations. Default: 1.}
@@ -98,7 +89,8 @@ optimize balance over this set instead of all iterations. Default: 1.}
 search of the region most likely to minimize the \code{stop.method}. A
 value of \code{n.grid=50} uses a 50 point grid from \code{1:n.trees}. It
 finds the minimum, say at grid point 35. It then looks for the actual
-minimum between grid points 34 and 36. Default: 25.}
+minimum between grid points 34 and 36. If specified with \code{n.keep>1}, \code{n.grid}
+corresponds to a grid of points on the kept iterations as defined by \code{n.keep}. Default: 25.}
 
 \item{...}{Additional arguments that are passed to ps function.}
 }
@@ -113,12 +105,18 @@ Returns an object of class \code{iptw}, a list containing
 }
 }
 \description{
-\code{iptw} uses \link{gbm} to estimate propensity scores for sequential treatments.
+\code{iptw} calculates propensity scores for sequential treatments using gradient boosted logistic
+regression and diagnoses the resulting propensity scores using a variety of
+methods
 }
 \details{
-This function uses generalized boosted models to estimate inverse probability of
-treatment weights for sequential treatments.
+For user more comfortable with the options of \link{xgboost},
+the options for \code{iptw} controlling the behavior of the gradient boosting
+algorithm can be specified using the \link{xgboost} naming
+scheme. This includes \code{nrounds}, \code{max_depth}, \code{eta}, and
+\code{subsample}. In addition, the list of parameters passed to
+\link{xgboost} can be specified with \code{params}.
 }
 \seealso{
-\link{ps}
+\link{ps}, \link{mnps}, \link{gbm}, \link{xgboost}, \link{plot.iptw}, \link{bal.table}
 }

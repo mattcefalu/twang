@@ -1,9 +1,15 @@
 #' Inverse probability of treatment weighting for marginal structural models.
 #'
-#' `iptw` uses [gbm] to estimate propensity scores for sequential treatments.
-#'
-#' This function uses generalized boosted models to estimate inverse probability of
-#' treatment weights for sequential treatments.
+#' `iptw` calculates propensity scores for sequential treatments using gradient boosted logistic
+#' regression and diagnoses the resulting propensity scores using a variety of
+#' methods
+#' 
+#' For user more comfortable with the options of [xgboost],
+#' the options for `iptw` controlling the behavior of the gradient boosting
+#' algorithm can be specified using the [xgboost] naming
+#' scheme. This includes `nrounds`, `max_depth`, `eta`, and
+#' `subsample`. In addition, the list of parameters passed to
+#' [xgboost] can be specified with `params`.
 #'
 #' @param formula Either a single formula (long format) or a list with formulas.
 #' @param data The dataset, includes treatment assignment as well as covariates.
@@ -17,16 +23,16 @@
 #'   argument is ignored for wide format fits. Default: `TRUE`.
 #' @param n.trees Number of gbm iterations passed on to [gbm].
 #' @param interaction.depth A positive integer denoting the tree depth used in
-#'   gradient boosting. Only one of `interaction.depth` and
-#'   `max_depth` can be specified. Default: 3.
+#'   gradient boosting. Default: 3.
 #' @param shrinkage A numeric value between 0 and 1 denoting the learning rate.
-#'   See [gbm] for more details. Only one of `shrinkage`
-#'   and `eta` can be specified. Default: 0.01.
+#'   See [gbm] for more details. Default: 0.01.
 #' @param bag.fraction A numeric value between 0 and 1 denoting the fraction of
 #'   the observations randomly selected in each iteration of the gradient
 #'   boosting algorithm to propose the next tree. See [gbm] for
-#'   more details. Only one of `bag.fraction` and `subsample` can be
-#'   specified. Default: 1.0.
+#'   more details. Default: 1.0.
+#'  @param n.minobsinnode An integer specifying the minimum number of observations 
+#'   in the terminal nodes of the trees used in the gradient boosting.  See [gbm] for
+#'   more details. Default: 10.
 #' @param perm.test.iters A non-negative integer giving the number of iterations
 #'   of the permutation test for the KS statistic. If `perm.test.iters=0`
 #'   then the function returns an analytic approximation to the p-value. Setting
@@ -53,10 +59,6 @@
 #'   Otherwise, an approximation based on the asymptotic distribution is used.
 #'   **Warning:** setting `ks.exact = TRUE` will add substantial
 #'   computation time for larger sample sizes. Default: `NULL`.
-#' @param booster `gbm` or `xgboost`. Default: `gbm`.
-#' @param tree_method `xgboost` param. Default: "hist".
-#' @param save.propensities Whether to save the propensity scores. Default: `FALSE`.
-#' @param file Optional RDS file path where the `ps` object will be saved.
 #' @param n.keep A numeric variable indicating the algorithm should only
 #'   consider every `n.keep`-th iteration of the propensity score model and
 #'   optimize balance over this set instead of all iterations. Default: 1.
@@ -64,7 +66,8 @@
 #'   search of the region most likely to minimize the `stop.method`. A
 #'   value of `n.grid=50` uses a 50 point grid from `1:n.trees`. It
 #'   finds the minimum, say at grid point 35. It then looks for the actual
-#'   minimum between grid points 34 and 36. Default: 25.
+#'   minimum between grid points 34 and 36. If specified with `n.keep>1`, `n.grid` 
+#'   corresponds to a grid of points on the kept iterations as defined by ```n.keep```. Default: 25.
 #' @param ... Additional arguments that are passed to ps function.
 #'
 #' @return Returns an object of class `iptw`, a list containing
@@ -74,7 +77,7 @@
 #'   * `nFits` The number of `ps` objects (i.e., the number of distinct time points).
 #'   * `uniqueTimes` The unique times in the specified model.
 #'
-#' @seealso [ps]
+#' @seealso [ps], [mnps], [gbm], [xgboost], [plot.iptw], [bal.table]
 #'
 #' @export
 iptw <- function(formula, 
@@ -87,25 +90,17 @@ iptw <- function(formula,
                  priorTreatment = TRUE,
                  # boosting options -- gbm version first, then xgboost name
                  n.trees = 10000,
-                 # nrounds = n.trees,
                  interaction.depth = 3,
-                 # max_depth = interaction.depth,
                  shrinkage = 0.01,
-                 # eta = shrinkage , 
                  bag.fraction = 1.0,
-                 # subsample = bag.fraction,
-                 # params = NULL,
+                 n.minobsinnode =10,
                  perm.test.iters = 0,
                  print.level = 2,       
                  verbose = TRUE,
                  stop.method = c("es.max"), 
                  sampw = NULL, 
-                 version = "fast",
+                 version = "gbm",
                  ks.exact = NULL,
-                 booster = "gbm",
-                 tree_method = "hist",
-                 save.propensities = FALSE,
-                 file = NULL,
                  n.keep = 1,
                  n.grid = 25,
                  ...){
@@ -114,18 +109,22 @@ iptw <- function(formula,
    args         <- list(...)
    args_named   <- names(args)
 
+   # parse hidden options and xgboost parameters
    params       <- args$params
    max_depth    <- if (!is.null(args$max_depth)) args$max_depth else interaction.depth
    subsample    <- if (!is.null(args$subsample)) args$subsample else bag.fraction
    nrounds      <- if (!is.null(args$nrounds)) args$nrounds else n.trees
    eta          <- if (!is.null(args$eta)) args$eta else shrinkage
+   min_child_weight <- if (!is.null(args$min_child_weight)) args$min_child_weight else n.minobsinnode
+   
 
    # throw some errors if the user specifies two versions of the same option
    if (!missing(n.trees) & ('nrounds' %in% args_named))             stop("Only one of n.trees and nrounds can be specified.")
    if (!missing(interaction.depth) & ('max_depth' %in% args_named)) stop("Only one of interaction.depth and max_depth can be specified.")
    if (!missing(shrinkage) & ('eta' %in% args_named))               stop("Only one of shrinkage and eta can be specified.")
    if (!missing(bag.fraction) & ('subsample' %in% args_named))      stop("Only one of shrinkage and eta can be specified.")
-
+   if (!missing(n.minobsinnode) & ('min_child_weight' %in% args_named))      stop("Only one of n.minobsinnode and min_child_weight can be specified.")
+   
    # throw error if user specifies params with other options
    if (!missing(interaction.depth) | ('max_depth' %in% args_named) | !missing(shrinkage) | ('eta' %in% args_named) | !missing(bag.fraction) | ('subsample' %in% args_named) ){
       if (!is.null(params)) stop("params cannot be specified with any of interaction.depth, max_depth, shrinkage, eta, bag.fraction, or subsample.")
@@ -135,11 +134,12 @@ iptw <- function(formula,
       ## throw some errors if the user specifies an option not allowed in legacy version of ps
       if (!is.null(ks.exact))     stop("Option ks.exact is not allowed with version='legacy'")
       if (!is.null(params))       stop("Option params is not allowed with version='legacy'")
-      if (!missing(booster))      stop("Option booster is not allowed with version='legacy'")
       if (!missing(tree_method))  stop("Option tree_method is not allowed with version='legacy'")
       if (!missing(n.keep))       stop("Option n.keep is not allowed with version='legacy'")
       if (!missing(n.grid))       stop("Option n.grid is not allowed with version='legacy'")
-   
+      if (!is.null(args$tree_method))  stop("Option tree_method is not allowed with version='legacy'")
+      if (!missing(n.minobsinnode) | !is.null(args$min_child_weight)) stop("Options n.minobsinnode or min_child_weight are not allowed with version='legacy'")
+      
       return(iptw.old(formula = formula,
                       data = data,
                       # iptw options
@@ -160,8 +160,11 @@ iptw <- function(formula,
                       sampw = sampw, 
                       ...))
    }else{
-      # throw error if user specifies params with booster=="gbm"
-      if ( booster=="gbm" & !is.null(params) ) stop("params cannot be specified when booster='gbm'.")
+      # xgboost tree method  
+      tree_method  <- if (!is.null(args$tree_method)) args$tree_method else "hist"
+      
+      # throw error if user specifies params with version=="gbm"
+      if ( version=="gbm" & !is.null(params) ) stop("params cannot be specified when version='gbm'.")
       return(iptw.fast(formula = formula,
                        data = data,
                        # iptw options
@@ -175,6 +178,7 @@ iptw <- function(formula,
                        interaction.depth = max_depth,
                        shrinkage = eta,
                        bag.fraction = subsample,
+                       n.minobsinnode = min_child_weight,
                        params = params,
                        perm.test.iters = perm.test.iters,
                        print.level = print.level,       
@@ -182,13 +186,10 @@ iptw <- function(formula,
                        stop.method = stop.method, 
                        sampw = sampw, 
                        ks.exact = ks.exact,
-                       booster = booster,
+                       version = version,
                        tree_method = tree_method,
-                       save.propensities = save.propensities,
-                       file = file,
                        n.keep = n.keep,
-                       n.grid = n.grid,
-                       ...))
+                       n.grid = n.grid))
    }
 	
 }

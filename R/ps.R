@@ -23,16 +23,16 @@
 #'   potential confounding variables.
 #' @param n.trees Number of gbm iterations passed on to [gbm]. Default: 10000.
 #' @param interaction.depth A positive integer denoting the tree depth used in
-#'   gradient boosting. Only one of `interaction.depth` and
-#'   `max_depth` can be specified. Default: 3.
+#'   gradient boosting. Default: 3.
 #' @param shrinkage A numeric value between 0 and 1 denoting the learning rate.
-#'   See [gbm] for more details. Only one of `shrinkage`
-#'   and `eta` can be specified. Default: 0.01.
+#'   See [gbm] for more details. Default: 0.01.
 #' @param bag.fraction A numeric value between 0 and 1 denoting the fraction of
 #'   the observations randomly selected in each iteration of the gradient
 #'   boosting algorithm to propose the next tree. See [gbm] for
-#'   more details. Only one of `bag.fraction` and `subsample` can be
-#'   specified. Default: 1.0.
+#'   more details. Default: 1.0.
+#' @param n.minobsinnode An integer specifying the minimum number of observations 
+#'   in the terminal nodes of the trees used in the gradient boosting.  See [gbm] for
+#'   more details. Default: 10.
 #' @param perm.test.iters A non-negative integer giving the number of iterations
 #'   of the permutation test for the KS statistic. If `perm.test.iters=0`
 #'   then the function returns an analytic approximation to the p-value. Setting
@@ -54,9 +54,9 @@
 #'   Default: `c("ks.mean", "es.mean")`.
 #' @param sampw Optional sampling weights.
 #' @param version "gbm", "xgboost", or "legacy", indicating which version of the twang package to use.
-#'   * `"gbm"` Uses gradient boosting from the `gbm` package.
-#'   * `"xgboost"` Uses gradient boosting from the `xgboost` package.
-#'   * `"legacy"` Uses the prior implementation of the `ps`` function.
+#'   * `"gbm"` uses gradient boosting from the `gbm` package.
+#'   * `"xgboost"` uses gradient boosting from the `xgboost` package.
+#'   * `"legacy"` uses the prior implementation of the `ps`` function.
 #' @param ks.exact `NULL` or a logical indicating whether the
 #'   Kolmogorov-Smirnov p-value should be based on an approximation of exact
 #'   distribution from an unweighted two-sample Kolmogorov-Smirnov test. If
@@ -65,9 +65,6 @@
 #'   Otherwise, an approximation based on the asymptotic distribution is used.
 #'   **Warning:** setting `ks.exact = TRUE` will add substantial
 #'   computation time for larger sample sizes. Default: `NULL`.
-#' @param booster `gbm` or `xgboost`. Default: `gbm`.
-#' @param tree_method `xgboost` param. Default: "hist".
-#' @param save.propensities Whether to save the propensity scores. Default: `FALSE`.
 #' @param n.keep A numeric variable indicating the algorithm should only
 #'   consider every `n.keep`-th iteration of the propensity score model and
 #'   optimize balance over this set instead of all iterations. Default: 1.
@@ -75,12 +72,14 @@
 #'   search of the region most likely to minimize the `stop.method`. A
 #'   value of `n.grid=50` uses a 50 point grid from `1:n.trees`. It
 #'   finds the minimum, say at grid point 35. It then looks for the actual
-#'   minimum between grid points 34 and 36. Default: 25.
+#'   minimum between grid points 34 and 36. If specified with `n.keep>1`, `n.grid` 
+#'   corresponds to a grid of points on the kept iterations as defined by ```n.keep```. Default: 25.
 #' @param ... Additional arguments that are passed to ps function.
 #'
 #' @return Returns an object of class `ps`, a list containing 
 #'   * `gbm.obj` The returned [gbm] object.
-#'   * `treat` The treatment variable.
+#'   * `treat` The vector of treatment indicators.
+#'   * `treat.var` The treatment variable.
 #'   * `desc` A list containing balance tables for each method selected in
 #'     `stop.methods`. Includes a component for the unweighted
 #'     analysis names \dQuote{unw}. Each `desc` component includes
@@ -110,12 +109,20 @@
 #'  * `parameters` Saves the `ps` call.
 #'  * `alerts` Text containing any warnings accumulated during the estimation.
 #'  * `iters` A sequence of iterations used in the GBM fits used by `plot` function.
-#'  * `balance` The balance measures for the pretreatment covariates, with a column for each
+#'  * `balance` The balance measures for the pretreatment covariates used in plotting, with a column for each
 #'    `stop.method`.
+#'  * `balance.ks` The KS balance measures for the pretreatment covariates used in plotting, with a column for each
+#'    covariate.
+#'  * `balance.es` The standard differences for the pretreatment covariates used in plotting, with a column for each
+#'    covariate.
+#'  * `ks` The KS balance measures for the pretreatment covariates on a finer grid, with a column for each
+#'    covariate.
+#'  * `es` The standard differences for the pretreatment covariates on a finer grid, with a column for each
+#'    covariate.
 #'  * `n.trees` Maximum number of trees considered in GBM fit.
 #'  * `data` Data as specified in the `data` argument.
 #'
-#' @seealso [gbm]
+#' @seealso [gbm], [xgboost], [plot.ps], [bal.table]
 #' @keywords models, multivariate
 #'
 #' @references Dan McCaffrey, G. Ridgeway, Andrew Morral (2004). "Propensity
@@ -125,51 +132,43 @@
 #' @export
 ps<-function(formula = formula(data),
              data,
-             # boosting options -- gbm version first, then xgboost name
+             # boosting options 
              n.trees = 10000,
-             # nrounds = n.trees,
              interaction.depth = 3,
-             # max_depth = interaction.depth,
              shrinkage = 0.01,
-             # eta = shrinkage , 
              bag.fraction = 1.0,
-             # subsample = bag.fraction,
-             # params = NULL,
+             n.minobsinnode =10,
              perm.test.iters = 0,
              print.level = 2,       
              verbose = TRUE,
              estimand = "ATE", 
              stop.method = c("ks.mean", "es.mean"), 
              sampw = NULL, 
-             # multinom = FALSE, 
-             version = "fast",
+             version = "gbm",
              ks.exact = NULL,
-             booster = "gbm",
-             tree_method = "hist",
-             save.propensities = FALSE,
-             # file = NULL,
              n.keep = 1,
              n.grid = 25,
-             # n.grid.ks = 25,
-             # n.grid.es = NULL,
              ...){
 
    # collect named arguments from dots
    args         <- list(...)
    args_named   <- names(args)
 
+   # parse hidden options and xgboost parameters
    params       <- args$params
    multinom     <- if (!is.null(args$multinom)) args$multinom else FALSE
    max_depth    <- if (!is.null(args$max_depth)) args$max_depth else interaction.depth
    subsample    <- if (!is.null(args$subsample)) args$subsample else bag.fraction
    nrounds      <- if (!is.null(args$nrounds)) args$nrounds else n.trees
    eta          <- if (!is.null(args$eta)) args$eta else shrinkage
-
+   min_child_weight <- if (!is.null(args$min_child_weight)) args$min_child_weight else n.minobsinnode
+   
    # throw some errors if the user specifies two versions of the same option
    if (!missing(n.trees) & ('nrounds' %in% args_named))             stop("Only one of n.trees and nrounds can be specified.")
    if (!missing(interaction.depth) & ('max_depth' %in% args_named)) stop("Only one of interaction.depth and max_depth can be specified.")
    if (!missing(shrinkage) & ('eta' %in% args_named))               stop("Only one of shrinkage and eta can be specified.")
-   if (!missing(bag.fraction) & ('subsample' %in% args_named))      stop("Only one of shrinkage and eta can be specified.")
+   if (!missing(bag.fraction) & ('subsample' %in% args_named))      stop("Only one of bag.fraction and subsample can be specified.")
+   if (!missing(n.minobsinnode) & ('min_child_weight' %in% args_named))      stop("Only one of n.minobsinnode and min_child_weight can be specified.")
    
    # throw error if user specifies params with other options
    if (!missing(interaction.depth) | ('max_depth' %in% args_named) | !missing(shrinkage) | ('eta' %in% args_named) | !missing(bag.fraction) | ('subsample' %in% args_named) ){
@@ -180,12 +179,10 @@ ps<-function(formula = formula(data),
       ## throw some errors if the user specifies an option not allowed in legacy version of ps
       if (!is.null(ks.exact))     stop("Option ks.exact is not allowed with version='legacy'")
       if (!is.null(params))       stop("Option params is not allowed with version='legacy'")
-      if (!missing(booster))      stop("Option booster is not allowed with version='legacy'")
-      if (!missing(tree_method))  stop("Option tree_method is not allowed with version='legacy'")
+      if (!is.null(args$tree_method))  stop("Option tree_method is not allowed with version='legacy'")
       if (!missing(n.keep))       stop("Option n.keep is not allowed with version='legacy'")
       if (!missing(n.grid))       stop("Option n.grid is not allowed with version='legacy'")
-      # if (!missing(n.grid.ks))    stop("Option n.grid.ks is not allowed with version='legacy'")
-      # if (!missing(n.grid.es))    stop("Option n.grid.es is not allowed with version='legacy'")
+      if (!missing(n.minobsinnode) | !is.null(args$min_child_weight)) stop("Options n.minobsinnode or min_child_weight are not allowed with version='legacy'")
       
       return(ps.old(formula = formula,
                      data = data,                         # data
@@ -202,14 +199,17 @@ ps<-function(formula = formula(data),
                      multinom = multinom, 
                      ...))
   }else{
-    # throw error if user specifies params with booster=="gbm"
-    if ( booster=="gbm" & !is.null(params) ) stop("params cannot be specified when booster='gbm'.")
+    # xgboost tree method  
+    tree_method  <- if (!is.null(args$tree_method)) args$tree_method else "hist"
+    # throw error if user specifies params with version=="gbm"
+    if ( version=="gbm" & !is.null(params) ) stop("params cannot be specified when version='gbm'.")
     return(ps.fast(formula = formula,
                   data = data,                         # data
                   n.trees = nrounds,                   # gbm options
                   interaction.depth = max_depth,
                   shrinkage = eta,
                   bag.fraction = subsample,
+                  n.minobsinnode = min_child_weight,
                   params = params,
                   perm.test.iters = perm.test.iters,
                   print.level = print.level,       
@@ -219,15 +219,10 @@ ps<-function(formula = formula(data),
                   sampw = sampw, 
                   multinom = multinom,
                   ks.exact = ks.exact,
-                  booster = booster,
+                  version = version,
                   tree_method = tree_method,
-                  save.propensities = save.propensities,
-                  file = file,
                   n.keep = n.keep,
-                  n.grid = n.grid,
-                  # n.grid.ks = n.grid.ks,
-                  # n.grid.es = n.grid.es,
-                  ...))
+                  n.grid = n.grid))
   }
   
 }
