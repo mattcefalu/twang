@@ -16,86 +16,81 @@
 #'   The covariates, x, for the mediation model, Model M.
 #' @param y_outcome numeric, optional
 #'   The outcome variable, y. If this is not provided, then
-#'   no effects will be calculated and a warning will be raised.
-#'   (Default : `NULL`).
+#'   no effects will be calculated and a warning will be raised. Default : `NULL`.
 #' @param ax_ps : ps object, optional
 #'   If `ax_ps` is provided, then the Model A weights will be
-#'   extracted from this object.
-#'   (Default : `NULL`).
+#'   extracted from this object. Default : `NULL`.
 #' @param ax_weights : numeric, optional
 #'   If `ax_weights` is provided, then these will be used as
-#'   the Model A weights.
-#'   (Default : `NULL`).
+#'   the Model A weights. Default : `NULL`.
 #' @param estimate_ax logical, optional
 #'   If `estimate_ax=TRUE`, then Model A will be estimated,
 #'   and the user does not have to provide Model A weights (`ax_weights`)
 #'   or a ps object (`ax_ps`) directly. If `ax_covariates` is provided,
 #'   then the these covariates will be used to estimate the model p(A = a | X).
 #'   Note that if `estimate_ax=TRUE`, Model A will be estimated regardless
-#'   of whether `ax_weights` or `ax_ps` were provided.
-#'   (Default : `NULL`).
+#'   of whether `ax_weights` or `ax_ps` were provided. Default : `NULL`.
 #' @param ax_covariates numeric, optional
 #'   The covariates to use when calculating Model A, if `estimate_ax=TRUE`.
 #'   If `ax_covariates` is not provided and `estimate_ax=TRUE`, then
-#'   `x_covariates` will be used instead, and a warning will be raised.
-#'   (Default : `NULL`).
+#'   `x_covariates` will be used instead, and a warning will be raised. Default : `NULL`.
 #' @param ps_n.trees integer, optional
-#'   Number of gbm iterations passed on to [gbm] or [xgboost] in the [ps]
-#'   function.
-#'   (Default : `10000`).
+#'   Number of gbm iterations passed on to [gbm]. Default: 10000.
 #' @param ps_interaction.depth integer, optional
-#'   The tree depth passed on to [gbm] or [xgboost] in the [ps]
-#'   function.
-#'   (Default : `3`).
+#'   A positive integer denoting the tree depth used in
+#'   gradient boosting. Default: 3.
 #' @param ps_shrinkage numerc, optional
-#'   The learning rate passed on to [gbm] or [xgboost] in the [ps]
-#'   function.
-#'   (Default : `0.005`).
+#'   A numeric value between 0 and 1 denoting the learning rate.
+#'   See [gbm] for more details. Default: 0.01.
 #' @param ps_bag.fraction numerc, optional
-#'   The fraction of observations randomly selected in each iterations,
-#'   passed on to [gbm] or [xgboost] in the [ps] function.
-#'   (Default : `1.0`).
+#'   A numeric value between 0 and 1 denoting the fraction of
+#'   the observations randomly selected in each iteration of the gradient
+#'   boosting algorithm to propose the next tree. See [gbm] for
+#'   more details. Default: 1.0.
+#' @param ps_n.minobsinnode An integer specifying the minimum number of observations 
+#'   in the terminal nodes of the trees used in the gradient boosting.  See [gbm] for
+#'   more details. Default: 10.
 #' @param ps_perm.test.iters integer, optional
 #'   A non-negative integer giving the number of iterations
-#'   of the permutation test for KS, passed to [ps].
-#'   (Default : `0`).
+#'   of the permutation test for the KS statistic. If `perm.test.iters=0`
+#'   then the function returns an analytic approximation to the p-value. Setting
+#'   `perm.test.iters=200` will yield precision to within 3\% if the true
+#'   p-value is 0.05. Use `perm.test.iters=500` to be within 2\%. Default: 0.
 #' @param ps_verbose logical, optional 
 #'   If `TRUE`, lots of information will be printed to monitor the
-#'   the progress of the [ps] fitting. 
-#'   (Default: `FALSE`).
+#'   the progress of the fitting. Default: `FALSE`.
 #' @param ps_stop.method integer, optional
-#'   A method or methods of measuring and summarizing balance
-#'   across pretreament variables. Current options are `ks.mean`,
-#'   `ks.max`, `es.mean`, and `es.max`
-#'   (Default : `c("ks.mean", "ks.max")`).
+#'   A method or methods of measuring and summarizing balance across pretreatment
+#'   variables. Current options are `ks.mean`, `ks.max`, `es.mean`, and `es.max`. `ks` refers to the
+#'   Kolmogorov-Smirnov statistic and es refers to standardized effect size. These are summarized
+#'   across the pretreatment variables by either the maximum (`.max`) or the mean (`.mean`). 
+#'   Default: `c("ks.mean", "ks.max")`.
 #' @param ps_version character, optional
-#'  Which version of [ps] to use.
-#'     * `"legacy"` Uses the prior implementation of the `ps`` function.
-#'     * `"fast` Uses the new `ps.fast` implementation.
-#'     * All other options use `ps.fast` implementation.
-#'   (Default : "fast")
-#' @param ps_booster character, optional
-#'   `gbm` or `xgboost`
-#'   (Default : 'gbm').
+#'  "gbm", "xgboost", or "legacy", indicating which version of the twang package to use.
+#'   * `"gbm"` uses gradient boosting from the [gbm] package.
+#'   * `"xgboost"` uses gradient boosting from the [xgboost] package.
+#'   * `"legacy"` uses the prior implementation of the `ps` function.
+#' @param ps_ks.exact `NULL` or a logical indicating whether the
+#'   Kolmogorov-Smirnov p-value should be based on an approximation of exact
+#'   distribution from an unweighted two-sample Kolmogorov-Smirnov test. If
+#'   `NULL`, the approximation based on the exact distribution is computed
+#'   if the product of the effective sample sizes is less than 10,000.
+#'   Otherwise, an approximation based on the asymptotic distribution is used.
+#'   **Warning:** setting `ks.exact = TRUE` will add substantial
+#'   computation time for larger sample sizes. Default: `NULL`.
 #' @param ps_sampw numeric, optional
-#'   Optional sampling weights
-#'   (Default : `NULL`).
-#' @param ps_tree_method character, optional
-#'   Only used with `xgboost`. See [xgboost] for further details. 
-#'   (Default : "hist")
+#'   Optional sampling weights Default : `NULL`.
 #' @param ps_n.keep  integer, optional
 #'   A numeric variable indicating the algorithm should only
 #'   consider every `n.keep`-th iteration of the propensity score model and
 #'   optimize balance over this set instead of all iterations. Only used
-#'   with `xgboost`.
-#'   (Default : `1``).
+#'   with `xgboost`. Default : 1.
 #' @param ps_n.grid integer, optional
 #'   A numeric variable that sets the grid size for an initial
 #'   search of the region most likely to minimize the `stop.method`. A
 #'   value of `n.grid=50` uses a 50 point grid from `1:n.trees`. It
 #'   finds the minimum, say at grid point 35. It then looks for the actual
-#'   minimum between grid points 34 and 36.Only used with `xgboost`.
-#'   (Default: `25``).
+#'   minimum between grid points 34 and 36.Only used with `xgboost`. Default: 25.
 #' @return mediation object
 #'   The `mediation` object includes the following:
 #'   - `model_a_res` The model A `ps()` results.
@@ -130,15 +125,15 @@ weighted_mediation <- function(a_treatment,
                                ax_covariates = NULL,
                                ps_n.trees = 10000,
                                ps_interaction.depth = 3,
-                               ps_shrinkage = 0.005,
+                               ps_shrinkage = 0.01,
                                ps_bag.fraction = 1.0,
+                               ps_n.minobsinnode = 10,
                                ps_perm.test.iters = 0,
                                ps_verbose = FALSE,
                                ps_stop.method = c("ks.mean", "ks.max"),
-                               ps_version = "fast",
-                               ps_booster = "gbm",
+                               ps_version = "gbm",
+                               ps_ks.exact = NULL,
                                ps_sampw = NULL,
-                               ps_tree_method = "hist",
                                ps_n.keep = 1,
                                ps_n.grid = 25) {
   
@@ -148,20 +143,15 @@ weighted_mediation <- function(a_treatment,
                   interaction.depth = ps_interaction.depth,
                   shrinkage = ps_shrinkage,
                   bag.fraction = ps_bag.fraction,
+                  n.minobsinnode = ps_n.minobsinnode,
                   perm.test.iters = ps_perm.test.iters,
                   verbose = ps_verbose,
                   stop.method = ps_stop.method, 
                   version = ps_version,
-                  sampw = ps_sampw)
-  
-  # If we are not using the legacy version of `ps()`,
-  # then there are some additional arguments to pass
-  if (ps_version != 'legacy'){
-    ps_args <- c(ps_args, list(booster = ps_booster,
-                               tree_method = ps_tree_method,
-                               n.keep = ps_n.keep,
-                               n.grid = ps_n.grid))
-  }
+                  sampw = ps_sampw,
+                  ks.exact = ps_ks.exact,
+                  n.keep = ps_n.keep,
+                  n.grid = ps_n.grid)
   
   # Check for nulls in treatment and mediator, which must exist
   check_missing(a_treatment)
