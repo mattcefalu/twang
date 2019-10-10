@@ -136,23 +136,27 @@ weighted_mediation <- function(a_treatment,
                                ps_sampw = NULL,
                                ps_n.keep = 1,
                                ps_n.grid = 25) {
-  
+
   # Get the list of initial arguments for `ps()`
   ps_args <- list(formula = A ~ .,
                   n.trees = ps_n.trees,
                   interaction.depth = ps_interaction.depth,
                   shrinkage = ps_shrinkage,
                   bag.fraction = ps_bag.fraction,
-                  n.minobsinnode = ps_n.minobsinnode,
                   perm.test.iters = ps_perm.test.iters,
                   verbose = ps_verbose,
                   stop.method = ps_stop.method, 
                   version = ps_version,
                   sampw = ps_sampw,
-                  ks.exact = ps_ks.exact,
-                  n.keep = ps_n.keep,
-                  n.grid = ps_n.grid)
-  
+                  ks.exact = ps_ks.exact)
+
+  # if the version is not legacy, we add some additional arguments
+  if (ps_version != 'legacy') {
+    append(ps_args, list(n.minobsinnode = ps_n.minobsinnode,
+                         n.keep = ps_n.keep,
+                         n.grid = ps_n.grid))
+  }
+
   # Check for nulls in treatment and mediator, which must exist
   check_missing(a_treatment)
   check_missing(m_mediator)

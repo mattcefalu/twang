@@ -8,7 +8,7 @@
 summary.mediation <- function(object, ...) {
 
   # grab the balance table
-  balance_tables <- bal_table(object)
+  balance_tables <- bal_table.mediation(object)
 
   # loop through the effects and put them
   # into a single data frame, then print
