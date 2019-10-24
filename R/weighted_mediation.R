@@ -273,7 +273,7 @@ weighted_mediation <- function(a_treatment,
   model_m0_res <- do.call(ps, c(list(data = data_m0, estimand = "ATT"), ps_args))
   model_m1_res <- do.call(ps, c(list(data = data_m1, estimand = "ATT"), ps_args)) 
 
-  # Grab the indexes for control group  
+  # Grab the indexes for control group.
   ctrl <- which(a_treatment == 0)
 
   # Calculate the model M weights
