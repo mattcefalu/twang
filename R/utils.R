@@ -43,7 +43,6 @@ weighted_mean <- function(x, weights, multiplier = NULL, na.rm = TRUE) {
   }
   return(sum(x * multiplier * weights, na.rm = na.rm) / sum(multiplier * weights, na.rm = na.rm))
 }
-
 #' Check whether the variables in d1 are a subset
 #' of the variables in d2. The data sets must be of
 #' equal length.
@@ -74,18 +73,19 @@ check_subset_equal <- function(y_vars, x_vars, raise_error = TRUE) {
   return(a_equal_m)
 }
 
-#' Calculate the weights, given propensity scores
-#' 
+# A little helper function that raises an error if the
+# user provides total effects weights, and they are not
+# equal to the number of stopping methods
+#'
 #' @export
-calculate_weights <- function(ps, indicator, use_opposite = FALSE) {
-
-  if (use_opposite) {
-    indexes <- which(indicator == 0)
-  } else {
-    indexes <- which(indicator == 1)
+check_equal_wts_stopping <- function(wts,
+                                     stopping_methods,
+                                     wts_name = 'total_effects_wts') {
+  n_cols_wts <- ncol(wts)
+  n_stopping_methods <- length(c(stopping_methods))
+  if (!(n_cols_total_effect == n_stopping_methods)) {
+    stop(paste("The number of columns in the", wts_name,
+               "must equal the number of stopping methods",
+               n_cols_total_effect, "!=", n_stopping_methods, sep = " "))
   }
-
-  weights <- 1 / (1 - ps)
-  weights[indexes,] <- 1 / ps[indexes,]
-  return(weights)
 }

@@ -6,10 +6,10 @@
 \usage{
 outcome_mediation(a_treatment, m_mediator, x_covariates, y_outcome,
   boost_n_trees = 10000, boost_n_folds = 5, boost_maxdepth = 3,
-  boost_eta = 0.005, boost_bag_fraction = 1,
+  boost_eta = 0.01, boost_bag_fraction = 1,
   boost_train_fraction = 0.9, boost_subsample = 0.5,
   boost_early_stopping_rounds = 5, booster = "gbm", verbose = FALSE,
-  nsims = 100, ...)
+  nsims = 50, ...)
 }
 \arguments{
 \item{a_treatment}{integer
