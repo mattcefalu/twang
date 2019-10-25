@@ -77,14 +77,21 @@ check_subset_equal <- function(y_vars, x_vars, raise_error = TRUE) {
 # user provides total effects weights, and they are not
 # equal to the number of stopping methods
 #'
+#' @param weights numeric
+#'   The weights
+#' @param stopping_methods
+#'   The stopping method or methods.
+#' @param weights_name
+#'   The name of the weights we are checking.
+#'   Default : 'total_effects_wts'
 #' @export
-check_equal_wts_stopping <- function(wts,
+check_equal_wts_stopping <- function(weights,
                                      stopping_methods,
-                                     wts_name = 'total_effects_wts') {
-  n_cols_wts <- ncol(wts)
+                                     weights_name = 'total_effects_wts') {
+  n_cols_wts <- ncol(weights)
   n_stopping_methods <- length(c(stopping_methods))
   if (!(n_cols_total_effect == n_stopping_methods)) {
-    stop(paste("The number of columns in the", wts_name,
+    stop(paste("The number of columns in the", weights_name,
                "must equal the number of stopping methods",
                n_cols_total_effect, "!=", n_stopping_methods, sep = " "))
   }

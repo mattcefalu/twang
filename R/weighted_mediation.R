@@ -282,14 +282,12 @@ weighted_mediation <- function(a_treatment,
   # Step 2 for w10 :
   #   - For the tx group, these are : 1 / (1 - p(A=1 | X_M))
   #   - For the ct group, these are : NA
-  w_1 <- 1 / (1 - model_a_res$ps)
-  w_1[a_treatment == 0,] <- NA
+  w_1 <- 1 / (1 - model_a_res$ps); w_1[a_treatment == 0,] <- NA
   
   # Step 3 for w10 : Calculate w_2
   #   - For the tx group, these are : 1 / p(A=0 | M, X_M)
   #   - For the ct group, these are : NA  
-  w_2 <- model_m0_res$w
-  w_2[a_treatment == 0,] <- NA
+  w_2 <- model_m0_res$w; w_2[a_treatment == 0,] <- NA
   
   # Step 4 for w10 : Calculate w_10, which is just w_2 * w_1
   w_10 <- w_2 * w_1
@@ -306,14 +304,12 @@ weighted_mediation <- function(a_treatment,
   # Step 2 for w01 :
   #   - For the tx group, these are : NA
   #   - For the ct group, these are : 1 / p(A=1 | X_M)
-  w_1 <- 1 /  model_a_res$ps
-  w_1[a_treatment == 1,] <- NA
+  w_1 <- 1 /  model_a_res$ps; w_1[a_treatment == 1,] <- NA
   
   # Step 3 for w01 : Calculate w_2
   #   - For the tx group, these are : NA
   #   - For the ct group, these are : 1 / p(A=1 | M, X_M)
-  w_2 <- model_m1_res$w
-  w_2[a_treatment == 1,] <- NA
+  w_2 <- model_m1_res$w; w_2[a_treatment == 1,] <- NA
   
   # Step 4 for w01 : Calculate w_01, which is just w_2 * w_1
   w_01 <- w_2 * w_1
@@ -364,16 +360,26 @@ weighted_mediation <- function(a_treatment,
     E_01 <- weighted_mean(y_outcome, w_01)
 
     # Calculate overall, natural direct, and natural indirect effects
+    # These are, as follows:
+    # - TE = E(Y(1, M(1))) - E(Y(0, M(0)))
+    # - NIE(1) = E(Y(1, M(1))) - E(Y(1, M(0)))
+    # - NDE(1) = E(Y(1, M(0))) - E(Y(0, M(0)))
+    # - NIE(0) = E(Y(0, M(1))) - E(Y(0, M(0)))
+    # - NDE(0) = E(Y(1, M(1))) - E(Y(0, M(1)))
     total_effect <- E_11 - E_00
-    natural_direct <- E_10 - E_00
-    natural_indirect <- E_11 - E_10
+    natural_direct1 <- E_10 - E_00
+    natural_indirect1 <- E_11 - E_10
+    natural_direct0 <- E_11 - E_01
+    natural_indirect0 <- E_01 - E_00
 
     # Collect the results for this stopping method, and add
     # them back into the original results object
     effects_name = paste(stop_method, "effects", sep = "_")
     results[[effects_name]] <- list(total_effect = total_effect,
-                                    natural_direct_effect = natural_direct,
-                                    natural_indirect_effect = natural_indirect,
+                                    natural_direct_effect1 = natural_direct1,
+                                    natural_indirect_effect1 = natural_indirect1,
+                                    natural_direct_effect0 = natural_direct0,
+                                    natural_indirect_effect0 = natural_indirect0,
                                     expected_treatment0_mediator0 = E_00,
                                     expected_treatment1_mediator1 = E_11,
                                     expected_treatment1_mediator0 = E_10,
