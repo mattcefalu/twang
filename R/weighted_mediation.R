@@ -200,7 +200,7 @@ weighted_mediation <- function(a_treatment,
       
       # We want to check if X_A is a subset of X_M and vice versa.
       # This will raise an error if there are elements in X_A that are not in X_M
-      a_equals_m <- check_subset_equal(total_effect_ps, x_covariates)
+      a_equals_m <- check_subset_equal(total_effect_ps, x_covariates, raise_error = FALSE)
       if (a_equals_m) {
         # The total effect weights W_{A=0|X_A} and W_{A=0|X_M} are equivalent
         total_effect_wts <- total_effect_ps$w
