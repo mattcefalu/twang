@@ -73,9 +73,11 @@ check_subset_equal <- function(y_vars, x_vars, raise_error = TRUE) {
   return(a_equal_m)
 }
 
-# A little helper function that raises an error if the
-# user provides total effects weights, and they are not
-# equal to the number of stopping methods
+#' A little helper function that raises an error if the
+#' user provides weights, and they are not equal to the
+#' number of stopping methods
+#'
+#' Call this in the `weighted_mediation()` function.
 #'
 #' @param weights numeric
 #'   The weights
@@ -84,6 +86,7 @@ check_subset_equal <- function(y_vars, x_vars, raise_error = TRUE) {
 #' @param weights_name
 #'   The name of the weights we are checking.
 #'   Default : 'total_effects_wts'
+#'
 #' @export
 check_equal_wts_stopping <- function(weights,
                                      stopping_methods,
