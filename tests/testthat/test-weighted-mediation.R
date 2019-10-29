@@ -137,26 +137,34 @@ test_that("`weighted_mediation` works the same for estimate and passing weight",
                              y_outcome = data[,'Yobs'],
                              estimate_total_effect_wts = T,
                              ps_stop.method = c('ks.mean', 'ks.max'),
-                             ps_version = 'fast')
+                             ps_version = 'legacy')
+
   total_effects <- ps(A ~ X1 + X2,
                       data = data,
                       estimand = 'ATE',
-                      version = 'fast',
-                      booster = 'gbm',
+                      version = 'legacy',
                       n.trees = 10000,
                       interaction.depth = 3,
+                      shrinkage = 0.01,
+                      bag.fraction = 1.0,
+                      perm.test.iters = 0,
                       stop.method = c('ks.mean', 'ks.max'),
                       verbose = F)
+
   res2 <- weighted_mediation(data[,'A'],
                              data[,'M'],
                              data[, c('X1', 'X2')],
                              y_outcome = data[,'Yobs'],
                              total_effect_wts = total_effects$w,
                              ps_stop.method = c('ks.mean', 'ks.max'),
-                             ps_version = 'fast')
+                             ps_version = 'legacy')
   
-  expect_equal(res1$natural_direct_wts,
-               res2$natural_direct_wts,
+  expect_equal(res1$ks.mean_effects$total_effect,
+               res2$ks.mean_effects$total_effect,
+               tolerance=1e-1)
+  
+  expect_equal(res1$ks.max_effects$total_effect,
+               res2$ks.max_effects$total_effect,
                tolerance=1e-1)
   
 })
@@ -174,10 +182,12 @@ test_that("`weighted_mediation` fails if stop methods are different", {
   total_effects <- ps(A ~ X1 + X2,
                       data = data,
                       estimand = 'ATE',
-                      version = 'fast',
-                      booster = 'gbm',
+                      version = 'legacy',
                       n.trees = 10000,
                       interaction.depth = 3,
+                      shrinkage = 0.01,
+                      bag.fraction = 1.0,
+                      perm.test.iters = 0,
                       stop.method = c('ks.mean'),
                       verbose = F)
   expect_error(weighted_mediation(data[,'A'],
@@ -187,5 +197,37 @@ test_that("`weighted_mediation` fails if stop methods are different", {
                                   total_effect_wts = total_effects$w,
                                   ps_stop.method = c('ks.mean', 'ks.max'),
                                   ps_version = 'fast'))
+  
+})
+
+test_that("`weighted_mediation` works the same for estimate and passing PS object", {
+  data <- read.csv(file.path(getwd() ,'data/test.csv'))
+  res1 <- weighted_mediation(data[,'A'],
+                             data[,'M'],
+                             data[, c('X1', 'X2')],
+                             y_outcome = data[,'Yobs'],
+                             estimate_total_effect_wts = T,
+                             ps_stop.method = c('ks.mean', 'ks.max'),
+                             ps_version = 'fast')
+  total_effects <- ps(A ~ X1 + X2,
+                      data = data,
+                      estimand = 'ATE',
+                      version = 'fast',
+                      booster = 'gbm',
+                      n.trees = 10000,
+                      interaction.depth = 3,
+                      stop.method = c('ks.mean', 'ks.max'),
+                      verbose = F)
+  res2 <- weighted_mediation(data[,'A'],
+                             data[,'M'],
+                             data[, c('X1', 'X2')],
+                             y_outcome = data[,'Yobs'],
+                             total_effect_ps = total_effects,
+                             ps_stop.method = c('ks.mean', 'ks.max'),
+                             ps_version = 'fast')
+  
+  expect_equal(res1$natural_direct_wts,
+               res2$natural_direct_wts,
+               tolerance=1e-1)
   
 })

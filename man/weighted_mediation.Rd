@@ -7,11 +7,12 @@
 weighted_mediation(a_treatment, m_mediator, x_covariates,
   y_outcome = NULL, total_effect_wts = NULL, total_effect_ps = NULL,
   estimate_total_effect_wts = FALSE, ax_covariates = NULL,
-  ps_n.trees = 10000, ps_interaction.depth = 3, ps_shrinkage = 0.005,
-  ps_bag.fraction = 1, ps_perm.test.iters = 0, ps_verbose = FALSE,
-  ps_stop.method = c("ks.mean", "ks.max"), ps_version = "fast",
-  ps_booster = "gbm", ps_sampw = NULL, ps_tree_method = "hist",
-  ps_n.keep = 1, ps_n.grid = 25, ...)
+  ps_n.trees = 10000, ps_interaction.depth = 3, ps_shrinkage = 0.01,
+  ps_bag.fraction = 1, ps_n.minobsinnode = 10,
+  ps_perm.test.iters = 0, ps_verbose = FALSE,
+  ps_stop.method = c("ks.mean", "ks.max"), ps_version = "gbm",
+  ps_ks.exact = NULL, ps_sampw = NULL, ps_n.keep = 1,
+  ps_n.grid = 25)
 }
 \arguments{
 \item{a_treatment}{integer
@@ -27,95 +28,92 @@ The covariates, x, for the mediation model, Model M.}
 
 \item{y_outcome}{numeric, optional
 The outcome variable, y. If this is not provided, then
-no effects will be calculated and a warning will be raised.
-(Default : \code{NULL}).}
+no effects will be calculated and a warning will be raised. Default : \code{NULL}.}
 
 \item{ax_covariates}{numeric, optional
 The covariates to use when calculating Model A, if \code{estimate_ax=TRUE}.
 If \code{ax_covariates} is not provided and \code{estimate_ax=TRUE}, then
-\code{x_covariates} will be used instead, and a warning will be raised.
-(Default : \code{NULL}).}
+\code{x_covariates} will be used instead, and a warning will be raised. Default : \code{NULL}.}
 
 \item{ps_n.trees}{integer, optional
-Number of gbm iterations passed on to \link{gbm} or \link{xgboost} in the \link{ps}
-function.
-(Default : \code{10000}).}
+Number of gbm iterations passed on to \link{gbm}. Default: 10000.}
 
 \item{ps_interaction.depth}{integer, optional
-The tree depth passed on to \link{gbm} or \link{xgboost} in the \link{ps}
-function.
-(Default : \code{3}).}
+A positive integer denoting the tree depth used in
+gradient boosting. Default: 3.}
 
 \item{ps_shrinkage}{numerc, optional
-The learning rate passed on to \link{gbm} or \link{xgboost} in the \link{ps}
-function.
-(Default : \code{0.005}).}
+A numeric value between 0 and 1 denoting the learning rate.
+See \link{gbm} for more details. Default: 0.01.}
 
 \item{ps_bag.fraction}{numerc, optional
-The fraction of observations randomly selected in each iterations,
-passed on to \link{gbm} or \link{xgboost} in the \link{ps} function.
-(Default : \code{1.0}).}
+A numeric value between 0 and 1 denoting the fraction of
+the observations randomly selected in each iteration of the gradient
+boosting algorithm to propose the next tree. See \link{gbm} for
+more details. Default: 1.0.}
+
+\item{ps_n.minobsinnode}{An integer specifying the minimum number of observations
+in the terminal nodes of the trees used in the gradient boosting.  See \link{gbm} for
+more details. Default: 10.}
 
 \item{ps_perm.test.iters}{integer, optional
 A non-negative integer giving the number of iterations
-of the permutation test for KS, passed to \link{ps}.
-(Default : \code{0}).}
+of the permutation test for the KS statistic. If \code{perm.test.iters=0}
+then the function returns an analytic approximation to the p-value. Setting
+\code{perm.test.iters=200} will yield precision to within 3\% if the true
+p-value is 0.05. Use \code{perm.test.iters=500} to be within 2\%. Default: 0.}
 
 \item{ps_verbose}{logical, optional
 If \code{TRUE}, lots of information will be printed to monitor the
-the progress of the \link{ps} fitting.
-(Default: \code{FALSE}).}
+the progress of the fitting. Default: \code{FALSE}.}
 
 \item{ps_stop.method}{integer, optional
-A method or methods of measuring and summarizing balance
-across pretreament variables. Current options are \code{ks.mean},
-\code{ks.max}, \code{es.mean}, and \code{es.max}
-(Default : \code{c("ks.mean", "ks.max")}).}
+A method or methods of measuring and summarizing balance across pretreatment
+variables. Current options are \code{ks.mean}, \code{ks.max}, \code{es.mean}, and \code{es.max}. \code{ks} refers to the
+Kolmogorov-Smirnov statistic and es refers to standardized effect size. These are summarized
+across the pretreatment variables by either the maximum (\code{.max}) or the mean (\code{.mean}).
+Default: \code{c("ks.mean", "ks.max")}.}
 
 \item{ps_version}{character, optional
-Which version of \link{ps} to use.
-* \code{"legacy"} Uses the prior implementation of the \code{ps`` function. * All other options use }ps.fast` implementation.
-(Default : "legacy")}
+"gbm", "xgboost", or "legacy", indicating which version of the twang package to use.
+\itemize{
+\item \code{"gbm"} uses gradient boosting from the \link{gbm} package.
+\item \code{"xgboost"} uses gradient boosting from the \link{xgboost} package.
+\item \code{"legacy"} uses the prior implementation of the \code{ps} function.
+}}
 
-\item{ps_booster}{character, optional
-\code{gbm} or \code{xgboost}
-(Default : 'gbm').}
+\item{ps_ks.exact}{\code{NULL} or a logical indicating whether the
+Kolmogorov-Smirnov p-value should be based on an approximation of exact
+distribution from an unweighted two-sample Kolmogorov-Smirnov test. If
+\code{NULL}, the approximation based on the exact distribution is computed
+if the product of the effective sample sizes is less than 10,000.
+Otherwise, an approximation based on the asymptotic distribution is used.
+\strong{Warning:} setting \code{ks.exact = TRUE} will add substantial
+computation time for larger sample sizes. Default: \code{NULL}.}
 
 \item{ps_sampw}{numeric, optional
-Optional sampling weights
-(Default : \code{NULL}).}
-
-\item{ps_tree_method}{character, optional
-Only used with \code{xgboost}. See \link{xgboost} for further details.
-(Default : "hist")}
+Optional sampling weights Default : \code{NULL}.}
 
 \item{ps_n.keep}{integer, optional
 A numeric variable indicating the algorithm should only
 consider every \code{n.keep}-th iteration of the propensity score model and
 optimize balance over this set instead of all iterations. Only used
-with \code{xgboost}.
-(Default : `1``).}
+with \code{xgboost}. Default : 1.}
 
 \item{ps_n.grid}{integer, optional
 A numeric variable that sets the grid size for an initial
 search of the region most likely to minimize the \code{stop.method}. A
 value of \code{n.grid=50} uses a 50 point grid from \code{1:n.trees}. It
 finds the minimum, say at grid point 35. It then looks for the actual
-minimum between grid points 34 and 36.Only used with \code{xgboost}.
-(Default: `25``).}
-
-\item{...}{list, optional
-Additional arguments passed to \link{ps}.}
+minimum between grid points 34 and 36.Only used with \code{xgboost}. Default: 25.}
 
 \item{ax_ps}{: ps object, optional
 If \code{ax_ps} is provided, then the Model A weights will be
-extracted from this object.
-(Default : \code{NULL}).}
+extracted from this object. Default : \code{NULL}.}
 
 \item{ax_weights}{: numeric, optional
 If \code{ax_weights} is provided, then these will be used as
-the Model A weights.
-(Default : \code{NULL}).}
+the Model A weights. Default : \code{NULL}.}
 
 \item{estimate_ax}{logical, optional
 If \code{estimate_ax=TRUE}, then Model A will be estimated,
@@ -123,8 +121,7 @@ and the user does not have to provide Model A weights (\code{ax_weights})
 or a ps object (\code{ax_ps}) directly. If \code{ax_covariates} is provided,
 then the these covariates will be used to estimate the model p(A = a | X).
 Note that if \code{estimate_ax=TRUE}, Model A will be estimated regardless
-of whether \code{ax_weights} or \code{ax_ps} were provided.
-(Default : \code{NULL}).}
+of whether \code{ax_weights} or \code{ax_ps} were provided. Default : \code{NULL}.}
 }
 \value{
 mediation object

@@ -49,17 +49,19 @@ plot.mediation <- function(x,
     mediator_as_factor <- is.factor(mediator)
 
     frames <- list()
-    for (method in x$stopping_methods) {
+    for (i in 1:length(x$stopping_methods)) {
+      
+      method <- x$stopping_methods[i]
   
       # extract the weights from the mediation object
-      weights <- x[['natural_direct_wts']][, paste(method, 'ATT', sep='.')]
+      weights <- ifelse(!is.na(x$w_10[,i]), x$w_10[,i], x$w_00[,i])
       
       # create normalized weights by dividing by the sum of weights;
       # we do this separately for treatment and control
       treat <- which(treatment == 1)
       ctrl  <- which(treatment == 0)
-      weights <- weights / sum(weights[ctrl])
       weights[treat] <- (weights[treat] / sum(weights[treat]))
+      weights[ctrl] <- (weights[ctrl] / sum(weights[ctrl]))
 
       # if the mediator is a factor
       if (mediator_as_factor) {
