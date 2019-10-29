@@ -199,3 +199,87 @@ test_that("`weighted_mediation` fails if stop methods are different", {
                                   ps_version = 'fast'))
   
 })
+
+test_that("`weighted_mediation` works the same for estimate and passing PS object", {
+  data <- read.csv(file.path(getwd() ,'data/test.csv'))
+  res1 <- weighted_mediation(data[,'A'],
+                             data[,'M'],
+                             data[, c('X1', 'X2')],
+                             y_outcome = data[,'Yobs'],
+                             estimate_total_effect_wts = T,
+                             ps_stop.method = c('ks.mean', 'ks.max'),
+                             ps_version = 'fast')
+  total_effects <- ps(A ~ X1 + X2,
+                      data = data,
+                      estimand = 'ATE',
+                      version = 'fast',
+                      booster = 'gbm',
+                      n.trees = 10000,
+                      interaction.depth = 3,
+                      stop.method = c('ks.mean', 'ks.max'),
+                      verbose = F)
+  res2 <- weighted_mediation(data[,'A'],
+                             data[,'M'],
+                             data[, c('X1', 'X2')],
+                             y_outcome = data[,'Yobs'],
+                             total_effect_ps = total_effects,
+                             ps_stop.method = c('ks.mean', 'ks.max'),
+                             ps_version = 'fast')
+  
+  expect_equal(res1$natural_direct_wts,
+               res2$natural_direct_wts,
+               tolerance=1e-1)
+  
+})
+
+test_that("`weighted_mediation` produces the expected TE, NDE, and NIE values", {
+  jobs <- read.csv(file.path(getwd() ,'data/jobs.csv'))
+
+  a <- 'treat'; y <- 'depress2'; m <- 'job_seek'
+  x <- c('depress1','econ_hard', 'sex', 'age', 'occp', 'marital', 'nonwhite', 'educ', 'income')
+  
+  total_effects <- ps(treat ~ .,
+                      data = jobs[, c(a, x)],
+                      estimand = 'ATE',
+                      version = 'legacy',
+                      n.trees = 10000,
+                      interaction.depth = 3,
+                      shrinkage = 0.01,
+                      bag.fraction = 1.0,
+                      perm.test.iters = 0,
+                      stop.method = c('ks.mean', 'ks.max'),
+                      verbose = F)
+  
+  out_1 <- weighted_mediation(jobs[, a], jobs[, m], jobs[, x], jobs[, y],
+                              ps_version = 'legacy',
+                              ps_stop.method = c('es.mean', 'ks.mean'),
+                              total_effect_ps = total_effects)
+    
+  out_2 <- weighted_mediation(jobs[, a], jobs[, m], jobs[, x], jobs[, y],
+                              ps_version = 'legacy',
+                              ps_stop.method = c('es.mean', 'ks.mean'),
+                              estimate_total_effect_wts = T)
+  
+  #expected_nie1 <- -0.0138323356147316
+  #expected_nde1 <- -0.0450110287526688
+  #expected_te <- -0.0588433643674005
+  
+  #expect_equal(out_1$ks.mean_effects$natural_indirect_effect1, expected_nie1,
+  #             tolerance=1e-1)
+  
+  #expect_equal(out_2$ks.mean_effects$natural_indirect_effect1, expected_nie1,
+  #             tolerance=1e-1)
+  
+  #expect_equal(out_1$ks.mean_effects$natural_direct_effect1, expected_nde1,
+  #             tolerance=1e-1)
+  
+  #expect_equal(out_2$ks.mean_effects$natural_direct_effect1, expected_nde1,
+  #             tolerance=1e-1)
+  
+  #expect_equal(out_1$ks.mean_effects$total_effect, expected_te,
+  #             tolerance=1e-1)
+  
+  #expect_equal(out_2$ks.mean_effects$total_effect, expected_te,
+  #             tolerance=1e-1)
+  
+})

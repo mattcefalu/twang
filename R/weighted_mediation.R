@@ -199,7 +199,8 @@ weighted_mediation <- function(a_treatment,
       check_equal_wts_stopping(total_effect_ps$w,  ps_stop.method)
       
       # We want to check if X_A is a subset of X_M and vice versa.
-      # This will raise an error if there are elements in X_A that are not in X_M
+      # Ordinarilly, this would raise an error if there were elements in X_A
+      # were that are not in X_M, but we don't want to raise the error here,
       a_equals_m <- check_subset_equal(total_effect_ps, x_covariates, raise_error = FALSE)
       if (a_equals_m) {
         # The total effect weights W_{A=0|X_A} and W_{A=0|X_M} are equivalent
@@ -295,7 +296,7 @@ weighted_mediation <- function(a_treatment,
   # Get the w01 weight; to do this, we need two things:
   # - Model A weights, which we calculated above (and which _may_ equal the total effects weights)
   # - Model M1 weights, which we don't have yet.
-  
+
   # Step 1 for w01 : Fit Model M1, which we will do by running `ps()`on A = X + M,
   #   and getting P(A = 1 | M, X_M) [using ATT]
   data_m1 <- data.frame("A" = a_treatment, "X" = x_covariates, "M" = m_mediator)
@@ -318,16 +319,12 @@ weighted_mediation <- function(a_treatment,
   model_m0_res[['data']] <- NULL
   model_m1_res[['data']] <- NULL
   model_a_res[['data']] <- NULL
-  
-  # Now we'll collect these weights as NDE and NIE weights
-  # TODO : We need to figure out what these should _actually_ be ...
-  natural_indirect_wts <- NULL
-  natural_direct_wts <- NULL
-  
+
   # Collect the results into a list
-  results <- list(natural_indirect_wts = natural_indirect_wts,
-                  natural_direct_wts = natural_direct_wts,
-                  total_effect_wts = total_effect_wts,
+  results <- list(w_11 = w_11,
+                  w_00 = w_00,
+                  w_10 = w_10,
+                  w_01 = w_01,
                   model_m0 = model_m0_res,
                   model_m1 = model_m1_res,
                   model_a = model_a_res,
@@ -349,15 +346,11 @@ weighted_mediation <- function(a_treatment,
 
     stop_method <- stop_methods[idx]
 
-    # Grab the weights from the `ps` object
-    te_wts <- results$total_effect_wts[, idx]
-    nd_wts <- results$natural_direct_wts[, idx]
-
     # Calculate the weighted means for each of the conditions
-    E_11 <- weighted_mean(y_outcome, w_11)
-    E_00 <- weighted_mean(y_outcome, w_00)
-    E_10 <- weighted_mean(y_outcome, w_10)
-    E_01 <- weighted_mean(y_outcome, w_01)
+    E_11 <- weighted_mean(y_outcome, w_11[, idx])
+    E_00 <- weighted_mean(y_outcome, w_00[, idx])
+    E_10 <- weighted_mean(y_outcome, w_10[, idx])
+    E_01 <- weighted_mean(y_outcome, w_01[, idx])
 
     # Calculate overall, natural direct, and natural indirect effects
     # These are, as follows:
@@ -372,6 +365,37 @@ weighted_mediation <- function(a_treatment,
     natural_direct0 <- E_11 - E_01
     natural_indirect0 <- E_01 - E_00
 
+    # We also want to calculate the confidence intervals and standard errors,
+    # so we collect the weights that we need to calculate these things
+    w_te <- ifelse(!is.na(w_11[, idx]), w_11[, idx], w_00[, idx])
+    w_nde <- ifelse(!is.na(w_10[, idx]), w_10[, idx], w_00[, idx])
+    w_nie <- w_11[, idx] - w_10[, idx]
+
+    # First, we calculate the TE standard error and confidence intervals
+    te_dsgn <- svydesign(id=~1, weights=~w_te, data=data.frame(Y=y_outcome, A=a_treatment))
+    te_stderr <- svyglm(Y ~ A, design = te_dsgn)
+    te_stderr <- summary(te_stderr)$coeff["A", "Std. Error"]
+    te_ci <- total_effect + te_stderr * qnorm(.975) * c(-1, 1)
+
+    # Second, we calculate the NDE standard error and confidence intervals
+    nde_dsgn <- svydesign(id=~1, weights=~w_nde, data = data.frame(Y=y_outcome, A=a_treatment))
+    nde_stderr <- svyglm(Y ~ A, design=nde_dsgn)
+    nde_stderr <- summary(nde_stderr)$coeff["A", "Std. Error"]
+    nde_ci <- total_effect + nde_stderr * qnorm(.975) * c(-1, 1)
+
+    # Third, we calculate the NIE standard error and confidence intervals
+    nie_dsgn <- svydesign(id=~1, weights=~wts, data=subset(data.frame(Y=y_outcome, wts=w_nie), subset=(a_treatment==1)))
+    nie_stderr <- svymean(~Y, design=nie_dsgn)
+    nie_stderr <- SE(nie_stderr)
+    nie_ci <- total_effect + c(nie_stderr) * qnorm(.975) * c(-1, 1)
+
+    # Package these into a data frame??
+    effects <- data.frame(effect = c(total_effect, natural_direct1, natural_indirect1),
+                          std.err = c(te_stderr, nde_stderr, nie_stderr),
+                          ci.low = c(te_ci[1], nde_ci[1], nie_ci[1]),
+                          ci.high = c(te_ci[2], nde_ci[2], nie_ci[2]),
+                          row.names = (c('TE', 'NDE', 'NIE')))
+
     # Collect the results for this stopping method, and add
     # them back into the original results object
     effects_name = paste(stop_method, "effects", sep = "_")
@@ -380,6 +404,7 @@ weighted_mediation <- function(a_treatment,
                                     natural_indirect_effect1 = natural_indirect1,
                                     natural_direct_effect0 = natural_direct0,
                                     natural_indirect_effect0 = natural_indirect0,
+                                    effects = effects,
                                     expected_treatment0_mediator0 = E_00,
                                     expected_treatment1_mediator1 = E_11,
                                     expected_treatment1_mediator0 = E_10,
