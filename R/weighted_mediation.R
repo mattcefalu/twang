@@ -94,22 +94,21 @@
 #' @return mediation object
 #'   The `mediation` object includes the following:
 #'   - `model_a_res` The model A `ps()` results.
-#'   - `model_m_res` The model M `ps()` results.
-#'   - `model_a_wts` The model A weights.
-#'   - `model_m_ets` The model M weights.
-#'   - `natural_direct_wts` The natural direct weights.
-#'   - `natural_indirect_wts` The natural indirect weights.
-#'   - `total_effect_wts` The total effects weights
+#'   - `model_m1_res` The model M1 `ps()` results.
+#'   - `model_m0_res` The model M0 `ps()` results.
 #'   - `data` The data set used to compute models
 #'   - `stopping_methods` The stopping methods passed to `stop.method`.
 #'   - `datestamp` The date when the analysis was run.
 #'   - For each `stop.method`, a list with the following:
 #'     * `overall_effect` The overall effect.
-#'     * `natural_direct_effect` The natural direct effect.
-#'     * `natural_indirect_effect` The natural indirect effect.
+#'     * `natural_direct_effect0` The natural direct effect, holding the mediator constant at 0.
+#'     * `natural_indirect_effect1` The natural indirect effect, holding the exposure constant at 1.
+#'     * `natural_direct_effect1` The natural direct effect, holding the mediator constant at 1.
+#'     * `natural_indirect_effect0` The natural indirect effect, holding the exposure constant at 0.
 #'     * `expected_treatment0_mediator0` E(Y(0, M(0)))
 #'     * `expected_treatment1_mediator1` E(Y(1, M(1)))
-#'     * `expected_treatment1_mediator0` E(Y(0, M(1)))
+#'     * `expected_treatment1_mediator0` E(Y(1, M(0)))
+#'     * `expected_treatment0_mediator1` E(Y(0, M(1)))
 #'
 #' @seealso [ps]
 #' @keywords models, multivariate
@@ -158,8 +157,8 @@ weighted_mediation <- function(a_treatment,
   }
 
   # Check for nulls in treatment and mediator (both are required arguments)
-  check_missing(a_treatment)
-  check_missing(m_mediator)
+  twang:::check_missing(a_treatment)
+  twang:::check_missing(m_mediator)
   
   # Check whether `y_outcome` exists. If it doesn't, we print a
   # warning about outcomes being calculated; if it does, we check
@@ -169,7 +168,7 @@ weighted_mediation <- function(a_treatment,
                   "weights will be returned; no effects will be calculated.\n",
                   sep = " "))
   } else {
-    check_missing(y_outcome)
+    twang:::check_missing(y_outcome)
   }
 
   # Check the number of unique values in `a_treatment`, which must equal 2 (for now)
@@ -183,7 +182,7 @@ weighted_mediation <- function(a_treatment,
   if (!is.null(total_effect_wts)) {
 
     # The total effects weights length must equal the number of stopping methods
-    check_equal_wts_stopping(total_effect_wts, ps_stop.method)
+    twang:::check_equal_wts_stopping(total_effect_wts, ps_stop.method)
   
     # We still need to estimate W_{A=0|X_M} because we don't know if X_A == X_M
     data_a = data.frame("A" = a_treatment, "X" = x_covariates)
@@ -196,12 +195,12 @@ weighted_mediation <- function(a_treatment,
     if (!is.null(total_effect_ps)) {
       
       # The total effects weights length must equal the number of stopping methods
-      check_equal_wts_stopping(total_effect_ps$w,  ps_stop.method)
+      twang:::check_equal_wts_stopping(total_effect_ps$w,  ps_stop.method)
       
       # We want to check if X_A is a subset of X_M and vice versa.
       # Ordinarilly, this would raise an error if there were elements in X_A
       # were that are not in X_M, but we don't want to raise the error here,
-      a_equals_m <- check_subset_equal(total_effect_ps, x_covariates, raise_error = FALSE)
+      a_equals_m <- twang:::check_subset_equal(total_effect_ps, x_covariates, raise_error = FALSE)
       if (a_equals_m) {
         # The total effect weights W_{A=0|X_A} and W_{A=0|X_M} are equivalent
         total_effect_wts <- total_effect_ps$w
@@ -235,7 +234,7 @@ weighted_mediation <- function(a_treatment,
       # elements in X_A that are not in X_M
       a_equals_m <- TRUE
       if (!is.null(ax_covariates)) {
-        a_equals_m <- check_subset_equal(ax_covariates, x_covariates)
+        a_equals_m <- twang:::check_subset_equal(ax_covariates, x_covariates)
       } else {
         # Since `ax_covariates` were not provided, we use `x_covariates`.
         # Implicitly, this means that X_A will equal X_M.
@@ -319,13 +318,15 @@ weighted_mediation <- function(a_treatment,
   model_m0_res[['data']] <- NULL
   model_m1_res[['data']] <- NULL
   model_a_res[['data']] <- NULL
+  
+  # Add the outcome variable to the data set,
+  # if it was provided in the first place
+  if (!is.null(y_outcome)) {
+    data_m1[['Y']] <- y_outcome
+  }
 
   # Collect the results into a list
-  results <- list(w_11 = w_11,
-                  w_00 = w_00,
-                  w_10 = w_10,
-                  w_01 = w_01,
-                  model_m0 = model_m0_res,
+  results <- list(model_m0 = model_m0_res,
                   model_m1 = model_m1_res,
                   model_a = model_a_res,
                   stopping_methods = ps_stop.method,
@@ -333,83 +334,36 @@ weighted_mediation <- function(a_treatment,
                   datestamp = date())
   class(results) <- "mediation"
 
+  # Add weights as attributes of list
+  attr(results, 'w_11') <- w_11
+  attr(results, 'w_00') <- w_00
+  attr(results, 'w_10') <- w_10
+  attr(results, 'w_01') <- w_01
+
   # If there is no `y_outcome`, we just return the results at this point;
   # otherwise, we move on to calculate the actual effects
   if (is.null(y_outcome)) {
     return(results)
   }
 
-  # If we have the `y_outcome`, we calculate the
-  # effects for each stopping method
+  # Otherwise, we calculate the effects for each stopping method
   stop_methods <- c(ps_stop.method)
-  for (idx in 1:length(stop_methods)) {
+  for (i in 1:length(stop_methods)) {
 
-    stop_method <- stop_methods[idx]
-
-    # Calculate the weighted means for each of the conditions
-    E_11 <- weighted_mean(y_outcome, w_11[, idx])
-    E_00 <- weighted_mean(y_outcome, w_00[, idx])
-    E_10 <- weighted_mean(y_outcome, w_10[, idx])
-    E_01 <- weighted_mean(y_outcome, w_01[, idx])
-
-    # Calculate overall, natural direct, and natural indirect effects
-    # These are, as follows:
-    # - TE = E(Y(1, M(1))) - E(Y(0, M(0)))
-    # - NIE(1) = E(Y(1, M(1))) - E(Y(1, M(0)))
-    # - NDE(1) = E(Y(1, M(0))) - E(Y(0, M(0)))
-    # - NIE(0) = E(Y(0, M(1))) - E(Y(0, M(0)))
-    # - NDE(0) = E(Y(1, M(1))) - E(Y(0, M(1)))
-    total_effect <- E_11 - E_00
-    natural_direct1 <- E_10 - E_00
-    natural_indirect1 <- E_11 - E_10
-    natural_direct0 <- E_11 - E_01
-    natural_indirect0 <- E_01 - E_00
-
-    # We also want to calculate the confidence intervals and standard errors,
-    # so we collect the weights that we need to calculate these things
-    w_te <- ifelse(!is.na(w_11[, idx]), w_11[, idx], w_00[, idx])
-    w_nde <- ifelse(!is.na(w_10[, idx]), w_10[, idx], w_00[, idx])
-    w_nie <- w_11[, idx] - w_10[, idx]
-
-    # First, we calculate the TE standard error and confidence intervals
-    te_dsgn <- svydesign(id=~1, weights=~w_te, data=data.frame(Y=y_outcome, A=a_treatment))
-    te_stderr <- svyglm(Y ~ A, design = te_dsgn)
-    te_stderr <- summary(te_stderr)$coeff["A", "Std. Error"]
-    te_ci <- total_effect + te_stderr * qnorm(.975) * c(-1, 1)
-
-    # Second, we calculate the NDE standard error and confidence intervals
-    nde_dsgn <- svydesign(id=~1, weights=~w_nde, data = data.frame(Y=y_outcome, A=a_treatment))
-    nde_stderr <- svyglm(Y ~ A, design=nde_dsgn)
-    nde_stderr <- summary(nde_stderr)$coeff["A", "Std. Error"]
-    nde_ci <- total_effect + nde_stderr * qnorm(.975) * c(-1, 1)
-
-    # Third, we calculate the NIE standard error and confidence intervals
-    nie_dsgn <- svydesign(id=~1, weights=~wts, data=subset(data.frame(Y=y_outcome, wts=w_nie), subset=(a_treatment==1)))
-    nie_stderr <- svymean(~Y, design=nie_dsgn)
-    nie_stderr <- SE(nie_stderr)
-    nie_ci <- total_effect + c(nie_stderr) * qnorm(.975) * c(-1, 1)
-
-    # Package these into a data frame??
-    effects <- data.frame(effect = c(total_effect, natural_direct1, natural_indirect1),
-                          std.err = c(te_stderr, nde_stderr, nie_stderr),
-                          ci.low = c(te_ci[1], nde_ci[1], nie_ci[1]),
-                          ci.high = c(te_ci[2], nde_ci[2], nie_ci[2]),
-                          row.names = (c('TE', 'NDE', 'NIE')))
-
-    # Collect the results for this stopping method, and add
-    # them back into the original results object
+    # Get the name of the stopping method, and the name of the effects
+    stop_method <- stop_methods[i]
     effects_name = paste(stop_method, "effects", sep = "_")
-    results[[effects_name]] <- list(total_effect = total_effect,
-                                    natural_direct_effect1 = natural_direct1,
-                                    natural_indirect_effect1 = natural_indirect1,
-                                    natural_direct_effect0 = natural_direct0,
-                                    natural_indirect_effect0 = natural_indirect0,
-                                    effects = effects,
-                                    expected_treatment0_mediator0 = E_00,
-                                    expected_treatment1_mediator1 = E_11,
-                                    expected_treatment1_mediator0 = E_10,
-                                    expected_treatment0_mediator1 = E_01)
-    
+
+    # Get the weights for this particular stopping methods
+    w_11_temp <- w_11[,i]; w_00_temp <- w_00[,i]
+    w_10_temp <- w_10[,i]; w_01_temp <- w_01[,i]
+
+    # Calculate the effects (TE, NDE1, NIE0, NDE0, NIE1)
+    results[[effects_name]] <- twang:::calculate_effects(w_11_temp,
+                                                         w_00_temp,
+                                                         w_10_temp,
+                                                         w_01_temp,
+                                                         y_outcome)
   }
   return(results)
 }

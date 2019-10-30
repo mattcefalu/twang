@@ -128,23 +128,22 @@ mediation object
 The \code{mediation} object includes the following:
 \itemize{
 \item \code{model_a_res} The model A \code{ps()} results.
-\item \code{model_m_res} The model M \code{ps()} results.
-\item \code{model_a_wts} The model A weights.
-\item \code{model_m_ets} The model M weights.
-\item \code{natural_direct_wts} The natural direct weights.
-\item \code{natural_indirect_wts} The natural indirect weights.
-\item \code{total_effect_wts} The total effects weights
+\item \code{model_m1_res} The model M1 \code{ps()} results.
+\item \code{model_m0_res} The model M0 \code{ps()} results.
 \item \code{data} The data set used to compute models
 \item \code{stopping_methods} The stopping methods passed to \code{stop.method}.
 \item \code{datestamp} The date when the analysis was run.
 \item For each \code{stop.method}, a list with the following:
 \itemize{
 \item \code{overall_effect} The overall effect.
-\item \code{natural_direct_effect} The natural direct effect.
-\item \code{natural_indirect_effect} The natural indirect effect.
+\item \code{natural_direct_effect0} The natural direct effect, holding the mediator constant at 0.
+\item \code{natural_indirect_effect1} The natural indirect effect, holding the exposure constant at 1.
+\item \code{natural_direct_effect1} The natural direct effect, holding the mediator constant at 1.
+\item \code{natural_indirect_effect0} The natural indirect effect, holding the exposure constant at 0.
 \item \code{expected_treatment0_mediator0} E(Y(0, M(0)))
 \item \code{expected_treatment1_mediator1} E(Y(1, M(1)))
-\item \code{expected_treatment1_mediator0} E(Y(0, M(1)))
+\item \code{expected_treatment1_mediator0} E(Y(1, M(0)))
+\item \code{expected_treatment0_mediator1} E(Y(0, M(1)))
 }
 }
 }
