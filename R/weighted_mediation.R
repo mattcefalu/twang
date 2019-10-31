@@ -257,6 +257,13 @@ weighted_mediation <- function(a_treatment,
       }
     }
   }
+  
+  # Let's get rid of data_a, if it exists, and
+  # remove the data from the `model_a_res` object
+  if (exists('data_a')){
+    rm(data_a)
+  }
+  model_a_res[['data']] <- NULL
 
   # Get the w11 weight from the total effects weights
   # - For the tx group, these are : 1 / p(A=1 | X_A)
@@ -278,6 +285,10 @@ weighted_mediation <- function(a_treatment,
   #   and getting P(A = 0 | M, X_M) [using ATT]
   data_m0 <- data.frame("A" = (1 - a_treatment), "X" = x_covariates, "M" = m_mediator)
   model_m0_res <- do.call(ps, c(list(data = data_m0, estimand = "ATT"), ps_args))
+
+  # Let's get rid of data_m0, and remove the data from the object
+  rm(data_m0)
+  model_m0_res[['data']] <- NULL
   
   # Step 2 for w10 :
   #   - For the tx group, these are : 1 / (1 - p(A=1 | X_M))
@@ -300,7 +311,7 @@ weighted_mediation <- function(a_treatment,
   #   and getting P(A = 1 | M, X_M) [using ATT]
   data_m1 <- data.frame("A" = a_treatment, "X" = x_covariates, "M" = m_mediator)
   model_m1_res <- do.call(ps, c(list(data = data_m1, estimand = "ATT"), ps_args))
-  
+  model_m1_res[['data']] <- NULL
   # Step 2 for w01 :
   #   - For the tx group, these are : NA
   #   - For the ct group, these are : 1 / p(A=1 | X_M)
@@ -313,11 +324,6 @@ weighted_mediation <- function(a_treatment,
   
   # Step 4 for w01 : Calculate w_01, which is just w_2 * w_1
   w_01 <- w_2 * w_1
-  
-  # Let's also remove the data from these `ps` objects, so they're not so bulky
-  model_m0_res[['data']] <- NULL
-  model_m1_res[['data']] <- NULL
-  model_a_res[['data']] <- NULL
   
   # Add the outcome variable to the data set,
   # if it was provided in the first place

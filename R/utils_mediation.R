@@ -123,14 +123,16 @@ calculate_effects <- function(w_11, w_00, w_10, w_01, y_outcome) {
   natural_direct1   <- E_11 - E_01   # holding the mediator constant at 1
   natural_indirect0 <- E_01 - E_00   # holding the exposure constant at 0
   
-  return(list(total_effect = total_effect,
-              natural_direct_effect1 = natural_direct1,
-              natural_indirect_effect0 = natural_indirect0,
-              natural_direct_effect0 = natural_direct0,
-              natural_indirect_effect1 = natural_indirect1,
-              expected_treatment0_mediator0 = E_00,
-              expected_treatment1_mediator1 = E_11,
-              expected_treatment1_mediator0 = E_10,
-              expected_treatment0_mediator1 = E_01))
+  res <- data.frame(estimate=c(total_effect,
+                               natural_direct1,
+                               natural_indirect0,
+                               natural_direct0,
+                               natural_indirect1,
+                               E_00, E_11, E_10, E_01),
+                    row.names=c('TE', 'NDE1', 'NIE0', 'NDE0', 'NIE1',
+                                'E[Y(0), M(0)]', 'E[Y(1), M(1)]',
+                                'E[Y(1), M(0)]', 'E[Y(0), M(1)]'))
   
+  return(res)
+
 }

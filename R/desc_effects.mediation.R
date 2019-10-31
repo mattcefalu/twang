@@ -84,15 +84,15 @@ desc_effects.mediation <- function(x, y_outcome = NULL) {
     w_nie0 <- w_01[, i] - w_00[, i]
     
     # First, we calculate the TE standard error and confidence intervals
-    te_res <- get_ci_and_se(effects$total_effect, w_te, y_outcome, a_treatment)
+    te_res <- get_ci_and_se(effects['TE', 'estimate'], w_te, y_outcome, a_treatment)
     
     # Second, we calculate the NDE standard errors and confidence intervals
-    nde0_res <- get_ci_and_se(effects$natural_direct_effect0, w_nde0, y_outcome, a_treatment)
-    nde1_res <- get_ci_and_se(effects$natural_direct_effect1, w_nde1, y_outcome, a_treatment)
+    nde0_res <- get_ci_and_se(effects['NDE0', 'estimate'], w_nde0, y_outcome, a_treatment)
+    nde1_res <- get_ci_and_se(effects['NDE1', 'estimate'], w_nde1, y_outcome, a_treatment)
     
     # Third, we calculate the NIE standard errors and confidence intervals
-    nie0_res <- get_ci_and_se_nie(effects$natural_indirect_effect0, w_nie0, y_outcome, a_treatment, 0)
-    nie1_res <- get_ci_and_se_nie(effects$natural_indirect_effect1, w_nie1, y_outcome, a_treatment, 1)
+    nie0_res <- get_ci_and_se_nie(effects['NIE0', 'estimate'], w_nie0, y_outcome, a_treatment, 0)
+    nie1_res <- get_ci_and_se_nie(effects['NIE1', 'estimate'], w_nie1, y_outcome, a_treatment, 1)
     
     # Package all of these into a data frame
     df_effects <- data.frame(te_res,

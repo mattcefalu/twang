@@ -10,30 +10,15 @@ summary.mediation <- function(object, ...) {
   # grab the balance table
   balance_tables <- bal_table.mediation(object)
 
-  # loop through the effects and put them
-  # into a single data frame, then print
-  effects_names <- sapply(names(object), function (x) grepl('_effects', x))
-  if (any(effects_names)) {
+  # Grab the effects, if they exist
+  effects_logical <- grepl('_effects', names(object))
+  if (any(effects_logical)) {
+    results_table <- object[effects_logical]
 
-    effects <- object[effects_names]
-    results <- matrix(NA, nrow = 7, ncol = length(effects))
-    for (effect_idx in 1:length(effects)) {
-
-      if (effect_idx == 1) {
-        effects_columns <- names(effects[[effect_idx]])
-      }
-
-      for (idx in 1:7) {
-        results[idx, effect_idx] <- effects[[effect_idx]][[idx]]
-      }
-
-    }
-    results_table <- as.data.frame(results)
-    colnames(results_table) <- names(effects)
-    rownames(results_table) <- effects_columns
-
-    return(list('results_table' = results_table, 'balance_tables' = balance_tables))
-
+  } else {
+    results_table <- NULL
   }
+
+  return(list('results_table' = results_table, 'balance_tables' = balance_tables))
 
 }

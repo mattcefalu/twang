@@ -44,12 +44,11 @@ bal_table.mediation <- function(x, ...) {
   
   balance_nie <- do.call(rbind, balance_nie)
   balance_nie['model'] = 'NIE'
-  print(balance_nie)
 
   # keep only the mediator rows that end with '.M'
   possible_prefixes <- paste(x$stopping_methods, 'ATT', 'M', sep = '.')
   possible_prefixes <- paste(possible_prefixes, collapse = '|')
-  rows_to_keep <- grep(possible_prefixes, row.names(balance_nie))
+  rows_to_keep <- grep(possible_prefixes, rownames(balance_nie))
   balance_nie <- balance_nie[rows_to_keep,]
   
   return(list(balance_a=balance_a, balance_m=balance_m, balance_nie=balance_nie))
