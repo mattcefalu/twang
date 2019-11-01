@@ -17,12 +17,12 @@ bal_table.mediation <- function(x, ...) {
   # get the balance table for Model A
   balance_a <- do.call(rbind, bal.table(x$model_a))
   balance_a['model'] <- 'Model A'
-  row.names(balance_a) <- gsub(".X.", ".", row.names(balance_a))
+  row.names(balance_a) <- sub(".X.", ".", row.names(balance_a))
 
   # get the balance table for Model M
   balance_m <- do.call(rbind, bal.table(x$model_m0))
   balance_m['model'] <- 'Model M'
-  row.names(balance_m) <- gsub(".X.", ".", row.names(balance_m))
+  row.names(balance_m) <- sub(".X.", ".", row.names(balance_m))
   
   # to get the balance table for NIE, we need to create a
   # composite weight, which is w_10 for treatment, and w_00
