@@ -43,6 +43,10 @@ plot.mediation <- function(x,
 
     mediator <- x$data[['M']]
     treatment <- x$data[['A']]
+    
+    # Get the actual weights from the mediation object
+    w_00 <- attr(x, 'w_00')
+    w_10 <- attr(x, 'w_10')
 
     # check if the mediator is a factor, because we'll be calculating
     # things differently if the mediator is a factor vs numeric
@@ -54,7 +58,7 @@ plot.mediation <- function(x,
       method <- x$stopping_methods[i]
   
       # extract the weights from the mediation object
-      weights <- ifelse(!is.na(x$w_10[,i]), x$w_10[,i], x$w_00[,i])
+      weights <- ifelse(!is.na(w_10[,i]), w_10[,i], w_00[,i])
       
       # create normalized weights by dividing by the sum of weights;
       # we do this separately for treatment and control

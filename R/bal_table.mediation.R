@@ -17,18 +17,21 @@ bal_table.mediation <- function(x, ...) {
   # get the balance table for Model A
   balance_a <- do.call(rbind, bal.table(x$model_a))
   balance_a['model'] <- 'Model A'
-  row.names(balance_a) <- gsub(".X.", ".", row.names(balance_a))
+  row.names(balance_a) <- sub(".X.", ".", row.names(balance_a))
 
   # get the balance table for Model M
   balance_m <- do.call(rbind, bal.table(x$model_m0))
   balance_m['model'] <- 'Model M'
-  row.names(balance_m) <- gsub(".X.", ".", row.names(balance_m))
+  row.names(balance_m) <- sub(".X.", ".", row.names(balance_m))
   
   # to get the balance table for NIE, we need to create a
   # composite weight, which is w_10 for treatment, and w_00
   # for the control group
-  nie_wts <- data.frame(matrix(nrow=nrow(x$w_00), ncol=ncol(x$w_00)))
-  for (i in 1:ncol(x$w_00)) {nie_wts[,i] <- ifelse(!is.na(x$w_00[,i]), x$w_00[,i], x$w_10[,i])}
+  w_00 <- attr(x, 'w_00')
+  w_10 <- attr(x, 'w_10')
+  
+  nie_wts <- data.frame(matrix(nrow=nrow(w_00), ncol=ncol(w_00)))
+  for (i in 1:ncol(w_00)) {nie_wts[,i] <- ifelse(!is.na(w_00[,i]), w_00[,i], w_10[,i])}
   names(nie_wts) <- paste(x$stopping_methods, 'ATT', sep='.')
 
   # get the balance table for NIE
@@ -43,7 +46,9 @@ bal_table.mediation <- function(x, ...) {
   balance_nie['model'] = 'NIE'
 
   # keep only the mediator rows that end with '.M'
-  rows_to_keep <- endsWith(row.names(balance_nie), '.M')
+  possible_prefixes <- paste(x$stopping_methods, 'ATT', 'M', sep = '.')
+  possible_prefixes <- paste(possible_prefixes, collapse = '|')
+  rows_to_keep <- grep(possible_prefixes, rownames(balance_nie))
   balance_nie <- balance_nie[rows_to_keep,]
   
   return(list(balance_a=balance_a, balance_m=balance_m, balance_nie=balance_nie))

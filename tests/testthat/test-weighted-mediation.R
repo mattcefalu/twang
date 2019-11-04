@@ -231,3 +231,28 @@ test_that("`weighted_mediation` works the same for estimate and passing PS objec
                tolerance=1e-1)
   
 })
+
+
+test_that("`weighted_mediation` produces the expected effects", {
+  data <- read.csv(file.path(getwd() ,'data/test2.csv'))
+
+  expected1 <- data.frame(effect=c(0.41788028, 0.22038451,  0.1974958, 0.49984472, -0.08196444),
+                          std.err=c(0.06278785, 0.09692165,  0.7547251, 0.08366099,  0.33669864),
+                          ci.min=c(0.29481834, 0.03042157, -1.2817383, 0.33587219, -0.74188165),
+                          ci.max=c(0.54094221, 0.41034745,  1.6767298, 0.66381724,  0.57795276),
+                          row.names=c('TE', 'NDE_0', 'NIE_1', 'NDE_1', 'NIE_0'))
+  
+  expected2 <- data.frame(effect=c(0.41763639, 0.21882658,  0.1988098, 0.50233947, -0.08470308),
+                          std.err=c(0.06278482, 0.09685873,  0.7758265, 0.08347428,  0.36631306),
+                          ci.min=c(0.29458040, 0.02898696, -1.3217822, 0.33873288, -0.80266349),
+                          ci.max=c(0.54069238, 0.40866620,  1.7194018, 0.66594606,  0.63325733),
+                          row.names=c('TE', 'NDE_0', 'NIE_1', 'NDE_1', 'NIE_0'))
+
+  res <- twang::weighted_mediation(data[, 'A'], as.factor(data[, 'm']), data[, c('x1', 'x2')], data[, 'y'],
+                                   estimate_total_effect_wts=T)
+  eff <- desc_effects(res)
+
+  expect_equal(eff[['ks.mean_effects']], expected1, tolerance=1e-1)
+  expect_equal(eff[['ks.max_effects']], expected2, tolerance=1e-1)
+
+})
