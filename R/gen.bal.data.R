@@ -6,7 +6,7 @@ gen.bal.data <- function(data,var.names){
   
   # construct a dataset that is used to optimize balance 
   # numeric vars must be first columns to ensure names are not altered due to factor expansion
-  bal.data = data[,numeric.vars]
+  bal.data = data[,numeric.vars,drop=F]
   
   # expand factor variables into series of indicators
   for (vars in factor.vars){
