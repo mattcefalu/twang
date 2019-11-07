@@ -26,7 +26,7 @@ desc_effects.mediation <- function(x, y_outcome = NULL) {
     dsgn <- svydesign(id=~0, weights=~wts, data=subset(data.frame(Y=y_outcome, wts=w),
                                                        subset=(a_treatment==ind)))
     
-    stderr <- svymean(~Y, design=dsgn)
+    stderr <- svytotal(~Y, design=dsgn)
     stderr <- SE(stderr)
     ci <- eff + c(stderr) * qnorm(.975) * c(-1, 1)
     return(c(eff, stderr, ci[1], ci[2]))
@@ -34,6 +34,18 @@ desc_effects.mediation <- function(x, y_outcome = NULL) {
   
   # Get the data from the original object
   data <- x$data
+  
+  # Get the names of the stopping methods
+  stop_methods <- c(x$stopping_methods)
+  
+  # Get the weights (which were saved as attributes)
+  w_11 <- attr(x, 'w_11')
+  w_00 <- attr(x, 'w_00')
+  w_10 <- attr(x, 'w_10')
+  w_01 <- attr(x, 'w_01') 
+
+  # Now just delete the object, since it may be really big
+  rm(x)
   
   # Check to make sure that either `y_outcome` has been provided, or that
   # `y_outcome` was provided in the original weighted mediation` calculation
@@ -48,17 +60,8 @@ desc_effects.mediation <- function(x, y_outcome = NULL) {
   }
   
   # Also, grab the treatment, 'A', from the original data set
-  a_treatment <- x$data[, 'A']
-  
-  # Get the names of the stopping methods
-  stop_methods <- c(x$stopping_methods)
-  
-  # Get the weights (which were saved as attributes)
-  w_11 <- attr(x, 'w_11')
-  w_00 <- attr(x, 'w_00')
-  w_10 <- attr(x, 'w_10')
-  w_01 <- attr(x, 'w_01') 
-  
+  a_treatment <- data[, 'A']
+
   # Now loop through each of the stopping methods to calculate the
   # confidence intervals and standard errors for each effect
   results <- list()
@@ -68,21 +71,18 @@ desc_effects.mediation <- function(x, y_outcome = NULL) {
     stop_method <- stop_methods[i]
     effects_name = paste(stop_method, "effects", sep = "_")
     
-    # Let's get the effects for this stopping method; if there are no
-    # effects in the actual mediation object, then we will calculate them
-    if (!(effects_name %in% x)) {
-      effects <- twang:::calculate_effects(w_11[,i], w_00[,i], w_10[,i], w_01[,i], y_outcome)
-    } else {
-      effects <- x[[effects_name]]
-    }
+    # Let's get the effects for this stopping method
+    effects <- twang:::calculate_effects(w_11[,i], w_00[,i], w_10[,i], w_01[,i], y_outcome)
     
     # We want to calculate the confidence intervals and standard errors,
-    # so we collect the weights that we need to calculate these things
+    # so we collect the weights that we need to calculate these things;
+    # note that we standardized the NIE weights, dividing by their sums
+    # TODO :: Should there be a separate function to extract these?
     w_te   <- ifelse(!is.na(w_11[, i]), w_11[, i], w_00[, i])
     w_nde0 <- ifelse(!is.na(w_10[, i]), w_10[, i], w_00[, i])
-    w_nie1 <- w_11[, i] - w_10[, i]
+    w_nie1 <- (w_11[, i] / sum(w_11[, i],  na.rm = T)) - (w_10[, i] / sum(w_10[, i],  na.rm = T)) 
     w_nde1 <- ifelse(!is.na(w_11[, i]), w_11[, i], w_01[, i])
-    w_nie0 <- w_01[, i] - w_00[, i]
+    w_nie0 <- (w_01[, i] / sum(w_01[, i], na.rm = T)) - (w_00[, i] / sum(w_00[, i], na.rm = T))
     
     # First, we calculate the TE standard error and confidence intervals
     te_res <- get_ci_and_se(effects['TE', 'estimate'], w_te, y_outcome, a_treatment)
