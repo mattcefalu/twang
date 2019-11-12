@@ -1,3 +1,24 @@
+#' Extract table of means from an`mnps` object
+#' 
+#' Extracts table of means from an mnps object.
+#'
+#' Displays a table with weighted and unweighted means and standardized effect sizes,
+#' and -- if requested -- standard deviations.
+#'
+#' @param mnps  An `mnps` object.
+#' @param stop.method Indicates which set of weights to retrieve from the `ps` object. 
+#'   Either the name of the stop.method used, or a natural number with 1, for example,
+#'.  indicating the first stop.method specified.
+#' @param includeSD Indicates whether standard deviations as well as means are to be displayed.
+#'   By default, they are not displayed.
+#' @param digits If not `NULL`, results will be rounded to the specified number of digits.
+#'
+#' @return `A table of means, standardized effect sizes, and perhaps standard deviations,
+#'   by treatment group.
+#'
+#' @seealso [mnps]
+#'
+#' @export
 means.table <- function(mnps, stop.method = 1, includeSD = FALSE, digits = NULL){
 
 	if(is.numeric(stop.method)){

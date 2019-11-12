@@ -1,8 +1,9 @@
 bal.table.mnps <- function(x, digits = 3, collapse.to = c("pair","covariate","stop.method")[1], subset.var = NULL, subset.treat = NULL, subset.stop.method = NULL, es.cutoff = 0, ks.cutoff = 0, p.cutoff = 1, ks.p.cutoff = 1, ...) {
    	tmt1 <- tmt2 <- stop.method <- std.eff.sz <- ks <- p <- ks.pval <- max.std.eff.sz <- max.ks <- min.p <- NULL
    	min.ks.pval <- control <- NULL
+   	
    	if(x$estimand == "ATE"){
-   		pwc <- pairwiseComparison(x, collapse.to = collapse.to)
+   		pwc <- pairwiseComparison(x, collapse.to = collapse.to , ks.exact = x$ks.exact)
    		if(!is.null(subset.var) & !(collapse.to == "stop.method")) pwc <- subset(pwc, var %in% subset.var | var %in% paste(subset.var, "<NA>", sep = ":"))
    		if(!is.null(subset.treat)){ 
    			if(length(subset.treat) == 1) pwc <- subset(pwc, tmt1 == subset.treat | tmt2 == subset.treat)

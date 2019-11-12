@@ -1,5 +1,68 @@
-##require(twang); data(AOD); AOD$crimjust[198:202] <- NA; mnps.AOD <- mnps(treat ~ illact + crimjust + subprob + subdep + white, data = AOD, estimand = "ATE", stop.method = c("ks.max","es.max"), n.trees = 1000, treatATT = 'community')
-plot.mnps <- function(x,plots="optimize", pairwiseMax = TRUE, figureRows = NULL, color = TRUE, subset = NULL, treatments = NULL, singlePlot = NULL, multiPage = FALSE, time = NULL, print = TRUE, ...){
+#' Plots for `mnps` objects
+#'
+#' This function produces a collection of diagnostic plots for `mnps` objects.
+#'
+#' This function produces lattice-style graphics of diagnostic plots.
+#'
+#' @param x An `mnps` object.
+#' @param plots An indicator of which type of plot is desired. The options are
+#' * `"optimize" or 1` A plot of the balance criteria as a function of the GBM 
+#'   iteration.
+#' * `"boxplot" or 2` Boxplots of the propensity scores for the treatment and 
+#'   control cases
+#' * `"es" or 3` Plots of the standardized effect size of the pre-treatment 
+#'   variables before and after reweighing
+#' * `"t" or 4` Plots of the p-values from t-statistics comparing means of 
+#'   treated and control subjects for pretreatment variables, before and after 
+#'   weighting.
+#' * `"ks" or 5` Plots of the p-values from Kolmogorov-Smirnov statistics 
+#'   comparing distributions of pretreatment variables of treated and control 
+#'   subjects, before and after weighting.
+#' @param pairwiseMax If `FALSE`, the plots for the underlying `ps` fits 
+#'   will be returned.  Otherwise, pairwise maxima will be returned.
+#' @param figureRows The number of rows of figures that should be used.
+#'   If left as `NULL`, twang tries to find a reasonable value.
+#' @param color If `color = FALSE`, figures will be gray scale. Default: `TRUE`.
+#' @param subset Used to restrict which of the `stop.method`s will be used 
+#'   in the figure. For example `subset = c(1,3)` would indicate that the 
+#'   first and third `stop.method`s (in alphabetical order of those specified 
+#'   in the original call to `mnps`) should be included in the figure.
+#' @param treatments Only applicable when `pairwiseMax` is `FALSE` and `plots` 3, 4, and 5.  
+#'   If left at `NULL`, panels for all treatment pairs are created.  If one level of the treatment 
+#'   variable is specified, plots comparing that treatment to all others are produced.  If two
+#'   levels are specified, a comparison for that single pair is produced.
+#' @param singlePlot For Plot calls that produce multiple plots, specifying an integer value of 
+#'   `singlePlot` will return only the corresponding plot.  E.g., specifying `singlePlot = 2` 
+#'   will return the second plot.
+#' @param multiPage When multiple frames of a figure are produced, `multiPage = TRUE` will print each
+#'   frame on a different page. This is intended for situations where the graphical output is being
+#'   saved to a file.
+#' @param time For use with `iptw`.
+#' @param print If `FALSE`, the figure is returned but not printed. Default: `TRUE`.
+#' @param hline Arguments passed to `panel.abline`.
+#' @param ... Additional arguments.
+#'
+#' @references Dan McCaffrey, G. Ridgeway, Andrew Morral (2004). "Propensity
+#'   Score Estimation with Boosted Regression for Evaluating Adolescent
+#'   Substance Abuse Treatment", *Psychological Methods* 9(4):403-425.
+#'
+#' @seealso [mnps]
+#' @keywords models, multivariate
+#'
+#' @method plot mnps
+#' @export
+plot.mnps <- function(x,plots = "optimize",
+                      pairwiseMax = TRUE,
+                      figureRows = NULL,
+                      color = TRUE,
+                      subset = NULL,
+                      treatments = NULL,
+                      singlePlot = NULL,
+                      multiPage = FALSE,
+                      time = NULL,
+                      print = TRUE,
+                      hline=c(0.1,0.5,0.8),
+                      ...){
 	
 	stop.method <- tmt1 <- tmt2 <- sig <- NULL   
 
@@ -155,7 +218,7 @@ plot.mnps <- function(x,plots="optimize", pairwiseMax = TRUE, figureRows = NULL,
    				ylab = "Absolute standard difference", xlab = NULL, 
    				main = ptNm,
    				panel = function(...){
-   					panel.abline(h=c(.2,.5,.8), col="gray80")
+   					panel.abline(h=hline, col="gray80")
    					panel.xyplot(...)
 		   		})
    			ptHold <- pt1.1
@@ -390,7 +453,7 @@ plot.mnps <- function(x,plots="optimize", pairwiseMax = TRUE, figureRows = NULL,
    			ylim = c(-.05, yMax), type = "l", col = ltBl, as.table = TRUE, main = ptNm, 
    			ylab = "Absolute standardized difference \n (maximum pairwise)", xlab = NULL, par.settings = list(strip.background = list(col=stripBgCol)),
    			panel = function(...){
-   				panel.abline(h=c(.2,.5,.8), col="gray80")
+   				panel.abline(h=hline, col="gray80")
    				panel.xyplot(...)
 		   	})
    		nullPlot <- FALSE

@@ -1,4 +1,21 @@
-# Produces a summary table for ps object 
+#' Summarize a `ps` object
+#'
+#' Computes summary information about a stored `ps` object
+#'
+#' Compresses the information in the `desc` component of the `ps` object
+#' into a short summary table describing the size of the dataset and the quality of
+#' the propensity score weights.
+#'
+#' @param object An `ps` object.
+#' @param ... Additional arguments.
+#'
+#' @return See [ps] for details on the returned table.
+#'
+#' @seealso [ps]
+#' @keywords models
+#'
+#' @method summary ps
+#' @export
 summary.ps <- function(object,...){
       summary.tab <- NULL
       typ <- NULL   
