@@ -110,7 +110,9 @@ bal.stat.fast <- function(data,vars=NULL,treat.var,w.all, sampw,
   res = transform(merge(x=res , y=ks.p , by="row.names" , all.x=T),row.names=Row.names , Row.names=NULL)
   
   ## factors are given their chi2 p-value -- they are missing at this point
-  res$ks.pval[grepl(":",rownames(res))] = res$pval[grepl(":",rownames(res))] 
+  if (length(factor.vars)>0){
+    res$ks.pval[grepl(paste0("^(",paste0(factor.vars,collapse = "|"),"):") , rownames(res))] = res$pval[grepl(paste0("^(",paste0(factor.vars,collapse = "|"),"):") , rownames(res))] 
+  }
 
   ##### Calculate stats for factor variables
   # ret[is.fac] <- lapply(data[,vars[is.fac],drop=FALSE], ps.summary.new2,
