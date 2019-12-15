@@ -155,6 +155,36 @@ weighted_mediation <- function(a_treatment,
                          n.keep = ps_n.keep,
                          n.grid = ps_n.grid))
   }
+  
+  # First, let's check to see whether X is a matrix or vector;
+  # if it's a matrix (or dataframe), we check make sure it has column names
+  if (is.vector(x_covariates)) {
+    x_names <- c('X')
+    x_covariates <- matrix(x_covariates)
+    colnames(x_covariates) <- x_names
+  } else if (is.matrix(x_covariates) || is.data.frame(x_covariates)) {
+    x_names <- colnames(x_covariates)
+    if (is.null(x_names)){
+      stop('The `x_covariates` must have column names, unless you are passing a vector.')
+    }
+  } else {
+    stop('The `x_covariates` must be either a vector, matrix, or data.frame.')
+  }
+  
+  # Second, let's check to see whether M is a matrix or vector
+  # if it's a matrix (or dataframe), we check make sure it has column names
+  if (is.vector(m_mediator)) {
+    m_names <- c('M')
+    m_mediator <- matrix(m_mediator)
+    colnames(m_mediator) <- m_names
+  } else if (is.matrix(m_mediator) || is.data.frame(m_mediator)) {
+    m_names <- colnames(m_mediator)
+    if (is.null(m_names)){
+      stop('The `m_mediator` must have column names, unless you are passing a vector.')
+    }
+  } else {
+    stop('The `m_mediator` must be either a vector, matrix, or data.frame.')
+  }
 
   # Check for nulls in treatment and mediator (both are required arguments)
   twang:::check_missing(a_treatment)
@@ -185,7 +215,7 @@ weighted_mediation <- function(a_treatment,
     twang:::check_equal_wts_stopping(total_effect_wts, ps_stop.method)
   
     # We still need to estimate W_{A=0|X_M} because we don't know if X_A == X_M
-    data_a = data.frame("A" = a_treatment, "X" = x_covariates)
+    data_a = data.frame("A" = a_treatment, x_covariates)
     model_a_res <- do.call(ps, c(list(data = data_a, estimand = "ATE"), ps_args))
     
   } else {
@@ -212,7 +242,7 @@ weighted_mediation <- function(a_treatment,
         total_effect_wts <- total_effect_ps$w
         
         # We still need to estimate W_{A=0|X_M}
-        data_a = data.frame("A" = a_treatment, "X" = x_covariates)
+        data_a = data.frame("A" = a_treatment, x_covariates)
         model_a_res <- do.call(ps, c(list(data = data_a, estimand = "ATE"), ps_args))
 
       }
@@ -242,12 +272,12 @@ weighted_mediation <- function(a_treatment,
       }
 
       # We need to estimate W_{A=0|X_M} no matter what
-      data_a = data.frame("A" = a_treatment, "X" = x_covariates)
+      data_a = data.frame("A" = a_treatment, x_covariates)
       model_a_res <- do.call(ps, c(list(data = data_a, estimand = "ATE"), ps_args))
       
       if (!a_equals_m) {
         # We need to estimate W_{A=0|X_A} because X_A != X_M
-        data_ax = data.frame("A" = a_treatment, "X" = ax_covariates)
+        data_ax = data.frame("A" = a_treatment, ax_covariates)
         model_ax_res <- do.call(ps, c(list(data = data_ax, estimand = "ATE"), ps_args))
         total_effect_wts <- model_ax_res$w
       
@@ -283,7 +313,7 @@ weighted_mediation <- function(a_treatment,
   
   # Step 1 for w10 : Fit Model M0, which we will do by running `ps()`on (1 - A) = X + M,
   #   and getting P(A = 0 | M, X_M) [using ATT]
-  data_m0 <- data.frame("A" = (1 - a_treatment), "X" = x_covariates, "M" = m_mediator)
+  data_m0 <- data.frame("A" = (1 - a_treatment), x_covariates, m_mediator)
   model_m0_res <- do.call(ps, c(list(data = data_m0, estimand = "ATT"), ps_args))
 
   # Let's get rid of data_m0, and remove the data from the object
@@ -309,7 +339,7 @@ weighted_mediation <- function(a_treatment,
 
   # Step 1 for w01 : Fit Model M1, which we will do by running `ps()`on A = X + M,
   #   and getting P(A = 1 | M, X_M) [using ATT]
-  data_m1 <- data.frame("A" = a_treatment, "X" = x_covariates, "M" = m_mediator)
+  data_m1 <- data.frame("A" = a_treatment, x_covariates, m_mediator)
   model_m1_res <- do.call(ps, c(list(data = data_m1, estimand = "ATT"), ps_args))
   model_m1_res[['data']] <- NULL
   # Step 2 for w01 :
@@ -335,6 +365,8 @@ weighted_mediation <- function(a_treatment,
   results <- list(model_m0 = model_m0_res,
                   model_m1 = model_m1_res,
                   model_a = model_a_res,
+                  mediator_names = m_names,
+                  covariate_names = x_names,
                   stopping_methods = ps_stop.method,
                   data = data_m1,
                   datestamp = date())
