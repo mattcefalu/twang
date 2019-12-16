@@ -61,8 +61,7 @@ plot.mediation <- function(x,
     } else {
       new_plot <- update(plot2, ylab.right = model_names[[2]])
     }
-    print(new_plot)
-    return()
+    return(new_plot)
   }
 
   # we separate out the mediators that are factors and those that aren't
@@ -151,14 +150,20 @@ plot.mediation <- function(x,
   }
   
   if (!is.null(factor_plot) && !is.null(number_plot)) {
-    print(factor_plot, split = c(1, 1, 1, 2), more = TRUE)
-    print(number_plot, split = c(1, 2, 1, 2), more = FALSE)
+
+    # NOTE :: Using `grid.arrange()`` is very slow. We may want to optimize
+    #         this somehow, or use something different. Altenatively, we can
+    #         just plot the images in this function, rather than returning them, 
+    #         with something like ::
+    #
+    # plot(factor_plot, split = c(1, 1, 1, 2))
+    # plot(number_plot, split = c(1, 2, 1, 2), newpage = FALSE)
     
-    # return(grid.arrange(factor_plot, number_plot, ncol = 1, nrow = 2))
+    return(grid.arrange(factor_plot, number_plot))
   } else if (!is.null(factor_plot)) {
-    print(factor_plot)
+    return(factor_plot)
   } else {
-    print(number_plot)
+    return(number_plot)
   }
 }
 
