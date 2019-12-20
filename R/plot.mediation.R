@@ -65,10 +65,10 @@ plot.mediation <- function(x,
   }
 
   # we separate out the mediators that are factors and those that aren't
-  mediator_is_factor <- sapply(x$data[,x$mediator_names], is.factor)
+  mediator_is_factor <- x$mediator_names %in% names(Filter(is.factor, x$data[,x$mediator_names, drop=F]))
   
-  mediators_factors <- x$mediator_names[mediator_is_factor == T, drop = F]
-  mediators_numbers <- x$mediator_names[mediator_is_factor == F, drop = F]
+  mediators_factors <- x$mediator_names[mediator_is_factor == T, drop = T]
+  mediators_numbers <- x$mediator_names[mediator_is_factor == F, drop = T]
   
   # get the actual weights from the mediation object
   w_00 <- attr(x, 'w_00')
@@ -126,12 +126,12 @@ plot.mediation <- function(x,
         
         weights[treat] <- (weights[treat] / sum(weights[treat]))
         weights[ctrl] <- (weights[ctrl] / sum(weights[ctrl]))
-        
-        number_frames[[paste(method, m, sep='')]] <- data.frame(m = mediators[,m],
-                                                                mediator = m,
-                                                                A = treatment,
-                                                                weights = weights,
-                                                                method = method)
+
+        number_frames[[paste(method, m, sep='')]] <- data.frame('m' = mediators[,m],
+                                                                'mediator' = m,
+                                                                'A' = treatment,
+                                                                'weights' = weights,
+                                                                'method' = method)
       }
     }
     number_data <- do.call(rbind, number_frames)
@@ -151,19 +151,17 @@ plot.mediation <- function(x,
   
   if (!is.null(factor_plot) && !is.null(number_plot)) {
 
-    # NOTE :: Using `grid.arrange()`` is very slow. We may want to optimize
-    #         this somehow, or use something different. Altenatively, we can
-    #         just plot the images in this function, rather than returning them, 
-    #         with something like ::
+    # NOTE :: Using `grid.arrange()`` is very slow, so we just plot the 
+    #         images in the function here, rather than returning.
     #
-    # plot(factor_plot, split = c(1, 1, 1, 2))
-    # plot(number_plot, split = c(1, 2, 1, 2), newpage = FALSE)
-    
-    return(grid.arrange(factor_plot, number_plot))
+    # new_plot <- grid.arrange(factor_plot, number_plot)
+    # return(new_plot)
+    plot(factor_plot, split = c(1, 1, 1, 2))
+    plot(number_plot, split = c(1, 2, 1, 2), newpage = FALSE)
   } else if (!is.null(factor_plot)) {
-    return(factor_plot)
+    plot(factor_plot)
   } else {
-    return(number_plot)
+    plot(number_plot)
   }
 }
 
