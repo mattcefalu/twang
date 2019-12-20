@@ -32,124 +32,136 @@ plot.mediation <- function(x,
                            color = TRUE,
                            model_subset = NULL,
                            ...) {
-
+  
   # TODO : We'll probably want to fix / clean up this function ...
   if (!is.null(model_subset) && !(model_subset %in% c(1, 2))) {
     stop("The `model_subset` must be NULL, 1, or 2.")
   }
-
-  # TODO : We'll probably want to update this at some point
-  if (plots == 'density'){
-
-    mediator <- x$data[['M']]
-    treatment <- x$data[['A']]
+  
+  # we want the mediator and the treatment variables
+  mediators <- x$data[,x$mediator_names, drop = F]
+  treatment <- x$data[['A']]
+  
+  if (plots != 'density') {
+    args <- list(plots = plots, subset = subset, color = color)
     
-    # Get the actual weights from the mediation object
-    w_00 <- attr(x, 'w_00')
-    w_10 <- attr(x, 'w_10')
-
-    # check if the mediator is a factor, because we'll be calculating
-    # things differently if the mediator is a factor vs numeric
-    mediator_as_factor <- is.factor(mediator)
-
-    frames <- list()
-    for (i in 1:length(x$stopping_methods)) {
-      
-      method <- x$stopping_methods[i]
-  
-      # extract the weights from the mediation object
-      weights <- ifelse(!is.na(w_10[,i]), w_10[,i], w_00[,i])
-      
-      # create normalized weights by dividing by the sum of weights;
-      # we do this separately for treatment and control
-      treat <- which(treatment == 1)
-      ctrl  <- which(treatment == 0)
-      weights[treat] <- (weights[treat] / sum(weights[treat]))
-      weights[ctrl] <- (weights[ctrl] / sum(weights[ctrl]))
-
-      # if the mediator is a factor
-      if (mediator_as_factor) {
-  
-        # calculate aggregates for the weighted mediator, treatment
-        a1 <- aggregate(weights[which(treatment == 1)],
-                        by = list(M = factor(mediator[which(treatment == 1)])),
-                        FUN = sum)
-        a1['A'] <- 1
-  
-        # calculate aggregates for the weighted mediator, control
-        a0 <- aggregate(weights[which(treatment == 0)],
-                        by = list(M = factor(mediator[which(treatment == 0)])),
-                        FUN = sum)
-        a0['A'] <- 0
-
-        # combine the aggregates
-        a1a0 <- rbind(a1, a0)
-        a1a0['method'] <- method
-
-        # add the combined data frame into the master frames list
-        frames[[method]] <- a1a0
-      } else {
-  
-        # create a new data frame an add it to the master frames list
-        frames[[method]] <- data.frame(M = mediator,
-                                       A = treatment,
-                                       weights = weights,
-                                       method = method)
-        
-      }
-
-    }
-
-    new_data <- do.call(rbind, frames)
-    rownames(new_data) <- 1:nrow(new_data)
-
-    if (mediator_as_factor) {
-      new_plot <- lattice::barchart(x ~ factor(M) | factor(method),
-                                    groups = factor(A, levels = c(0, 1), labels = c('control', 'treatment')),
-                                    data = new_data,                                   
-                                    origin = 0, 
-                                    par.settings = list(superpose.polygon = list(col = c("#478BB8", "#B87447"))),
-                                    auto.key = TRUE,
-                                    ylab = "Proportion",
-                                    xlab = "Weighted Mediator",
-                                    main = "Weighted Mediation Histogram, Control vs. Treatment",
-                                    horiz = FALSE)
-      
-
+    model_a <- x$model_a
+    model_m <- x$model_m0
+    model_names <- c('Model A', 'Model M')
+    
+    plot1 <- do.call(getS3method("plot", "ps"), c(list(model_a), args))
+    plot2 <- do.call(getS3method("plot", "ps"), c(list(model_m), args))
+    
+    plot1 <- update(plot1, ylab.right = model_names)
+    if (is.null(model_subset)) {
+      new_plot <- suppressWarnings(c(plot1, plot2))
+      new_plot <- update(new_plot, ylab.right = model_names)
+    } else if (model_subset == 1) {
+      new_plot <- update(plot1, ylab.right = model_names[[1]])
     } else {
-      new_plot <- lattice::densityplot(~M | factor(method),
-                                       groups = factor(A, levels = c(0, 1), labels = c('control', 'treatment')),
-                                       data = new_data,
-                                       weights = weights,
-                                       plot.points = FALSE,
-                                       origin = 0,
-                                       par.settings = list(superpose.line = list(lwd = 3, col = c("#478BB8", "#B87447"))),
-                                       auto.key = TRUE,
-                                       ylab = "Density",
-                                       xlab = "Weighted Mediator",
-                                       main = "Weighted Mediation Density, Control vs. Treatment")
-      
+      new_plot <- update(plot2, ylab.right = model_names[[2]])
     }
     return(new_plot)
   }
 
-  args <- list(plots = plots, subset = subset, color = color)
-
-  model_a <- x$model_a
-  model_m <- x$model_m0
-  model_names <- c('Model A', 'Model M')
-
-  plot1 <- do.call(getS3method("plot", "ps"), c(list(model_a), args))
-  plot2 <- do.call(getS3method("plot", "ps"), c(list(model_m), args))
-
-  plot1 <- update(plot1, ylab.right = model_names)
-  if (is.null(model_subset)) {
-    new_plot <- suppressWarnings(c(plot1, plot2))
-    new_plot <- update(new_plot, ylab.right = model_names)
-  } else if (model_subset == 1) {
-    new_plot <- update(plot1, ylab.right = model_names[[1]])
-  } else {
-    new_plot <- update(plot2, ylab.right = model_names[[2]])
+  # we separate out the mediators that are factors and those that aren't
+  mediator_is_factor <- x$mediator_names %in% names(Filter(is.factor, x$data[,x$mediator_names, drop=F]))
+  
+  mediators_factors <- x$mediator_names[mediator_is_factor == T, drop = T]
+  mediators_numbers <- x$mediator_names[mediator_is_factor == F, drop = T]
+  
+  # get the actual weights from the mediation object
+  w_00 <- attr(x, 'w_00')
+  w_10 <- attr(x, 'w_10')
+  
+  # finally, create indicators for treatment and control
+  treat <- which(treatment == 1)
+  ctrl  <- which(treatment == 0)
+  
+  factor_plot <- NULL
+  if (any((mediator_is_factor == T))) {
+    factor_frames <- list()
+    for (i in 1:length(x$stopping_methods)) {
+      for (m in mediators_factors) {
+        
+        method <- x$stopping_methods[i]
+        weights <- ifelse(!is.na(w_10[,i]), w_10[,i], w_00[,i])
+        
+        weights[treat] <- (weights[treat] / sum(weights[treat]))
+        weights[ctrl] <- (weights[ctrl] / sum(weights[ctrl]))
+        
+        a1 <- aggregate(weights[treat], by = list(m = factor(mediators[treat, m])), FUN = sum)
+        a0 <- aggregate(weights[ctrl], by = list(m = factor(mediators[ctrl, m])), FUN = sum)
+        
+        a1['A'] <- 1; a0['A'] <- 0
+        
+        combined <- rbind(a1, a0)
+        combined['mediator'] <- m
+        combined['method'] <- method
+        
+        factor_frames[[paste(method, m, sep='')]] <- combined
+      }
+    }
+    factor_data <- do.call(rbind, factor_frames)
+    factor_plot <- lattice::barchart(x ~ factor(m) | factor(method) + factor(mediator),
+                                     groups = factor(A, levels = c(0, 1), labels = c('control', 'treatment')),
+                                     data = factor_data,                                   
+                                     origin = 0, 
+                                     par.settings = list(superpose.polygon = list(col = c("#478BB8", "#B87447"))),
+                                     auto.key = TRUE,
+                                     ylab = "Proportion",
+                                     xlab = "Weighted Mediator",
+                                     main = "Weighted Mediation Histogram, Control vs. Treatment",
+                                     horiz = FALSE)
   }
-  return(new_plot)
+  
+  number_plot <- NULL
+  if (any((mediator_is_factor == F))) {
+    number_frames <- list()
+    for (i in 1:length(x$stopping_methods)) {
+      for (m in mediators_numbers) {
+        
+        method <- x$stopping_methods[i]
+        weights <- ifelse(!is.na(w_10[,i]), w_10[,i], w_00[,i])
+        
+        weights[treat] <- (weights[treat] / sum(weights[treat]))
+        weights[ctrl] <- (weights[ctrl] / sum(weights[ctrl]))
+
+        number_frames[[paste(method, m, sep='')]] <- data.frame('m' = mediators[,m],
+                                                                'mediator' = m,
+                                                                'A' = treatment,
+                                                                'weights' = weights,
+                                                                'method' = method)
+      }
+    }
+    number_data <- do.call(rbind, number_frames)
+    number_plot <- lattice::densityplot(~m | factor(method) + factor(mediator),
+                                        groups = factor(A, levels = c(0, 1), labels = c('control', 'treatment')),
+                                        data = number_data,
+                                        weights = weights,
+                                        plot.points = FALSE,
+                                        origin = 0,
+                                        par.settings = list(superpose.line = list(lwd = 3, col = c("#478BB8", "#B87447"))),
+                                        auto.key = TRUE,
+                                        ylab = "Density",
+                                        xlab = "Weighted Mediator",
+                                        main = "Weighted Mediation Density, Control vs. Treatment")
+    
+  }
+  
+  if (!is.null(factor_plot) && !is.null(number_plot)) {
+
+    # NOTE :: Using `grid.arrange()`` is very slow, so we just plot the 
+    #         images in the function here, rather than returning.
+    #
+    # new_plot <- grid.arrange(factor_plot, number_plot)
+    # return(new_plot)
+    plot(factor_plot, split = c(1, 1, 1, 2))
+    plot(number_plot, split = c(1, 2, 1, 2), newpage = FALSE)
+  } else if (!is.null(factor_plot)) {
+    plot(factor_plot)
+  } else {
+    plot(number_plot)
+  }
 }
+
