@@ -7,7 +7,7 @@ dx.wts <- function(x,  data, estimand, vars=NULL, treat.var, x.as.weights=TRUE, 
 	if(!(estimand %in% c("ATE","ATT")))
 	stop("'estimand' must be either 'ATT' or 'ATE'")
 	
-   if (class(x)!="ps"){
+   if (class(x)[1]!="ps"){
       if(!is.vector(x) && !is.matrix(x) && !is.data.frame(x))
          stop("x must be a ps object, a vector, a matrix, or a data frame")
       if(any(x < 0)) stop("x has negative values")
@@ -75,14 +75,14 @@ dx.wts <- function(x,  data, estimand, vars=NULL, treat.var, x.as.weights=TRUE, 
 #   zz      <- textConnection("alert","a")
 #   if(plots) pdf(file=paste(title,".pdf",sep=""))
 
-   n.tp <- ifelse(class(x)=="ps",length(x$desc),ncol(w))
-   if(class(x)!="ps"){ 
+   n.tp <- ifelse(class(x)[1]=="ps",length(x$desc),ncol(w))
+   if(class(x)[1]!="ps"){ 
      desc<-vector("list",ncol(w))
      names(desc) <- colnames(w)
    }
 
    for(i.tp in 1:n.tp){
-      if((class(x)=="ps") & is.null(vars)){
+      if((class(x)[1]=="ps") & is.null(vars)){
          desc.temp <- x$desc[[i.tp]]
          iter      <- desc.temp$n.trees
          tp        <- names(x$desc)[i.tp]

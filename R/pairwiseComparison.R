@@ -1,5 +1,5 @@
 pairwiseComparison <- function(x, collapse.to = c("pair","covariate","stop.method")[1], na.action = "level"){
-	if(class(x) != "mnps") stop("pairwiseComparison only defined for mnps objects fit with estimand = \"ATE\"")
+	if(class(x)[1] != "mnps") stop("pairwiseComparison only defined for mnps objects fit with estimand = \"ATE\"")
 	if(x$estimand != "ATE") stop("pairwiseComparison only defined for mnps objects fit with estimand = \"ATE\"")	
 	stop.method <- NULL
 	treatLevs <- x$treatLev

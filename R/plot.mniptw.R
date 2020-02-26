@@ -31,7 +31,7 @@ plot.mniptw <- function(x,plots="optimize", pairwiseMax = TRUE, figureRows = NUL
    
    	#if(length(timePeriods) == 1) return(hdPt[[1]])
 	#else 
-	if(class(hdPt[[1]]) == "trellis") {
+	if(class(hdPt[[1]])[1] == "trellis") {
 		if(length(hdPt) == 1) print(hdPt[[1]])
 		else displayPlots(hdPt, figureRows = figureRows, singlePlot = singlePlot, multiPage = multiPage)
 		}	

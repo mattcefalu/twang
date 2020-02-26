@@ -1,6 +1,6 @@
 get.weights <- function(ps1, stop.method = NULL, estimand = NULL, withSampW = TRUE)
 {
-   if(class(ps1)=="ps"){
+   if(class(ps1)[1]=="ps"){
    if(is.null(estimand)) estimand <- ps1$estimand
    
    if(!(estimand %in% c("ATT","ATE"))) stop("estimand must be either \"ATT\" or \"ATE\".")
@@ -32,7 +32,7 @@ get.weights <- function(ps1, stop.method = NULL, estimand = NULL, withSampW = TR
       return(w)
    }
    }
-   if(class(ps1) == "mnps"){
+   if(class(ps1)[1] == "mnps"){
    if(is.null(estimand)) estimand <- ps1$estimand
    
    if(!(estimand %in% c("ATT","ATE"))) stop("estimand must be either \"ATT\" or \"ATE\".")
@@ -79,5 +79,5 @@ get.weights <- function(ps1, stop.method = NULL, estimand = NULL, withSampW = TR
 #   }
    	
    
-   if(!(class(ps1) %in% c('ps', 'mnps'))) stop("The object 'ps1' must be of class 'ps' or 'mnps'.")
+   if(!(class(ps1)[1] %in% c('ps', 'mnps'))) stop("The object 'ps1' must be of class 'ps' or 'mnps'.")
 }
