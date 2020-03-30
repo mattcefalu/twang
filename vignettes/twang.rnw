@@ -357,7 +357,6 @@ summary(ps.lalonde$gbm.obj,
         plot=FALSE)
 @
 
-
 \begin{figure}[h!]
 \begin{center}
 <<fig=TRUE,echo=FALSE,term=FALSE,width=6,height=8.5>>=
@@ -369,13 +368,11 @@ summary(ps.lalonde$gbm.obj,
 \label{fig:relativeinfluence}
 \end{figure}
 
-
-
+\clearpage
 \subsection{Assessing ``balance'' using balance tables}
 
 Having estimated the propensity scores, \texttt{bal.table()} produces a table that shows how well the resulting weights succeed in manipulating the control group so that its weighted pretreatment characteristics match, or balance, those of the unweighted treatment group if \texttt{estimand = "ATT"} or the control and treatment groups so that the weighted pretreatment characteristics match, or balance, with one another if \texttt{estimand = "ATE"}.
-By default, the \texttt{bal.table()} function uses the value of \texttt{estimand} set with the \texttt{ps()} function call.  For example, in the analysis we set \texttt{estimand =  "ATT"} when calling \texttt{ps()} to estimate the propensity scores and the resulting \texttt{ps.object}, \texttt{ps.lalonde}, contains an element ``estimand'' which takes the value \texttt{ "ATT"}.  The function \texttt{bal.table()} checks this value and automatically uses ATT weights when checking balance and comparing the distributions of pre-treatment variables for the
-weighted control group with those from the unweighted treatment group.
+By default, the \texttt{bal.table()} function uses the value of \texttt{estimand} set with the \texttt{ps()} function call (default value of \texttt{estimand = "ATE"}.  For example, in the analysis we set \texttt{estimand =  "ATT"} when calling \texttt{ps()} to estimate the propensity scores and the resulting \texttt{ps.object}, \texttt{ps.lalonde}, contains an element ``estimand`` which takes the value \texttt{ "ATT"}.  The function \texttt{bal.table()} checks this value and automatically uses \texttt{ATT} weights when checking balance and comparing the distributions of pre-treatment variables for the weighted control group with those from the unweighted treatment group.
 
 <<echo=FALSE>>=
 options(width=85)
@@ -390,58 +387,29 @@ lalonde.balance
 options(width=80)
 @
 
-\texttt{bal.table()} returns information on the pretreatment covariates before and after weighting. The object is a list with named components, one for an unweighted analysis (named
-\texttt{unw}) and one for each \texttt{stop.method} specified, here \texttt{es.mean} and \texttt{ks.max}. McCaffrey et al (2004) essentially used \texttt{es.mean} for the analyses, but
-our more recent work has sometimes used \texttt{ks.max}. See McCaffrey et al. (2013) for a more detailed description of these choices.
+\texttt{bal.table()} returns information on the pretreatment covariates before and after weighting. The object is a list with named components, one for an unweighted analysis (named \texttt{unw}) and one for each \texttt{stop.method} specified, here \texttt{es.mean} and \texttt{ks.max}. McCaffrey et al (2004) essentially used \texttt{es.mean} for the analyses, but our more recent work has sometimes used \texttt{ks.max}. See McCaffrey et al. (2013) for a more detailed description of these choices.
 
-If there are missing values (represented as \texttt{NA}) in the covariates, \texttt{twang} will attempt to construct weights that also balance rates of missingness in the treatment and control arms.  In this case, the \texttt{bal.table()} will have an extra row for each variable that has missing entries. USer should note that missing data in \texttt{xgboost} is handled differently than in \texttt{gbm}. In \texttt{gbm}, missing values are placed in their own node, while in \texttt{xgboost} missing values are placed in the left or right node based on minimizing the objective function. 
+If there are missing values (represented as \texttt{NA}) in the covariates, \texttt{twang} will attempt to construct weights that also balance rates of missingness in the treatment and control arms.  In this case, the \texttt{bal.table()} will have an extra row for each variable that has missing entries. User should note that missing data in \texttt{xgboost} is handled differently than in \texttt{gbm}. In \texttt{gbm}, missing values are placed in their own node, while in \texttt{xgboost} missing values are placed in the left or right node based on minimizing the objective function. 
 
 The columns of the table consist of the following items:
 \begin{description}
-\item[tx.mn, ct.mn] The treatment means and the control means for each of the variables. The unweighted table \texttt{(unw)} shows the unweighted means. For each stopping rule the means are weighted using weights corresponding to the gbm model selected by \texttt{ps()} using the stopping rule.  When \texttt{estimand = "ATT"} the weights for the treatment group always equal 1 for all cases and there is no difference between unweighted and propensity score weighted tx.mn.
+\item[\texttt{tx.mn, ct.mn}] The treatment means and the control means for each of the variables. The unweighted table \texttt{(unw)} shows the unweighted means. For each stopping rule the means are weighted using weights corresponding to the gbm model selected by \texttt{ps()} using the stopping rule.  When \texttt{estimand = "ATT"} the weights for the treatment group always equal 1 for all cases and there is no difference between unweighted and propensity score weighted tx.mn.
 
-\item[tx.sd, ct.sd] The propensity score weighted treatment and
-  control groups' standard deviations for each of the variables. 
-The unweighted table (unw) shows the unweighted
-standard deviations
+\item[\texttt{tx.sd, ct.sd}] The propensity score weighted treatment and control groups' standard deviations for each of the variables. The unweighted table (unw) shows the unweighted
+standard deviations.
 
-\item[std.eff.sz] The standardized effect size, defined as the
-treatment group mean minus the control group mean divided by the
-treatment group standard deviation if \texttt{estimand = "ATT"} or
-divided by the pooled sample (treatment and control) standard
-deviation if \texttt{estimand = "ATE"}. (In discussions of propensity
-scores this value is sometimes referred to as ``standardized
-bias''.) Occasionally, lack of treatment group or pooled sample 
-variance on a
-covariate results in very large (or infinite) standardized effect
-sizes. For purposes of analyzing mean effect sizes across multiple
-covariates, we set all standardized effect sizes larger
-than 500 to \texttt{NA} (missing values).
+\item[\texttt{std.eff.sz}] The standardized effect size, defined as the treatment group mean minus the control group mean divided by the treatment group standard deviation if \texttt{estimand = "ATT"} or divided by the pooled sample (treatment and control) standard deviation if \texttt{estimand = "ATE"}. (In discussions of propensity scores this value is sometimes referred to as ``standardized bias``.) Occasionally, lack of treatment group or pooled sample variance on a covariate results in very large (or infinite) standardized effect sizes. For purposes of analyzing mean effect sizes across multiple covariates, we set all standardized effect sizes larger than 500 to \texttt{NA} (missing values).
 
-\item[stat, p] Depending on whether the variable is continuous or
-categorical, \texttt{stat} is a t-statistic or a $\chi^2$ statistic.
+\item[\texttt{stat, p}] Depending on whether the variable is continuous or categorical, \texttt{stat} is a t-statistic or a $\chi^2$ statistic.
 \texttt{p} is the associated p-value
 
-\item[ks, ks.pval] The Kolmogorov-Smirnov test statistic and its
-associated p-value. P-values for the KS statistics are either
-derived from Monte Carlo simulations or analytic approximations,
-depending on the specifications made in the \texttt{perm.test.iters}
-argument of the \texttt{ps} function. For categorical variables this
-is just the $\chi^2$ test p-value
+\item[\texttt{ks, ks.pval}] The Kolmogorov-Smirnov test statistic and its associated p-value. P-values for the KS statistics are either derived from Monte Carlo simulations or analytic approximations, depending on the specifications made in the \texttt{perm.test.iters} argument of the \texttt{ps} function. For categorical variables this is just the $\chi^2$ test p-value.
 \end{description}
 
-Components of these tables are useful for demonstrating that
-pretreatment differences between groups on observed variables have
-been eliminated using the weights. The
-\texttt{xtable} package aids in formatting for \LaTeX { }and Word
-documents. Table~\ref{tab:balance} shows the results for
-\texttt{ks.max} reformatted for a \LaTeX { }document. For Word
-documents, paste the \LaTeX { }description of the table into a Word
-document, highlight it and use Word tools to convert the text to a
-table using ``\&'' as the separator.  
+Components of these tables are useful for demonstrating that pretreatment differences between groups on observed variables have been eliminated using the weights. The \texttt{xtable} package aids in formatting for \LaTeX { }and Word documents. Table~\ref{tab:balance} shows the results for \texttt{ks.max} reformatted for a \LaTeX { }document. For Word documents, paste the \LaTeX { }description of the table into a Word document, highlight it and use Word tools to convert the text to a table using ``\&`` as the separator.  
 
 
-<<results=tex>>=
+<<eval=FALSE>>=
 library(xtable)
 pretty.tab <- lalonde.balance$ks.max.ATT[,c("tx.mn","ct.mn","ks")]
 pretty.tab <- cbind(pretty.tab, lalonde.balance$unw[,"ct.mn"])
@@ -453,26 +421,28 @@ xtable(pretty.tab,
        align=c("l","r","r","r","r"))
 @
 
-The \texttt{summary()} method for \texttt{ps} objects offers a
-compact summary of the sample sizes of the groups and the balance
-measures. If \texttt{perm.test.iters>0} was used to create the
-\texttt{ps} object, then Monte Carlo simulation is used to estimate
-p-values for the maximum KS statistic that would be expected across
-the covariates, had individuals with the same covariate values been
-assigned to groups randomly. Thus, a p-value of 0.04 for
-\texttt{max.ks.p} indicates that the largest KS statistic found
-across the covariates is larger than would be expected in 96\% of
-trials in which the same cases were randomly assigned to groups.
+\clearpage
+<<echo=FALSE, results=tex>>=
+library(xtable)
+pretty.tab <- lalonde.balance$ks.max.ATT[,c("tx.mn","ct.mn","ks")]
+pretty.tab <- cbind(pretty.tab, lalonde.balance$unw[,"ct.mn"])
+names(pretty.tab) <- c("E(Y1|t=1)","E(Y0|t=1)","KS","E(Y0|t=0)")
+t1 <- xtable(pretty.tab,
+             caption = "Balance of the treatment and comparison groups",
+             label = "tab:balance",
+             digits = c(0, 2, 2, 2, 2),
+             align=c("l","r","r","r","r"))
+t1
+@
+
+The \texttt{summary()} method for \texttt{ps} objects offers a compact summary of the sample sizes of the groups and the balance measures. If \texttt{perm.test.iters>0} was used to create the \texttt{ps} object, then Monte Carlo simulation is used to estimate p-values for the maximum KS statistic that would be expected across the covariates, had individuals with the same covariate values been assigned to groups randomly. Thus, a p-value of 0.04 for \texttt{max.ks.p} indicates that the largest KS statistic found across the covariates is larger than would be expected in 96\% of trials in which the same cases were randomly assigned to groups.
 
 <<>>=
 summary(ps.lalonde)
 @
 
 
-In general, weighted means can have greater sampling variance than
-unweighted means from a sample of equal size. The effective sample
-size (ESS) of the weighted comparison group captures this increase
-in variance as
+In general, weighted means can have greater sampling variance than unweighted means from a sample of equal size. The effective sample size (ESS) of the weighted comparison group captures this increase in variance as
 
 \begin{equation}
 \mathrm{ESS} = \frac{\left(\sum_{i\in C} w_i\right)^2}{\sum_{i\in C}
@@ -480,72 +450,17 @@ w_i^2}.
 \label{eq:ESS}
 \end{equation}
 
-The ESS is approximately the number of observations from a simple
-random sample that yields an estimate with sampling variation
-equal to the sampling variation obtained with the weighted
-comparison observations. Therefore, the ESS will give an estimate of
-the number of comparison participants that are comparable to the
-treatment group when \texttt{estimand = "ATT"}.  
-The ESS is an accurate measure of the relative
-size of the variance of means when the weights are fixed or they are
-uncorrelated with outcomes. Otherwise the ESS underestimates the
-effective sample size (Little \& Vartivarian, 2004). With propensity
-score weights, it is rare that weights are uncorrelated with
-outcomes.  Hence the ESS typically gives a lower bound on the effective
-sample size, but it still serves as a useful measure for choosing
-among alternative models and assessing the overall quality of a model,
-even if it provides a possibly conservative picture of the loss in
+The ESS is approximately the number of observations from a simple random sample that yields an estimate with sampling variation equal to the sampling variation obtained with the weighted comparison observations. Therefore, the ESS will give an estimate of the number of comparison participants that are comparable to the
+treatment group when \texttt{estimand = "ATT"}. The ESS is an accurate measure of the relative size of the variance of means when the weights are fixed or they are uncorrelated with outcomes. Otherwise the ESS underestimates the effective sample size (Little \& Vartivarian, 2004). With propensity score weights, it is rare that weights are uncorrelated with outcomes.  Hence the ESS typically gives a lower bound on the effective sample size, but it still serves as a useful measure for choosing among alternative models and assessing the overall quality of a model, even if it provides a possibly conservative picture of the loss in
 precision due to weighting.  
 
-
-
-The \texttt{ess.treat} and \texttt{ess.ctrl} columns in the summary
-results shows the ESS for the 
-estimated propensity scores. Note that although the original
-comparison group had 429 cases, the
-propensity score estimates effectively utilize only
-23 or
-27.1 of the comparison
-cases, depending on the rules and measures used to estimate the
-propensity scores. While this may seem like a large loss of sample
-size, this indicates that many of the original cases were unlike the
-treatment cases and, hence, were not useful for isolating the
-treatment effect. Moreover, similar or even greater reductions in
-ESS would be expected from alternative approaches to using
-propensity scores, such as matching or stratification.
-Since the estimand of interest in this example is ATT,
-\texttt{ess.treat = n.treat} throughout (i.e., all treatment cases
-have a weight of 1). 
-
-
+The \texttt{ess.treat} and \texttt{ess.ctrl} columns in the summary results shows the ESS for the estimated propensity scores. Note that although the original comparison group had 429 cases, the propensity score estimates effectively utilize only 24 or 36.4 of the comparison cases, depending on the rules and measures used to estimate the propensity scores. While this may seem like a large loss of sample size, this indicates that many of the original cases were unlike the treatment cases and, hence, were not useful for isolating the
+treatment effect. Moreover, similar or even greater reductions in ESS would be expected from alternative approaches to using propensity scores, such as matching or stratification. Since the estimand of interest in this example is ATT, \texttt{ess.treat = n.treat} throughout (i.e., all treatment cases have a weight of 1). 
 
 \subsection{Graphical assessments of balance}
 \label{sec:plots} 
 
-The \texttt{plot()} function can generate useful
-diagnostic plots from the propensity score objects. The full set of
-plots available in \texttt{twang} and the argument value of
-\texttt{plot} to produce each one are given in
-Table~\ref{tab:allArg}.  
-The convergence plot
---- the default --- was discussed above.  
-
-The \texttt{plot()} function takes a \texttt{plots} argument in order to
-produce other diagnostic plots.  For example, specifying \texttt{plots
-  = 2} or \texttt{plots = "boxplot"}
-produces boxplots illustrating the spread of the estimated
-propensity scores in the treatment and comparison groups. Whereas
-propensity score stratification requires considerable overlap in
-these spreads, excellent covariate balance can often be achieved
-with weights, even when the propensity scores
-estimated for the treatment and control groups show little overlap.
-
-\begin{center}
-<<fig=TRUE,height=4,width=6>>=
-plot(ps.lalonde, plots=2)
-@
-\end{center}
-
+The \texttt{plot()} function can generate useful diagnostic plots from the propensity score objects. The full set of plots available in \texttt{twang} and the argument value of \texttt{plot} to produce each one are given in Table~\ref{tab:allArg}.  The convergence plot --- the default --- was discussed above.
 
 \begin{table}[ht]
 \begin{center}
@@ -570,21 +485,15 @@ pretreatment variables\\
 \end{center}
 \end{table}
 
-The effect size plot illustrates the effect of weights on the
-magnitude of differences between groups on each pretreatment
-covariate. These magnitudes are standardized using the standardized
-effect size described earlier.  In these plots, substantial
-reductions in effect sizes are observed for most variables (blue
-lines), with only one variable showing an increase in effect size
-(red lines), but only a seemingly trivial increase. Closed red
-circles indicate a statistically significant difference, many of
-which occur before weighting, none after. In some analyses variables
-can have very little variance in the treatment group sample or the
-entire sample and group
-differences can be very large relative to the standard
-deviations. In these situations, the user is warned that some effect sizes
-are too large to plot. 
+The \texttt{plot()} function takes a \texttt{plots} argument in order to produce other diagnostic plots.  For example, specifying \texttt{plots = 2} or \texttt{plots = "boxplot"} produces boxplots illustrating the spread of the estimated propensity scores in the treatment and comparison groups. Whereas propensity score stratification requires considerable overlap in these spreads, excellent covariate balance can often be achieved with weights, even when the propensity scores estimated for the treatment and control groups show little overlap.
 
+\begin{center}
+<<fig=TRUE,height=4,width=6>>=
+plot(ps.lalonde, plots=2)
+@
+\end{center}
+
+The effect size plot illustrates the effect of weights on the magnitude of differences between groups on each pretreatment covariate. These magnitudes are standardized using the standardized effect size described earlier.  In these plots, substantial reductions in effect sizes are observed for most variables (blue lines), with only one variable showing an increase in effect size (red lines), but only a seemingly trivial increase. Closed red circles indicate a statistically significant difference, many of which occur before weighting, none after. In some analyses variables can have very little variance in the treatment group sample or the entire sample and group differences can be very large relative to the standard deviations. In these situations, the user is warned that some effect sizes are too large to plot. 
 
 \begin{center}
 <<fig=TRUE,height=4,width=6>>=
@@ -595,12 +504,7 @@ plot(ps.lalonde, plots=3)
 When many of the p-values testing individual covariates for balance are very small, the groups are clearly
 imbalanced and inconsistent with what we would expect had the groups been formed by random assignment. After
 weighting we would expect the p-values to be larger if balance had been achieved. We use a QQ plot comparing
-the quantiles of the observed p-values to the quantiles of the uniform distribution (45 degree line) to conduct
-this check of balance. Ideally, the p-values from independent tests in which the null hypothesis is true will
-have a uniform distribution. Although the ideal is unlikely to hold even if we had random assignment (Bland, 2013),
-severe deviation of the p-values below the diagonal suggests lack of balance and p-values running at or above the diagonal
-suggests balance might have been achieved. The p-value plot (\texttt{plots}=4 or \texttt{plots="t"}) allows users to visually to inspect
-the p-values of the t-tests for group differences in the covariate means.
+the quantiles of the observed p-values to the quantiles of the uniform distribution (45 degree line) to conduct this check of balance. Ideally, the p-values from independent tests in which the null hypothesis is true will have a uniform distribution. Although the ideal is unlikely to hold even if we had random assignment (Bland, 2013), severe deviation of the p-values below the diagonal suggests lack of balance and p-values running at or above the diagonal suggests balance might have been achieved. The p-value plot (\texttt{plots=4} or \texttt{plots="t"}) allows users to visually to inspect the p-values of the t-tests for group differences in the covariate means.
 
 \begin{center}
 <<fig =TRUE, height=4, width = 6>>=
@@ -608,15 +512,9 @@ plot(ps.lalonde, plots = 4)
 @ 
 \end{center}
 
-Before weighting (closed circles), the groups have statistically
-significant differences on many variables (i.e., p-values are near
-zero). After weighting (open circles) the p-values are generally above the
-45-degree line, which represents the cumulative distribution of a
-uniform variable on [0,1]. This indicates that the p-values are even
-larger than would be expected in a randomized study. 
+Before weighting (closed circles), the groups have statistically significant differences on many variables (i.e., p-values are near zero). After weighting (open circles) the p-values are generally above the 45-degree line, which represents the cumulative distribution of a uniform variable on [0,1]. This indicates that the p-values are even larger than would be expected in a randomized study. 
 
-One can inspect similar plots for the KS statistic with the argument
-\texttt{plots = "ks"} or 
+One can inspect similar plots for the KS statistic with the argument \texttt{plots = "ks"} or \texttt{plots = 5}.
 
 \begin{center}
 <<fig =TRUE, height=4, width = 6>>=
@@ -651,9 +549,7 @@ plot(ps.lalonde, plots = 5)
   
   
 
-In all cases, the \texttt{subset} argument can be used if we wish to
-fous on results from one stopping rule.  
-
+In all cases, the \texttt{subset} argument can be used if we wish to focus on results from one stopping rule.  
 \begin{center}
 <<fig =TRUE, height=4, width = 6>>=
 plot(ps.lalonde, plots = 3, subset = 2)
@@ -663,25 +559,13 @@ plot(ps.lalonde, plots = 3, subset = 2)
 
 \subsection{Analysis of outcomes}
 
-A separate R package, the \texttt{survey} package, is useful for
-performing the outcomes analyses using weights. Its
-statistical methods account for the weights when computing
-standard error estimates. It is not a part of the standard R
-installation but installing \texttt{twang} should automatically
-install \texttt{survey} as well.
+A separate R package, the \texttt{survey} package, is useful for performing the outcomes analyses using weights. Its statistical methods account for the weights when computing standard error estimates. It is not a part of the standard R installation but installing \texttt{twang} should automatically install \texttt{survey} as well.
 
 <<>>=
 library(survey)
 @
 
-The \texttt{get.weights()} function extracts the propensity score
-weights from a \texttt{ps} object. Those weights may then be used as
-case weights in a \texttt{svydesign} object.  By default, it returns
-weights corresponding to the estimand (ATE or ATT) that was specified
-in the original call to \texttt{ps()}.  If needed, the user can
-override the default via the optional \texttt{estimand} argument. 
-
-
+The \texttt{get.weights()} function extracts the propensity score weights from a \texttt{ps} object. Those weights may then be used as case weights in a \texttt{svydesign} object.  By default, it returns weights corresponding to the estimand (ATE or ATT) that was specified in the original call to \texttt{ps()}. If needed, the user can override the default via the optional \texttt{estimand} argument. 
 
 <<>>=
 lalonde$w <- get.weights(ps.lalonde, stop.method="es.mean")
@@ -702,25 +586,16 @@ design.ps <- svydesign(ids=~1, weights=~w, data=lalonde)
 %\texttt{stop.method} objects optimize for the treatment effect on
 %the treated and it is possible that a different set of propensity
 %scores would be optimal for a treatment on the population analysis.
-The \texttt{stop.method} argument specifies which GBM model, and
-consequently which weights, to utilize.
+The \texttt{stop.method} argument specifies which GBM model, and consequently which weights, to utilize.
 %The third argument to \texttt{get.weights} selects which set of
 %weights to utilize. 
 %If no \texttt{stop.method} is selected then it
 %returns the first set of weights.
 
 
-The \texttt{svydesign} function from the \texttt{survey} package
-creates an object that stores the dataset along with design
-information needed for analyses. See \texttt{help(svydesign)} for
-more details on setting up \texttt{svydesign} objects.
+The \texttt{svydesign} function from the \texttt{survey} package creates an object that stores the dataset along with design information needed for analyses. See \texttt{help(svydesign)} for more details on setting up \texttt{svydesign} objects.
 
-The aim of the National Supported Work Demonstration analysis is to
-determine whether the program was effective at increasing earnings
-in 1978. The propensity score adjusted test can be computed with
-\texttt{svyglm}.
-
-
+The aim of the National Supported Work Demonstration analysis is to determine whether the program was effective at increasing earnings in 1978. The propensity score adjusted test can be computed with \texttt{svyglm}.
 
 <<>>=
 glm1 <- svyglm(re78 ~ treat, design=design.ps)
@@ -729,44 +604,17 @@ summary(glm1)
 
 
 
-The analysis estimates an increase in earnings of
-\$733 for those that participated in the
-NSW compared with similarly situated people observed in the CPS. The
-effect, however, does not appear to be statistically significant.
+The analysis estimates an increase in earnings of \$290 for those that participated in the NSW compared with similarly situated people observed in the CPS. The effect, however, does not appear to be statistically significant.
 
 
-Some authors have recommended utilizing both propensity score
-adjustment and additional covariate adjustment to minimize mean
-square error or to obtain ``doubly robust'' estimates
-of the treatment effect (Huppler-Hullsiek \& Louis 2002, Bang \&
-Robins 2005). These estimators are consistent if either the
-propensity scores are estimated correctly \textit{or} the regression
-model is specified correctly. For example, note that the balance
-table for \texttt{ks.max.ATT} made the two groups more similar on
-\texttt{nodegree}, but still some differences remained,
-70.8\% of the treatment
-group had no degree while
-60.1\% of the comparison
-group had no degree. While linear regression is sensitive to model
-misspecification when the treatment and comparison groups are
-dissimilar, the propensity score weighting has made them more
-similar, perhaps enough so that additional modeling with covariates
-can adjust for any remaining differences. In addition to potential
-bias reduction, the inclusion of additional covariates can reduce
-the standard error of the treatment effect if some of the covariates
-are strongly related to the outcome.
+Some authors have recommended utilizing both propensity score adjustment and additional covariate adjustment to minimize mean square error or to obtain ``doubly robust`` estimates of the treatment effect (Huppler-Hullsiek \& Louis 2002, Bang \& Robins 2005). These estimators are consistent if either the propensity scores are estimated correctly \textit{or} the regression model is specified correctly. For example, note that the balance table for \texttt{ks.max.ATT} made the two groups more similar on \texttt{nodegree}, but still some differences remained, 70.8\% of the treatment group had no degree while 60\% of the comparison group had no degree. While linear regression is sensitive to model misspecification when the treatment and comparison groups are dissimilar, the propensity score weighting has made them more similar, perhaps enough so that additional modeling with covariates can adjust for any remaining differences. In addition to potential bias reduction, the inclusion of additional covariates can reduce the standard error of the treatment effect if some of the covariates are strongly related to the outcome.
 
 <<>>=
 glm2 <- svyglm(re78 ~ treat + nodegree, design=design.ps)
 summary(glm2)
 @
 
-Adjusting for the remaining group difference in the
-\texttt{nodegree} variable slightly increased the estimate of the
-program's effect to \$920, but the
-difference is still not statistically significant. We can further
-adjust for the other covariates, but that too in this case has
-little effect on the estimated program effect.
+Adjusting for the remaining group difference in the \texttt{nodegree} variable slightly increased the estimate of the program's effect to \$463, but the difference is still not statistically significant. We can further adjust for the other covariates, but that too in this case has little effect on the estimated program effect.
 
 
 
@@ -779,9 +627,7 @@ summary(glm3)
 
 \subsection{Estimating the program effect using linear regression}
 
-The more traditional regression approach to estimating the program
-effect would fit a linear model with a treatment indicator and
-linear terms for each of the covariates.
+The more traditional regression approach to estimating the program effect would fit a linear model with a treatment indicator and linear terms for each of the covariates.
 
 <<>>=
 glm4 <- lm(re78 ~ treat + age + educ + black + hispan + nodegree +
@@ -797,83 +643,51 @@ glm5 <- lm(sqrt(re78) ~ treat + age + educ + black + hispan + nodegree +
 @
 
 
-This model estimates a rather strong treatment effect, estimating a
-program effect of \$\Sexpr{round(coef(glm4)[2])} with a
-p-value=\Sexpr{round(coef(summary(glm4))[2,4],3)}. Several
-variations of this regression approach also estimate strong program
-effects. For example using square root transforms on the earnings
-variables yields a
-p-value=\Sexpr{round(coef(summary(glm5))[2,4],3)}. These estimates,
-however, are very sensitive to the model structure since the
-treatment and control subjects differ greatly as seen in the
-unweighted balance comparison (\$unw) from
-\texttt{bal.table(ps.lalonde)}.
+This model estimates a rather strong treatment effect, estimating a program effect of \$\Sexpr{round(coef(glm4)[2])} with a p-value=\Sexpr{round(coef(summary(glm4))[2,4],3)}. Several variations of this regression approach also estimate strong program effects. For example using square root transforms on the earnings variables yields a p-value=\Sexpr{round(coef(summary(glm5))[2,4],3)}. These estimates, however, are very sensitive to the model structure since the treatment and control subjects differ greatly as seen in the unweighted balance comparison (\$unw) from \texttt{bal.table(ps.lalonde)}.
 
 
 \subsection{Propensity scores estimated from logistic regression}
 
-Propensity score analysis is intended to avoid problems associated
-with the misspecification of covariate adjusted models of outcomes,
-but the quality of the balance and the treatment effect estimates
-can be sensitive to the method used to estimate the propensity
-scores. Consider estimating the propensity scores using logistic
-regression instead of \texttt{ps()}.
+Propensity score analysis is intended to avoid problems associated with the misspecification of covariate adjusted models of outcomes, but the quality of the balance and the treatment effect estimates can be sensitive to the method used to estimate the propensity scores. Consider estimating the propensity scores using logistic regression instead of \texttt{ps()}.
 
 <<>>=
 ps.logit <- glm(treat ~ age + educ + black + hispan + nodegree +
-                        married + re74 + re75,
+                        married + re74 + re78,
                 data = lalonde,
                 family = binomial)
 lalonde$w.logit <- rep(1,nrow(lalonde))
 lalonde$w.logit[lalonde$treat==0] <- exp(predict(ps.logit,subset(lalonde,treat==0)))
 @
 
-\texttt{predict()} for logistic regression model produces estimates
-on the log-odds scale by default. Exponentiating those predictions
-for the comparison subjects gives the ATT weights
-$p/(1-p)$. \texttt{dx.wts()} from the \texttt{twang} package
-diagnoses the balance for an arbitrary set of weights producing a
-balance table.  This function requires the user to specify the
-estimand argument in order to perform the appropriate calculations
-relative to the target group on which we are drawing inferences.  
-
+\texttt{predict()} for logistic regression model produces estimates on the log-odds scale by default. Exponentiating those predictions for the comparison subjects gives the ATT weights $p/(1-p)$. \texttt{dx.wts()} from the \texttt{twang} package diagnoses the balance for an arbitrary set of weights producing a balance table.  This function requires the user to specify the estimand argument in order to perform the appropriate calculations relative to the target group on which we are drawing inferences.  The function \texttt{dx.wts} has not been updated in Version 2.0 and still relies on the older version of the balance calculations.
 
 
 <<>>=
 bal.logit <- dx.wts(x = lalonde$w.logit,
                     data=lalonde,
                     vars=c("age","educ","black","hispan","nodegree",
-                      "married","re74","re75"),
+                      "married","re74","re78"),
                     treat.var="treat",
                     perm.test.iters=0, estimand = "ATT")
 bal.logit
 @ 
 
 
-Applying the \texttt{bal.table()} function to this object returns a
-variable-by-variable summary of balance, just like it did for the
-\texttt{ps} object.  
+Applying the \texttt{bal.table()} function to this object returns a variable-by-variable summary of balance, just like it did for the \texttt{ps} object.  
 
 <<>>=
 bal.logit <- dx.wts(x = lalonde$w.logit,
                     data=lalonde,
                     vars=c("age","educ","black","hispan","nodegree",
-                      "married","re74","re75"),
+                      "married","re74","re78"),
                     treat.var="treat",
                     perm.test.iters=0, estimand = "ATT")
 bal.logit
 @ 
 
-For weights estimated with logistic regression, the
-largest KS statistic was reduced from the unweighted sample's
-largest KS of 0.64 to
-0.31, which is still
-quite a large KS statistic. Table~\ref{tab:balancelogit} shows the
-details of the balance of the treatment and comparison groups. The
-means of the two groups appear to be quite similar while the KS
-statistic shows substantial differences in their distributions.
+For weights estimated with logistic regression, the largest KS statistic was reduced from the unweighted sample's largest KS of 0.64 to 0.31, which is still quite a large KS statistic. Table~\ref{tab:balancelogit} shows the details of the balance of the treatment and comparison groups. The means of the two groups appear to be quite similar while the KS statistic shows substantial differences in their distributions.
 
-<<results=tex>>=
+<<eval=FALSE>>=
 pretty.tab <- bal.table(bal.logit)[[2]][,c("tx.mn","ct.mn","ks")]
 pretty.tab <- cbind(pretty.tab, bal.table(bal.logit)[[1]]$ct.mn)
 names(pretty.tab) <- c("E(Y1|t=1)","E(Y0|t=1)","KS","E(Y0|t=0)")
@@ -884,17 +698,30 @@ xtable(pretty.tab,
        align=c("l","r","r","r","r"))
 @
 
+Table~\ref{tab:balancecompare} compares the balancing quality of the weights directly with one another.
+
+<<>>=
+design.logit <- svydesign(ids=~1, weights=~w.logit, data=lalonde)
+glm6 <- svyglm(re78 ~ treat, design=design.logit)
+summary(glm6)
+@
 
 
+<<echo= FALSE, results=tex>>=
+pretty.tab <- bal.table(bal.logit)[[2]][,c("tx.mn","ct.mn","ks")]
+pretty.tab <- cbind(pretty.tab, bal.table(bal.logit)[[1]]$ct.mn)
+names(pretty.tab) <- c("E(Y1|t=1)","E(Y0|t=1)","KS","E(Y0|t=0)")
+xtable(pretty.tab,
+       caption = "Logistic regression estimates of the propensity scores",
+       label = "tab:balancelogit",
+       digits = c(0, 2, 2, 2, 2),
+       align=c("l","r","r","r","r"))
+@
 
-
-Table~\ref{tab:balancecompare} compares the balancing quality of the
-weights directly with one another.
-
-<<echo=FALSE,results=tex>>=
+<<echo=FALSE, results=tex>>=
 bal.gbm <- dx.wts(ps.lalonde,
                   data=lalonde, estimand = "ATE",
-                  vars=c("age","educ","black","hispan","nodegree","married","re74","re75"),
+                  vars=c("age","educ","black","hispan","nodegree","married","re74","re78"),
                   treat.var="treat",
                   perm.test.iters=0)
 pretty.tab <- rbind(bal.logit$summary.tab,
@@ -911,29 +738,13 @@ xtable(pretty.tab,
        #align = rep("l", 11))
 @
 
-<<>>=
-design.logit <- svydesign(ids=~1, weights=~w.logit, data=lalonde)
-glm6 <- svyglm(re78 ~ treat, design=design.logit)
-summary(glm6)
-@
-
-
-
-The analysis estimates an increase in earnings of
-\$\Sexpr{round(coef(glm6)[2])} for those that participated in the
-NSW compared with similarly situated people observed in the CPS.
-Table~\ref{tab:allTE} compares all of the treatment effect
-estimates.
-
-
+The analysis estimates an increase in earnings of \$\Sexpr{round(coef(glm6)[2])} for those that participated in the NSW compared with similarly situated people observed in the CPS. Table~\ref{tab:allTE} compares all of the treatment effect estimates.
 
 <<echo=FALSE>>=
 glm7 <- svyglm(re78 ~ treat + age + educ + black + hispan + nodegree +
                       married + re74 + re75,
                design=design.logit)
 @
-
-
 
 \begin{table}[ht]
 \begin{center}
@@ -954,8 +765,8 @@ Treatment effect & PS estimate & Linear adjustment \\
 \end{center}
 \end{table}
 
+\clearpage
 \section{An ATE example}
-
 
 In the analysis of Section 2, we focused on estimating ATT for the
 \texttt{lalonde} dataset.  In
