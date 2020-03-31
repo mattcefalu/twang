@@ -1,11 +1,3 @@
-#' Compute the balance table for mediation object.
-#'
-#' @param x A `mediation` object
-#' @param ... list, optional
-#'   Additional arguments.
-#'
-#' @method bal_table mediation
-#' @export
 bal_table.mediation <- function(x, ...) {
 
   # we extract what we need from the mediation object
@@ -21,13 +13,14 @@ bal_table.mediation <- function(x, ...) {
   w_10 <- attr(x, 'w_10')
   
   # then we get rid of the mediation object, since it's so large
-  rm(x)
+#  rm(x)
   
   # we find the column names with the `X.` prefix,
   # and use these as the X variables for the model
   column_names <- colnames(data)
   x_and_m_names <- c(x$covariate_names, x$mediator_names)
-
+  m_names <- x$mediator_names
+  
   # get the balance table for Model A
   balance_a <- do.call(rbind, bal.table(model_a))
   balance_a['model'] <- 'Model A'
@@ -41,9 +34,10 @@ bal_table.mediation <- function(x, ...) {
   names(nie_wts) <- paste(stopping_methods, 'ATT', sep='.')
 
   # get the balance table for NIE
+
   balance_nie <- bal.table(dx.wts(nie_wts,
                                   data = data,
-                                  vars = x_and_m_names,
+                                  vars = m_names,
                                   treat.var = 'A',
                                   x.as.weights = TRUE,
                                   estimand = 'ATT'))
@@ -52,7 +46,8 @@ bal_table.mediation <- function(x, ...) {
   balance_nie['model'] = 'NIE'
 
   rows <- rownames(balance_nie)
-  balance_nie <- balance_nie[rows[grep(paste(x$mediator_names ,collapse="|"), rows)],]
+  rownames(balance_nie) <- paste(rows, x$mediator_names, sep="|")
+#  balance_nie <- balance_nie[rows[grep(paste(x$mediator_names ,collapse="|"), rows)],]
   
   return(list(balance_a=balance_a, balance_m=balance_m, balance_nie=balance_nie))
   
