@@ -687,6 +687,7 @@ bal.logit
 
 For weights estimated with logistic regression, the largest KS statistic was reduced from the unweighted sample's largest KS of 0.64 to 0.31, which is still quite a large KS statistic. Table~\ref{tab:balancelogit} shows the details of the balance of the treatment and comparison groups. The means of the two groups appear to be quite similar while the KS statistic shows substantial differences in their distributions.
 
+% Code for Table 3, which is not evaluated here but later for formatting purposes
 <<eval=FALSE>>=
 pretty.tab <- bal.table(bal.logit)[[2]][,c("tx.mn","ct.mn","ks")]
 pretty.tab <- cbind(pretty.tab, bal.table(bal.logit)[[1]]$ct.mn)
@@ -706,7 +707,7 @@ glm6 <- svyglm(re78 ~ treat, design=design.logit)
 summary(glm6)
 @
 
-
+% Code for Table 3, which is evaluated here
 <<echo= FALSE, results=tex>>=
 pretty.tab <- bal.table(bal.logit)[[2]][,c("tx.mn","ct.mn","ks")]
 pretty.tab <- cbind(pretty.tab, bal.table(bal.logit)[[1]]$ct.mn)
@@ -718,6 +719,7 @@ xtable(pretty.tab,
        align=c("l","r","r","r","r"))
 @
 
+% Code for Table 4, which is evaluated here
 <<echo=FALSE, results=tex>>=
 bal.gbm <- dx.wts(ps.lalonde,
                   data=lalonde, estimand = "ATE",
@@ -768,57 +770,20 @@ Treatment effect & PS estimate & Linear adjustment \\
 \clearpage
 \section{An ATE example}
 
-In the analysis of Section 2, we focused on estimating ATT for the
-\texttt{lalonde} dataset.  In
-this situation, the ATE is not of great substantive interest because
-not all people who are offered entrance into the program could be
-expected to take advantage of the opportunity.  Further, there is some
-evidence that the treated subjects were 
-drawn from a subset of the covariate space.  In particular, in an ATE
-analysis, we see that we are unable to achieve balance,
-especially for the ``black'' indicator.  
+In the analysis of Section 2, we focused on estimating ATT for the \texttt{lalonde} dataset.  In this situation, the ATE is not of great substantive interest because not all people who are offered entrance into the program could be expected to take advantage of the opportunity.  Further, there is some evidence that the treated subjects were drawn from a subset of the covariate space.  In particular, in an ATE analysis, we see that we are unable to achieve balance, especially for the ``black`` indicator.  
 
-We now turn to an ATE analysis that is feasible and meaningful.  We
-focus on the \texttt{lindner} dataset, which was included in the
-\texttt{USPS} package (Obenchain 2011), and is now included in \texttt{twang} for
-convenience.  A tutorial by Helmreich and Pruzek (2009; HP) for the
-\texttt{PSAgraphics}  package also uses propensity scores to analyze a
-portion of these data.  HP describe the data as
-follows on p.\ 3 with our minor recodings in square braces: 
+We now turn to an ATE analysis that is feasible and meaningful.  We focus on the \texttt{lindner} dataset, which was included in the \texttt{USPS} package (Obenchain 2011), and is now included in \texttt{twang} for
+convenience.  A tutorial by Helmreich and Pruzek (2009; HP) for the \texttt{PSAgraphics}  package also uses propensity scores to analyze a portion of these data.  HP describe the data as follows on p.\ 3 with our minor recodings in square braces: 
+
 \begin{quote}
-  The \texttt{lindner} data contain data on 996 patients treated at
-  the Lindner Center, Christ Hospital, Cincinnati in 1997.  Patients
-  received a Percutaneous Coronary Intervention (PCI).  The data
-  consists of 10 variables.  Two are outcomes:
-  [\texttt{sixMonthSurvive}] ranges 
-  over two values... depending on whether patients surved to
-  six months post treatment [denoted by \texttt{TRUE}] or did not survive to six months [\texttt{FALSE}]...  Secondly,
-  \texttt{cardbill} contains the costs in 1998 dollars for the first
-  six months (or less if the patient did not survive) after
-  treatment... The treatment variable is \texttt{abcix}, 
-  where 0 indicates PCI treatment and 1 indicates standard PCI
-  treatment and additional treatment in some form with abciximab.
-  Covariates include \texttt{acutemi}, 1 indicating a recent acute
-  myocardial infarction and 0 not; \texttt{ejecfrac} for the left
-  ventricle ejection fraction, a percentage from 0 to 90;
-  \texttt{ves1proc} giving the number of vessels (0 to 5) involved in
-  the initial PCI; \texttt{stent} with 1 indicating coronary stent
-  inserted, 0 not; \texttt{diabetic} where 1 indicates that the
-  patient has been diagnosed with diabetes, 0 not; \texttt{height} in
-  centimeters and \texttt{female} coding the sex of the patent, 1 for
-  female, 0 for male.
+  The \texttt{lindner} data contain data on 996 patients treated at the Lindner Center, Christ Hospital, Cincinnati in 1997.  Patients received a Percutaneous Coronary Intervention (PCI).  The data consists of 10 variables.  Two are outcomes: [\texttt{sixMonthSurvive}] ranges over two values... depending on whether patients surved to six months post treatment [denoted by \texttt{TRUE}] or did not survive to six months [\texttt{FALSE}]...  Secondly, \texttt{cardbill} contains the costs in 1998 dollars for the first
+  six months (or less if the patient did not survive) after treatment... The treatment variable is \texttt{abcix}, where 0 indicates PCI treatment and 1 indicates standard PCI treatment and additional treatment in some form with abciximab. Covariates include \texttt{acutemi}, 1 indicating a recent acute myocardial infarction and 0 not; \texttt{ejecfrac} for the left ventricle ejection fraction, a percentage from 0 to 90; \texttt{ves1proc} giving the number of vessels (0 to 5) involved in the initial PCI; \texttt{stent} with 1 indicating coronary stent inserted, 0 not; \texttt{diabetic} where 1 indicates that the patient has been diagnosed with diabetes, 0 not; \texttt{height} in centimeters and \texttt{female} coding the sex of the patent, 1 for female, 0 for male.
 \end{quote}
 
-HP focus on \texttt{cardbill} --- the cost for the
-first months after treatment  --- as their outcome of
-interest.  However, since not all patients survived to six months, it
-is not clear whether a lower value of \texttt{cardbill} is good or
-not.  For this reason, we choose six-month survival
-(\texttt{sixMonthSurvive}) as our outcome of interest.  
+HP focus on \texttt{cardbill} --- the cost for the first months after treatment  --- as their outcome of
+interest.  However, since not all patients survived to six months, it is not clear whether a lower value of \texttt{cardbill} is good or not.  For this reason, we choose six-month survival (\texttt{sixMonthSurvive}) as our outcome of interest.  
 
-Ignoring pre-treatment variables, we see that \texttt{abcix} is
-associated with lower rates of 6-month mortality:
-
+Ignoring pre-treatment variables, we see that \texttt{abcix} is associated with lower rates of 6-month mortality:
 
 <<>>=
 data(lindner)
@@ -826,29 +791,20 @@ table(lindner$sixMonthSurvive, lindner$abcix)
 chisq.test(table(lindner$sixMonthSurvive, lindner$abcix))
 @ 
 
-The question is whether this association is causal.  
-If health care policies were to be made on the basis of these data,
-we would wish to elicit expert opinion as to whether there are likely
-to be other confounding pretreatment variables.  For this tutorial, we
-simply follow HP in choosing the pre-treatment covariates.  
+The question is whether this association is causal. If health care policies were to be made on the basis of these data, we would wish to elicit expert opinion as to whether there are likely to be other confounding pretreatment variables.  For this tutorial, we simply follow HP in choosing the pre-treatment covariates.  
 The \texttt{twang} model is fit as follows
-
 
 <<>>=
 set.seed(1)
 ps.lindner <- ps(abcix ~ stent + height + female + diabetic + 
-                 acutemi + ejecfrac + ves1proc, data = lindner,
-                 verbose = FALSE, estimand = "ATE")
+                 acutemi + ejecfrac + ves1proc,
+                 data = lindner,
+                 estimand = "ATE",
+                 verbose = FALSE)
 @ 
 
-
-
-We set \texttt{estimand =  "ATE"} because we are interested in the
-effects of abciximab on everyone in the population.  We do not specify the
-stopping rules.  Consequently \texttt{ps()} uses the defaults:
-\texttt{es.mean} and \texttt{ks.mean}.  
-We then inspect pre- and post-weighting balance with the command
-
+We set \texttt{estimand =  "ATE"} because we are interested in the effects of abciximab on everyone in the population.  We do not specify the stopping rules.  Consequently \texttt{ps()} uses the defaults:
+\texttt{es.mean} and \texttt{ks.mean}. We then inspect pre- and post-weighting balance with the command
 
 <<echo=FALSE>>=
 options(width=85)
@@ -863,22 +819,9 @@ options(width = 80)
 @ 
 
 
-This balance table shows that \texttt{stent}, \texttt{acutemi},
-and \texttt{ves1proc} were all significantly
-imbalanced before weighting.  
-After weighting (using either
-\texttt{stop.method} considered)  we do not see problems in this
-regard.  Examining \texttt{plot(ps.lindner, plots = x)} for \texttt{x}
-running from 1 to 5 does not reveal problems, either.  In regard to
-the optimize plot, we note that the scales of
-the KS and ES statistics presented in the optimize plots are not
-necessarily comparable.  The fact that the KS values are lower than
-the ES values in the optimize plot does not suggest that the KS
-stopping rule is finding superior models.  Each panel of the optimize
-plot indicates the gbm model that minimizes each stopping rule.  The
-panels should not be compared other than to compare the number of
-iterations selected by each rule.  
-
+This balance table shows that \texttt{stent}, \texttt{acutemi}, and \texttt{ves1proc} were all significantly
+imbalanced before weighting.  After weighting (using either \texttt{stop.method} considered)  we do not see problems in this regard.  Examining \texttt{plot(ps.lindner, plots = x)} for \texttt{x} running from 1 to 5 does not reveal problems, either.  In regard to the optimize plot, we note that the scales of the KS and ES statistics presented in the optimize plots are not necessarily comparable.  The fact that the KS values are lower than the ES values in the optimize plot does not suggest that the KS stopping rule is finding superior models.  Each panel of the optimize plot indicates the gbm model that minimizes each stopping rule.  The
+panels should not be compared other than to compare the number of iterations selected by each rule.  
 
 \begin{center}
 <<fig =TRUE, height=4, width = 6>>=
@@ -886,22 +829,18 @@ plot(ps.lindner, plots = 1)
 @ 
 \end{center}
 
-\pagebreak
-
 \begin{center}
 <<fig =TRUE, height=4, width = 6>>=
 plot(ps.lindner, plots = 2)
 @ 
 \end{center}
 
-
+\pagebreak
 \begin{center}
 <<fig =TRUE, height=4, width = 6>>=
 plot(ps.lindner, plots = 3)
 @ 
 \end{center}
-
-\pagebreak
 
 \begin{center}
 <<fig =TRUE, height=4, width = 6>>=
@@ -909,29 +848,20 @@ plot(ps.lindner, plots = 4)
 @ 
 \end{center}
 
-
+\pagebreak
 \begin{center}
 <<fig =TRUE, height=4, width = 6>>=
 plot(ps.lindner, plots = 5)
 @ 
 \end{center}
 
-From a call to 
-\texttt{summary()}, we see that the \texttt{es.mean.ATE}
-stopping rule results in a slightly higher ESS with comparable balance
-measures, so we proceed with those weights.  
-Also, we note that \texttt{ess.treat} is no longer equal to
-\texttt{n.treat} since we are focusing on ATE rather than ATT.
-
-
+From a call to \texttt{summary()}, we see that the \texttt{es.mean.ATE} stopping rule results in a slightly higher ESS with comparable balance measures, so we proceed with those weights. Also, we note that \texttt{ess.treat} is no longer equal to \texttt{n.treat} since we are focusing on ATE rather than ATT.
 
 <<>>=
 summary(ps.lindner)
 @ 
 
-
-As before, we use the \texttt{survey} package to reweight our sample
-and perform the analysis.
+As before, we use the \texttt{survey} package to reweight our sample and perform the analysis.
 
 <<>>=
 lindner$w <- get.weights(ps.lindner, stop.method = "es.mean")
@@ -939,11 +869,7 @@ design.ps <- svydesign(ids=~1, weights = ~w, data = lindner)
 svychisq(~sixMonthSurvive + abcix, design = design.ps)
 @ 
 
-The reweighting does not diminish the association between the
-treatment and the outcome.  Indeed, it is marginally more significant
-after the reweighting.
-
-
+The reweighting does not diminish the association between the treatment and the outcome.  Indeed, it is marginally more significant after the reweighting.
 
 \section{Non-response weights}
 \label{sec:nonresponse}
@@ -1087,7 +1013,7 @@ difference between the two groups and for \texttt{ks.max.ATE} the
 measure is the largest of the KS statistics.
 
 \begin{center}
-<<fig=TRUE,height=4,width=6>>=
+<<fig=TRUE,height=3.5,width=6>>=
 plot(egsingle.ps)
 @
 \end{center}
