@@ -150,9 +150,9 @@ ps<-function(formula = formula(data),
              n.grid = 25,
              ...){
    # check if data is a data.frame
-   if (class(data)!="data.frame"){
-      stop("Object 'data' must be of class data.frame.")
-   }
+   # if (class(data)!="data.frame"){
+   #    stop("Object 'data' must be of class data.frame.")
+   # }
 
    # collect named arguments from dots
    args         <- list(...)

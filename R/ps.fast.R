@@ -187,9 +187,9 @@ ps.fast<-function(formula ,
    desc$unw$n.trees <- NA
    
    if (estimand=="ATE"){
-     W = 1 / (1-ps) + data[,treat.var]*( 1/ps - 1/(1-ps)  )
+     W = 1 / (1-ps) + data[,treat.var,drop=TRUE]*( 1/ps - 1/(1-ps)  )
    }else{
-     W = ps/(1-ps) + data[,treat.var]*( 1 - ps/(1-ps)  )
+     W = ps/(1-ps) + data[,treat.var,drop=TRUE]*( 1 - ps/(1-ps)  )
    }
    
    # adjust for sampling weights 
@@ -209,7 +209,7 @@ ps.fast<-function(formula ,
    std.effect = ks.effect = balance.es = balance.ks = NULL
    if ( any(grepl("es.",stop.method.names)) ){
       if(verbose) cat("Calculating standardized differences\n")
-      std.effect = calcES(data=bal.data, w=W[,iters.grid] , treat=data[,treat.var],numeric.vars = numeric.vars , estimand=estimand , multinom=multinom , sw=sampW)
+      std.effect = calcES(data=bal.data, w=W[,iters.grid] , treat=data[,treat.var,drop=TRUE],numeric.vars = numeric.vars , estimand=estimand , multinom=multinom , sw=sampW)
       
       # if (!is.null(n.grid.es)){
          iters.es.mean = iters.es.max = NULL
@@ -233,7 +233,7 @@ ps.fast<-function(formula ,
          balance.es = std.effect
          #iters.es.plot = iters.grid.es
          
-         std.effect = calcES(data=bal.data, w=W[,iters.es] , treat=data[,treat.var],numeric.vars = numeric.vars , estimand=estimand , multinom=multinom , sw=sampW)
+         std.effect = calcES(data=bal.data, w=W[,iters.es] , treat=data[,treat.var,drop=TRUE],numeric.vars = numeric.vars , estimand=estimand , multinom=multinom , sw=sampW)
          #ks.effect = calcKS(data=bal.data,w=W[,iters.es],treat=data[,treat.var])
          #colnames(std.effect) = colnames(bal.data)
       # }else{ # this currently never gets visited
@@ -246,7 +246,7 @@ ps.fast<-function(formula ,
       if(verbose) cat("Calculating Kolmogorov-Smirnov statistics\n")
 
       # find the optimal interval for ks.mean and ks.max based on 25 point grid     
-      ks.effect = calcKS(data=bal.data,w=W[,iters.grid],treat=data[,treat.var] , multinomATE=(estimand=="ATE" & multinom) , sw=sampW)
+      ks.effect = calcKS(data=bal.data,w=W[,iters.grid],treat=data[,treat.var,drop=TRUE] , multinomATE=(estimand=="ATE" & multinom) , sw=sampW)
      
       iters.ks.mean = iters.ks.max = NULL
       if ( any(grepl("ks.mean", stop.method.names)) ){
@@ -268,7 +268,7 @@ ps.fast<-function(formula ,
       # save the 25 point grid ks
       balance.ks = ks.effect
       
-      ks.effect = calcKS(data=bal.data,w=W[,iters.ks],treat=data[,treat.var] , multinomATE=(estimand=="ATE" & multinom) , sw=sampW)
+      ks.effect = calcKS(data=bal.data,w=W[,iters.ks],treat=data[,treat.var,drop=TRUE] , multinomATE=(estimand=="ATE" & multinom) , sw=sampW)
 
       colnames(ks.effect) = colnames(bal.data)
    }

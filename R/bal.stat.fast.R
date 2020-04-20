@@ -28,7 +28,7 @@ bal.stat.fast <- function(data,vars=NULL,treat.var,w.all, sampw,
   factor.vars = bal.data$factor.vars
   numeric.vars = bal.data$numeric.vars
   
-  treat = data[,treat.var]
+  treat = data[,treat.var,drop=TRUE]
   
   ret = calcES(data=bal.data$bal.data,treat=treat,w=as.matrix(w.all),numeric.vars=numeric.vars,estimand=estimand,multinom=multinom,sw=sampw,get.means=TRUE)
   ret.ks = t(calcKS(data=bal.data$bal.data,w=as.matrix(w.all),treat=treat , multinomATE=(estimand=="ATE" & multinom) , sw=sampw ))
