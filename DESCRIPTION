@@ -6,10 +6,10 @@ Author: Greg Ridgeway, Dan McCaffrey, Andrew Morral, Beth Ann Griffin, Lane Burg
 	<Matthew_Cefalu@rand.org>
 Maintainer: Matthew Cefalu <Matthew_Cefalu@rand.org>
 Depends: 
-    R (>= 2.10),
-    survey
+    R (>= 2.10)
 Imports:
     gbm (>= 1.5-3),
+    survey,
     xtable,
     lattice,
     latticeExtra,
