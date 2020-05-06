@@ -239,7 +239,7 @@ plot.mnps <- function(x,plots = "optimize",
    			data = esDatTmp, ylab = "Absolute standard difference", xlab = NULL, as.table = TRUE, 
    			ylim = c(-.05, yMax), type = "l", col = rdCol, par.settings = list(strip.background = list(col=stripBgCol)),
    			lwd = 2)
-   			if(nullPlot){
+   			if(!nullPlot){
    				ptHold <- pt1.2
    				nullPlot <- FALSE
    			}
