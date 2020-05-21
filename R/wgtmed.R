@@ -170,7 +170,7 @@ wgtmed <- function(formula.med,
   # Check for errors in specification of mediators and treatment and covariates
   #* Treatment must be in the data
   if(!(a_treatment %in% names(data))) stop("Treatment variable is not in the dataset")
-  if(!all(data[,a_treatment] %in% c(0:1))) stop("Treatment must be a dichotomous 0,1 variable")
+  if(!all(data[,a_treatment] %in% c(0:1))) stop("Treatment must be a dichotomous 0,1 variable")
 
   #* Treatment cannot be a mediator
   if(a_treatment %in% m_mediators){stop("Treatment variable is listed as mediator")}
