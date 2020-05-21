@@ -10,7 +10,7 @@
 #'
 #' @method desc_effects mediation
 #' @export
-desc_effects.mediation <- function(x, y_outcome = NULL) {
+desc.effects.mediation <- function(x, y_outcome = NULL) {
   
   # this is just a helper function to calcualte CI and SE for TE and NDE
   get_ci_and_se <- function(eff, w, y_outcome, a_treatment) {
@@ -44,24 +44,20 @@ desc_effects.mediation <- function(x, y_outcome = NULL) {
   w_10 <- attr(x, 'w_10')
   w_01 <- attr(x, 'w_01') 
 
-  # Now just delete the object, since it may be really big
-  rm(x)
-  
   # Check to make sure that either `y_outcome` has been provided, or that
   # `y_outcome` was provided in the original weighted mediation` calculation
-  if (is.null(y_outcome) & !('Y' %in% names(data))) {
-    stop(paste("Either a `y_outcome` must be provided, or the original",
-               "mediation object must include an outcome in the data set", sep=" "))
-  }
-  
   # If no `y_outcome` was provided, use the 'Y' from the original data set
-  if (is.null(y_outcome)) {
-    y_outcome <- data[, 'Y']
-  }
-  
-  # Also, grab the treatment, 'A', from the original data set
-  a_treatment <- data[, 'A']
+  if(is.null(y_outcome)){y_outcome <- x$y_outcome}
+  if(is.null(y_outcome)) stop("No y_outcome specified and it is NULL in mediation object")
 
+  y_outcome <- data[, y_outcome]
+ 
+  # Also, grab the treatment, 'A', from the original data set
+  a_treatment <- data[, x$a_treatment]
+
+ # Now just delete the object, since it may be really big
+  rm(x)
+  
   # Now loop through each of the stopping methods to calculate the
   # confidence intervals and standard errors for each effect
   results <- list()
@@ -103,7 +99,7 @@ desc_effects.mediation <- function(x, y_outcome = NULL) {
                              nie0_res)
     
     # Clean up the structure of the data frame, and append it the results
-    df_effects <- transpose(df_effects)
+    df_effects <- t(df_effects)
     rownames(df_effects) <- c('TE', 'NDE_0', 'NIE_1', 'NDE_1', 'NIE_0')
     colnames(df_effects) <- c('effect', 'std.err', 'ci.min', 'ci.max')
     results[[effects_name]] <- df_effects
