@@ -8,7 +8,7 @@
 summary.mediation <- function(object, ...) {
 
   # grab the balance table
-  balance_tables <- bal_table.mediation(object)
+  balance_tables <- bal.table.mediation(object)
 
   # Grab the effects, if they exist
   effects_logical <- grepl('_effects', names(object))
