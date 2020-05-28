@@ -22,7 +22,7 @@
 #' @param sampw Optional sampling weights. If `x` is a `ps` object, then the 
 #'   sampling weights should have been passed to [ps] and 
 #'   not specified here. `dx.wts` will issue a warning if 
-#'   `x` is a `ps object and `sampw` is also specified.
+#'   `x` is a `ps object` and `sampw` is also specified.
 #' @param perm.test.iters A non-negative integer giving the number of iterations
 #'   of the permutation test for the KS statistic. If `perm.test.iters=0`,
 #'   then the function returns an analytic approximation to the p-value. This
