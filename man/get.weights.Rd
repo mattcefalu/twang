@@ -4,8 +4,7 @@
 \alias{get.weights}
 \title{Extract propensity score weights.}
 \usage{
-get.weights(ps1, stop.method = NULL, estimand = NULL,
-  withSampW = TRUE)
+get.weights(ps1, stop.method = NULL, estimand = NULL, withSampW = TRUE)
 }
 \arguments{
 \item{ps1}{A \code{ps} or \code{mnps} object.}

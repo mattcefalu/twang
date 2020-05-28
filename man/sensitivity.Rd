@@ -5,8 +5,7 @@
 \title{Function to run sensitivity analysis described in Ridgeway's paper;
 currently works only for ATT.}
 \usage{
-sensitivity(ps1, data, outcome, order.by.importance = TRUE,
-  verbose = TRUE)
+sensitivity(ps1, data, outcome, order.by.importance = TRUE, verbose = TRUE)
 }
 \arguments{
 \item{ps1}{A \code{ps} object.}

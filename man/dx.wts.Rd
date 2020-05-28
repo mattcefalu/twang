@@ -4,8 +4,16 @@
 \alias{dx.wts}
 \title{Compute diagnostics assessing covariates balance.}
 \usage{
-dx.wts(x, data, estimand, vars = NULL, treat.var, x.as.weights = TRUE,
-  sampw = NULL, perm.test.iters = 0)
+dx.wts(
+  x,
+  data,
+  estimand,
+  vars = NULL,
+  treat.var,
+  x.as.weights = TRUE,
+  sampw = NULL,
+  perm.test.iters = 0
+)
 }
 \arguments{
 \item{x}{A data frame, matrix, or vector of propensity score weights or a ps
@@ -29,14 +37,14 @@ Ignored if \code{x} is a ps object. Default: \code{TRUE}.}
 \item{sampw}{Optional sampling weights. If \code{x} is a \code{ps} object, then the
 sampling weights should have been passed to \link{ps} and
 not specified here. \code{dx.wts} will issue a warning if
-\code{x} is a \code{ps object and }sampw` is also specified.}
+\code{x} is a \verb{ps object and }sampw` is also specified.}
 
 \item{perm.test.iters}{A non-negative integer giving the number of iterations
 of the permutation test for the KS statistic. If \code{perm.test.iters=0},
 then the function returns an analytic approximation to the p-value. This
 argument is ignored is \code{x} is a \code{ps} object. Setting
-\code{perm.test.iters=200} will yield precision to within 3\% if the true
-p-value is 0.05. Use \code{perm.test.iters=500} to be within 2\%.}
+\code{perm.test.iters=200} will yield precision to within 3\\% if the true
+p-value is 0.05. Use \code{perm.test.iters=500} to be within 2\\%.}
 }
 \value{
 Returns a list containing

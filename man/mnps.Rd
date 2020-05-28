@@ -4,12 +4,27 @@
 \alias{mnps}
 \title{Propensity score estimation}
 \usage{
-mnps(formula, data, n.trees = 10000, interaction.depth = 3,
-  shrinkage = 0.01, bag.fraction = 1, n.minobsinnode = 10,
-  perm.test.iters = 0, print.level = 2, verbose = TRUE,
-  estimand = "ATE", stop.method = c("es.max"), sampw = NULL,
-  version = "gbm", ks.exact = NULL, n.keep = 1, n.grid = 25,
-  treatATT = NULL, ...)
+mnps(
+  formula,
+  data,
+  n.trees = 10000,
+  interaction.depth = 3,
+  shrinkage = 0.01,
+  bag.fraction = 1,
+  n.minobsinnode = 10,
+  perm.test.iters = 0,
+  print.level = 2,
+  verbose = TRUE,
+  estimand = "ATE",
+  stop.method = c("es.max"),
+  sampw = NULL,
+  version = "gbm",
+  ks.exact = NULL,
+  n.keep = 1,
+  n.grid = 25,
+  treatATT = NULL,
+  ...
+)
 }
 \arguments{
 \item{formula}{A formula for the propensity score model with the treatment
@@ -38,8 +53,8 @@ more details. Default: 10.}
 \item{perm.test.iters}{A non-negative integer giving the number of iterations
 of the permutation test for the KS statistic. If \code{perm.test.iters=0}
 then the function returns an analytic approximation to the p-value. Setting
-\code{perm.test.iters=200} will yield precision to within 3\% if the true
-p-value is 0.05. Use \code{perm.test.iters=500} to be within 2\%. Default: 0.}
+\code{perm.test.iters=200} will yield precision to within 3\\% if the true
+p-value is 0.05. Use \code{perm.test.iters=500} to be within 2\\%. Default: 0.}
 
 \item{print.level}{The amount of detail to print to the screen. Default: 2.}
 
@@ -135,6 +150,6 @@ Substance Abuse Treatment", \emph{Psychological Methods} 9(4):403-425.
 \link{ps}, \link{gbm}, \link{xgboost}, \link{plot.mnps}, \link{bal.table}
 }
 \author{
-Lane Burgette \code{<burgette@rand.org>}, Beth Ann Griffin \code{<bethg@rand.org>},
-Dan Mc- Caffrey \code{<danielm@rand.org>}
+Lane Burgette \verb{<burgette@rand.org>}, Beth Ann Griffin \verb{<bethg@rand.org>},
+Dan Mc- Caffrey \verb{<danielm@rand.org>}
 }

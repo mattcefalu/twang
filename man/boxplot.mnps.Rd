@@ -4,9 +4,17 @@
 \alias{boxplot.mnps}
 \title{Boxplot for \code{mnps} objects}
 \usage{
-\method{boxplot}{mnps}(x, stop.method = NULL, color = TRUE,
-  figureRows = NULL, singlePlot = NULL, multiPage = FALSE,
-  time = NULL, print = TRUE, ...)
+\method{boxplot}{mnps}(
+  x,
+  stop.method = NULL,
+  color = TRUE,
+  figureRows = NULL,
+  singlePlot = NULL,
+  multiPage = FALSE,
+  time = NULL,
+  print = TRUE,
+  ...
+)
 }
 \arguments{
 \item{x}{A \code{ps} object}

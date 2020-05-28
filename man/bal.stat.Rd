@@ -4,9 +4,19 @@
 \alias{bal.stat}
 \title{Calculate weighted balance statistics}
 \usage{
-bal.stat(data, vars = NULL, treat.var, w.all, sampw, get.means = TRUE,
-  get.ks = TRUE, na.action = "level", estimand, multinom,
-  fillNAs = FALSE)
+bal.stat(
+  data,
+  vars = NULL,
+  treat.var,
+  w.all,
+  sampw,
+  get.means = TRUE,
+  get.ks = TRUE,
+  na.action = "level",
+  estimand,
+  multinom,
+  fillNAs = FALSE
+)
 }
 \arguments{
 \item{data}{A data frame containing the data}

@@ -6,8 +6,11 @@
 user provides weights, and they are not equal to the
 number of stopping methods}
 \usage{
-check_equal_wts_stopping(weights, stopping_methods,
-  weights_name = "total_effects_wts")
+check_equal_wts_stopping(
+  weights,
+  stopping_methods,
+  weights_name = "total_effects_wts"
+)
 }
 \arguments{
 \item{weights}{numeric

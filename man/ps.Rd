@@ -4,12 +4,26 @@
 \alias{ps}
 \title{Gradient boosted propensity score estimation}
 \usage{
-ps(formula = formula(data), data, n.trees = 10000,
-  interaction.depth = 3, shrinkage = 0.01, bag.fraction = 1,
-  n.minobsinnode = 10, perm.test.iters = 0, print.level = 2,
-  verbose = TRUE, estimand = "ATE", stop.method = c("ks.mean",
-  "es.mean"), sampw = NULL, version = "gbm", ks.exact = NULL,
-  n.keep = 1, n.grid = 25, ...)
+ps(
+  formula = formula(data),
+  data,
+  n.trees = 10000,
+  interaction.depth = 3,
+  shrinkage = 0.01,
+  bag.fraction = 1,
+  n.minobsinnode = 10,
+  perm.test.iters = 0,
+  print.level = 2,
+  verbose = TRUE,
+  estimand = "ATE",
+  stop.method = c("ks.mean", "es.mean"),
+  sampw = NULL,
+  version = "gbm",
+  ks.exact = NULL,
+  n.keep = 1,
+  n.grid = 25,
+  ...
+)
 }
 \arguments{
 \item{formula}{An object of class \link{formula}: a symbolic
@@ -40,8 +54,8 @@ more details. Default: 10.}
 \item{perm.test.iters}{A non-negative integer giving the number of iterations
 of the permutation test for the KS statistic. If \code{perm.test.iters=0}
 then the function returns an analytic approximation to the p-value. Setting
-\code{perm.test.iters=200} will yield precision to within 3\% if the true
-p-value is 0.05. Use \code{perm.test.iters=500} to be within 2\%. Default: 0.}
+\code{perm.test.iters=200} will yield precision to within 3\\% if the true
+p-value is 0.05. Use \code{perm.test.iters=500} to be within 2\\%. Default: 0.}
 
 \item{print.level}{The amount of detail to print to the screen. Default: 2.}
 

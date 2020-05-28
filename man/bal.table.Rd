@@ -4,10 +4,20 @@
 \alias{bal.table}
 \title{Compute the balance table.}
 \usage{
-bal.table(x, digits = 3, collapse.to = c("pair", "covariate",
-  "stop.method")[1], subset.var = NULL, subset.treat = NULL,
-  subset.stop.method = NULL, es.cutoff = 0, ks.cutoff = 0,
-  p.cutoff = 1, ks.p.cutoff = 1, timePeriods = NULL, ...)
+bal.table(
+  x,
+  digits = 3,
+  collapse.to = c("pair", "covariate", "stop.method")[1],
+  subset.var = NULL,
+  subset.treat = NULL,
+  subset.stop.method = NULL,
+  es.cutoff = 0,
+  ks.cutoff = 0,
+  p.cutoff = 1,
+  ks.p.cutoff = 1,
+  timePeriods = NULL,
+  ...
+)
 }
 \arguments{
 \item{x}{A \link{ps} or \link{dx.wts} object.}

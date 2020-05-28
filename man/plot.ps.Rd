@@ -4,24 +4,23 @@
 \alias{plot.ps}
 \title{Plots for \code{ps} objects}
 \usage{
-\method{plot}{ps}(x, plots = "optimize", subset = NULL, color = TRUE,
-  ...)
+\method{plot}{ps}(x, plots = "optimize", subset = NULL, color = TRUE, ...)
 }
 \arguments{
 \item{x}{A \code{ps} object.}
 
 \item{plots}{An indicator of which type of plot is desired. The options are
 \itemize{
-\item \code{"optimize" or 1} A plot of the balance criteria as a function of the GBM
+\item \verb{"optimize" or 1} A plot of the balance criteria as a function of the GBM
 iteration.
-\item \code{"boxplot" or 2} Boxplots of the propensity scores for the treatment and
+\item \verb{"boxplot" or 2} Boxplots of the propensity scores for the treatment and
 control cases
-\item \code{"es" or 3} Plots of the standardized effect size of the pre-treatment
+\item \verb{"es" or 3} Plots of the standardized effect size of the pre-treatment
 variables before and after reweighing
-\item \code{"t" or 4} Plots of the p-values from t-statistics comparing means of
+\item \verb{"t" or 4} Plots of the p-values from t-statistics comparing means of
 treated and control subjects for pretreatment variables, before and after
 weighting.
-\item \code{"ks" or 5} Plots of the p-values from Kolmogorov-Smirnov statistics
+\item \verb{"ks" or 5} Plots of the p-values from Kolmogorov-Smirnov statistics
 comparing distributions of pretreatment variables of treated and control
 subjects, before and after weighting.
 }}

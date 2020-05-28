@@ -4,26 +4,36 @@
 \alias{plot.mniptw}
 \title{Plot \code{mniptw}}
 \usage{
-\method{plot}{mniptw}(x, plots = "optimize", pairwiseMax = TRUE,
-  figureRows = NULL, color = TRUE, subset = NULL,
-  treatments = NULL, singlePlot = NULL, multiPage = FALSE,
-  timePeriods = NULL, hline = c(0.1, 0.5, 0.8), ...)
+\method{plot}{mniptw}(
+  x,
+  plots = "optimize",
+  pairwiseMax = TRUE,
+  figureRows = NULL,
+  color = TRUE,
+  subset = NULL,
+  treatments = NULL,
+  singlePlot = NULL,
+  multiPage = FALSE,
+  timePeriods = NULL,
+  hline = c(0.1, 0.5, 0.8),
+  ...
+)
 }
 \arguments{
 \item{x}{An \code{iptw} object.}
 
 \item{plots}{An indicator of which type of plot is desired. The options are
 \itemize{
-\item \code{"optimize" or 1} A plot of the balance criteria as a function of the GBM
+\item \verb{"optimize" or 1} A plot of the balance criteria as a function of the GBM
 iteration.
-\item \code{"boxplot" or 2} Boxplots of the propensity scores for the treatment and
+\item \verb{"boxplot" or 2} Boxplots of the propensity scores for the treatment and
 control cases
-\item \code{"es" or 3} Plots of the standardized effect size of the pre-treatment
+\item \verb{"es" or 3} Plots of the standardized effect size of the pre-treatment
 variables before and after reweighing
-\item \code{"t" or 4} Plots of the p-values from t-statistics comparing means of
+\item \verb{"t" or 4} Plots of the p-values from t-statistics comparing means of
 treated and control subjects for pretreatment variables, before and after
 weighting.
-\item \code{"ks" or 5} Plots of the p-values from Kolmogorov-Smirnov statistics
+\item \verb{"ks" or 5} Plots of the p-values from Kolmogorov-Smirnov statistics
 comparing distributions of pretreatment variables of treated and control
 subjects, before and after weighting.
 }}
