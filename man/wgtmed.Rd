@@ -74,8 +74,8 @@ more details. Default: 10.}
 A non-negative integer giving the number of iterations
 of the permutation test for the KS statistic. If \code{perm.test.iters=0}
 then the function returns an analytic approximation to the p-value. Setting
-\code{perm.test.iters=200} will yield precision to within 3\\% if the true
-p-value is 0.05. Use \code{perm.test.iters=500} to be within 2\\%. Default: 0.}
+\code{perm.test.iters=200} will yield precision to within 3\% if the true
+p-value is 0.05. Use \code{perm.test.iters=500} to be within 2\%. Default: 0.}
 
 \item{ps_verbose}{logical, optional
 If \code{TRUE}, lots of information will be printed to monitor the
