@@ -27,8 +27,8 @@
 #'   of the permutation test for the KS statistic. If `perm.test.iters=0`,
 #'   then the function returns an analytic approximation to the p-value. This
 #'   argument is ignored is `x` is a `ps` object. Setting
-#'   `perm.test.iters=200` will yield precision to within 3\% if the true
-#'   p-value is 0.05. Use `perm.test.iters=500` to be within 2\%.
+#'   `perm.test.iters=200` will yield precision to within 3% if the true
+#'   p-value is 0.05. Use `perm.test.iters=500` to be within 2%.
 #'
 #' @return Returns a list containing
 #'   * `treat` The vector of 0/1 treatment assignment indicators.

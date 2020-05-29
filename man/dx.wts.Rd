@@ -43,8 +43,8 @@ not specified here. \code{dx.wts} will issue a warning if
 of the permutation test for the KS statistic. If \code{perm.test.iters=0},
 then the function returns an analytic approximation to the p-value. This
 argument is ignored is \code{x} is a \code{ps} object. Setting
-\code{perm.test.iters=200} will yield precision to within 3\\% if the true
-p-value is 0.05. Use \code{perm.test.iters=500} to be within 2\\%.}
+\code{perm.test.iters=200} will yield precision to within 3\% if the true
+p-value is 0.05. Use \code{perm.test.iters=500} to be within 2\%.}
 }
 \value{
 Returns a list containing
