@@ -7,7 +7,7 @@
 \method{summary}{mediation}(object, ...)
 }
 \arguments{
-\item{object}{mediation object to plot}
+\item{object}{is a \code{mediation} object}
 
 \item{...}{Additional arguments.}
 }
