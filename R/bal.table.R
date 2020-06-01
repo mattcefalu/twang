@@ -61,7 +61,7 @@ bal.table <- function(x,
                       ks.p.cutoff = 1,
                       timePeriods = NULL,
                       ...){
-	if(!(class(x) %in% c("mnps", "iptw", "mniptw"))){
+	if(!(class(x) %in% c("mnps", "iptw", "mniptw","mediation"))){
    bal.tab <- bal.table.ps(x, digits = digits)
    return(bal.tab)
    }
