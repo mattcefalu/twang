@@ -8,6 +8,6 @@
 #'   Additional arguments.
 #'
 #' @export
-desc_effects <- function (x, ...) {
-   UseMethod("desc_effects", x)
+desc.effects <- function (x, ...) {
+   UseMethod("desc.effects", x)
 }
