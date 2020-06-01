@@ -1,6 +1,6 @@
 #' Default print statement for `mediation` class
 #'
-#' @param object is a `mediation` object
+#' @param object A `mediation` object
 #' @param ... Additional arguments.
 #' 
 #' @method print mediation

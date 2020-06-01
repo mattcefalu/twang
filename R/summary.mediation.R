@@ -1,6 +1,6 @@
 #' Displays a useful description of a `mediation` object.
 #'
-#' @param object is a `mediation` object 
+#' @param object A `mediation` object 
 #' @param ... Additional arguments.
 #'
 #' @method summary mediation

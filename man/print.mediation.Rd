@@ -7,7 +7,7 @@
 \method{print}{mediation}(object, ...)
 }
 \arguments{
-\item{object}{is a \code{mediation} object}
+\item{object}{A \code{mediation} object}
 
 \item{...}{Additional arguments.}
 }

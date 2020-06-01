@@ -8,9 +8,11 @@
 #'   then Y must have been provided to the
 #'   original mediation function.
 #'
-#' @method desc_effects mediation
+#' @method desc.effects mediation
 #' @export
-desc.effects.mediation <- function(x, y_outcome = NULL) {
+desc.effects.mediation <- 
+function(x, y_outcome = NULL) 
+{
   
   # this is just a helper function to calcualte CI and SE for TE and NDE
   get_ci_and_se <- function(eff, w, y_outcome, a_treatment) {

@@ -1,4 +1,12 @@
-bal.table.mediation <- function(x, ...) {
+#' Compute the balance table for mediation object.
+#'
+#' @param object A `mediation` object 
+#' @param ... Additional arguments.
+#' @method bal.table mediation
+#' @export
+bal.table.mediation <- 
+function(x, ...) 
+{
 
   # we extract what we need from the mediation object
   data <- x$data

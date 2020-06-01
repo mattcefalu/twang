@@ -4,7 +4,7 @@
 \alias{desc.effects.mediation}
 \title{Describe the effects from a mediation object}
 \usage{
-\method{desc_effects}{mediation}(x, y_outcome = NULL)
+\method{desc.effects}{mediation}(x, y_outcome = NULL)
 }
 \arguments{
 \item{x}{A mediation object}
