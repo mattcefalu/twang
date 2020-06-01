@@ -1,9 +1,9 @@
 #' Compute the balance table.
 #'
-#' Extract the balance table from [ps], [dx.wts], and [mnps] objects
+#' Extract the balance table from [ps], [dx.wts], [mnps], and [mediation] objects
 #'
 #' `bal.table` is a generic function for extracting balance 
-#' tables from [ps] and [dx.wts] objects. These objects 
+#' tables from [ps], [dx.wts], and [mediation] objects. These objects 
 #' usually have several sets of candidate weights, one for an unweighted 
 #' analysis and perhaps several `stop.methods`. `bal.table`
 #' will return a table for each set of weights combined into a list. Each list 
@@ -11,7 +11,7 @@
 #' `stop.method`. The balance table labeled \dQuote{unw} indicates the 
 #' unweighted analysis.
 #'
-#' @param x A [ps] or [dx.wts] object.
+#' @param x A [ps], [dx.wts], or [mediation] object.
 #' @param digits The number of digits that the numerical entries
 #'   should be rounded to. Default: 3.
 #' @param collapse.to For `mnps` ATE objects, the comparisons
@@ -65,6 +65,10 @@ bal.table <- function(x,
    bal.tab <- bal.table.ps(x, digits = digits)
    return(bal.tab)
    }
+   else if(class(x) == "mediation"){
+   bal.tab <- bal.table.mediation(x)
+   return(bal.tab)
+	}
    else if(class(x) == "iptw"){
    	if(is.null(timePeriods)) timePeriods <- 1:length(x$psList)
    	for(i in timePeriods){

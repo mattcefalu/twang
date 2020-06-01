@@ -20,7 +20,7 @@ bal.table(
 )
 }
 \arguments{
-\item{x}{A \link{ps} or \link{dx.wts} object.}
+\item{x}{A \link{ps}, \link{dx.wts}, or \link{mediation} object.}
 
 \item{digits}{The number of digits that the numerical entries
 should be rounded to. Default: 3.}
@@ -72,11 +72,11 @@ which does not necessarily work well with a lot of ties.
 }
 }
 \description{
-Extract the balance table from \link{ps}, \link{dx.wts}, and \link{mnps} objects
+Extract the balance table from \link{ps}, \link{dx.wts}, \link{mnps}, and \link{mediation} objects
 }
 \details{
 \code{bal.table} is a generic function for extracting balance
-tables from \link{ps} and \link{dx.wts} objects. These objects
+tables from \link{ps}, \link{dx.wts}, and \link{mediation} objects. These objects
 usually have several sets of candidate weights, one for an unweighted
 analysis and perhaps several \code{stop.methods}. \code{bal.table}
 will return a table for each set of weights combined into a list. Each list

@@ -7,9 +7,9 @@
 \method{bal.table}{mediation}(x, ...)
 }
 \arguments{
-\item{...}{Additional arguments.}
+\item{x}{A \code{mediation} object}
 
-\item{object}{A \code{mediation} object}
+\item{...}{Additional arguments.}
 }
 \description{
 Compute the balance table for mediation object.
