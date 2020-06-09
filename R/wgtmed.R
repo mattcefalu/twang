@@ -287,7 +287,7 @@ wgtmed <- function(formula.med,
     w_00 <- matrix(as.vector(w_00),ncol=ncol(w_10),nrow=nrow(w_00))
   }
   if(!is.null(total_effect_ps)) {
-    colnames(w_11) <- colnames(w_00) <- rep(paste(total_effect_stop_rule,total_effect_ps$estimand,sep="."),ncol(w_11))
+    colnames(w_11) <- colnames(w_00) <- rep(paste(total_effect_stop_rule[1],total_effect_ps$estimand,sep="."),ncol(w_11))
   } 
   ##kec: should we name columns if they just provided wts and not a ps object and total effect stopping rule
 
