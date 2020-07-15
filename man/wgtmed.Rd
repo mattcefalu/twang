@@ -13,6 +13,7 @@ wgtmed(
   total_effect_ps = NULL,
   total_effect_stop_rule = NULL,
   method = "ps",
+  sampw = NULL,
   ps_n.trees = 10000,
   ps_interaction.depth = 3,
   ps_shrinkage = 0.01,
@@ -23,7 +24,6 @@ wgtmed(
   ps_stop.method = c("ks.mean", "ks.max"),
   ps_version = "gbm",
   ps_ks.exact = NULL,
-  ps_sampw = NULL,
   ps_n.keep = 1,
   ps_n.grid = 25,
   ps_cv.folds = 10
@@ -52,6 +52,9 @@ A ps object that contains the total effect weights,}
 only needs to be specified if total_effect_ps is provided. Default : \code{NULL}.}
 
 \item{method}{The method for getting weights ("ps", "logistic", or "cross-validation"). Default : \code{"ps"}.}
+
+\item{sampw}{numeric, optional
+Optional sampling weights Default : \code{NULL}.}
 
 \item{ps_n.trees}{integer, optional
 Number of gbm iterations passed on to \link{gbm}. Default: 10000.}
@@ -108,9 +111,6 @@ if the product of the effective sample sizes is less than 10,000.
 Otherwise, an approximation based on the asymptotic distribution is used.
 \strong{Warning:} setting \code{ks.exact = TRUE} will add substantial
 computation time for larger sample sizes. Default: \code{NULL}.}
-
-\item{ps_sampw}{numeric, optional
-Optional sampling weights Default : \code{NULL}.}
 
 \item{ps_n.keep}{integer, optional
 A numeric variable indicating the algorithm should only

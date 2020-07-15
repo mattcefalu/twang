@@ -28,6 +28,8 @@
 #'   only needs to be specified if total_effect_ps is provided. Default : `NULL`.
 #' @param method
 #'   The method for getting weights ("ps", "logistic", or "cross-validation"). Default : `"ps"`.
+#' @param sampw numeric, optional
+#'   Optional sampling weights Default : `NULL`.
 #' @param ps_n.trees integer, optional
 #'   Number of gbm iterations passed on to [gbm]. Default: 10000.
 #' @param ps_interaction.depth integer, optional
@@ -72,8 +74,6 @@
 #'   Otherwise, an approximation based on the asymptotic distribution is used.
 #'   **Warning:** setting `ks.exact = TRUE` will add substantial
 #'   computation time for larger sample sizes. Default: `NULL`.
-#' @param ps_sampw numeric, optional
-#'   Optional sampling weights Default : `NULL`.
 #' @param ps_n.keep  integer, optional
 #'   A numeric variable indicating the algorithm should only
 #'   consider every `n.keep`-th iteration of the propensity score model and
@@ -119,6 +119,7 @@ wgtmed <- function(formula.med,
                                total_effect_ps = NULL,
                                total_effect_stop_rule = NULL,
                                method="ps",
+                               sampw = NULL,
                                ps_n.trees = 10000,
                                ps_interaction.depth = 3,
                                ps_shrinkage = 0.01,
@@ -129,7 +130,6 @@ wgtmed <- function(formula.med,
                                ps_stop.method = c("ks.mean", "ks.max"),
                                ps_version = "gbm",
                                ps_ks.exact = NULL,
-                               ps_sampw = NULL,
                                ps_n.keep = 1,
                                ps_n.grid = 25,
                                ps_cv.folds=10) {
@@ -237,7 +237,7 @@ wgtmed <- function(formula.med,
     ps_args <- list(formula = form, n.trees = ps_n.trees, interaction.depth = ps_interaction.depth, 
       shrinkage = ps_shrinkage, bag.fraction = ps_bag.fraction, 
       perm.test.iters = ps_perm.test.iters, verbose = ps_verbose, 
-      stop.method = ps_stop.method, version = ps_version, sampw = ps_sampw, 
+      stop.method = ps_stop.method, version = ps_version, sampw = sampw, 
       ks.exact = ps_ks.exact)
     if (ps_version != "legacy") {
       append(ps_args, list(n.minobsinnode = ps_n.minobsinnode, 
@@ -296,14 +296,13 @@ wgtmed <- function(formula.med,
     if(!is.null(total_effect_ps)) {
       colnames(w_11) <- colnames(w_00) <- rep(paste(total_effect_stop_rule[1],total_effect_ps$estimand,sep="."),ncol(w_11))
     } 
-    ##kec: should we name columns if they just provided wts and not a ps object and total effect stopping rule
   }
   
   if(method!="ps") {
     form_m <- as.formula(paste(a_treatment,"~", paste(c(m_mediators, var.names.med), collapse="+"))) 
     if(method=="crossval") {
       #* Fit total effects model to get p(A|X)  
-      model_a_res <- gbm(formula=form, data = data, weights = ps_sampw, 
+      model_a_res <- gbm(formula=form, data = data, weights = sampw, 
           distribution = "bernoulli", n.trees = ps_n.trees, 
           interaction.depth = ps_interaction.depth, n.minobsinnode = ps_n.minobsinnode, 
           shrinkage = ps_shrinkage, bag.fraction = ps_bag.fraction, train.fraction = 1, 
@@ -312,7 +311,7 @@ wgtmed <- function(formula.med,
       model_a_preds <- predict(model_a_res, n.trees=best.iter, newdata=data, type="response")
 
     #* Fit mediation model
-      model_m0_res <- gbm(formula=form_m, data = data, weights = ps_sampw, 
+      model_m0_res <- gbm(formula=form_m, data = data, weights = sampw, 
           distribution = "bernoulli", n.trees = ps_n.trees, 
           interaction.depth = ps_interaction.depth, n.minobsinnode = ps_n.minobsinnode, 
           shrinkage = ps_shrinkage, bag.fraction = ps_bag.fraction, train.fraction = 1, 
@@ -321,12 +320,13 @@ wgtmed <- function(formula.med,
       model_m0_preds <- predict(model_m0_res, n.trees=best.iter, newdata=data, type="link")
      }
     if(method=="logistic") {
-      #* Fit total effects model to get p(A|X)   
-      model_a_res <- glm(form,data=data,family="binomial",weights=ps_sampw)
+      #* Fit total effects model to get p(A|X)  
+      #* Suppress warnings to suppress warning that arises if specify sampling weights 
+      suppressWarnings( model_a_res <- glm(form,data=data,family="binomial",weights=sampw))
       model_a_preds <- predict(model_a_res,type="response")
 
       #* Fit mediation model 
-      model_m0_res <- glm(form_m,data=data,family="binomial",weights=ps_sampw)
+      suppressWarnings(model_m0_res <- glm(form_m,data=data,family="binomial",weights=sampw))
       model_m0_preds <- predict(model_m0_res,type="link")
     }
     #~  1/(1-p(A=1 | X))
@@ -375,11 +375,11 @@ wgtmed <- function(formula.med,
         w_10_temp <- w_10[, i]
         w_01_temp <- w_01[, i]
         results[[effects_name]] <- twang:::calculate_effects(w_11_temp, 
-            w_00_temp, w_10_temp, w_01_temp, data[,y_outcome],sampw=ps_sampw)
+            w_00_temp, w_10_temp, w_01_temp, data[,y_outcome],sampw=sampw)
   } }
   else {
   results[[paste0(method,"_effects")]] <- twang:::calculate_effects(w_11, 
-            w_00, w_10, w_01, data[,y_outcome],sampw=ps_sampw)
+            w_00, w_10, w_01, data[,y_outcome],sampw=sampw)
   }
   return(results)
 }
