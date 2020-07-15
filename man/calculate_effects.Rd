@@ -4,7 +4,7 @@
 \alias{calculate_effects}
 \title{Calculate the actual effects}
 \usage{
-calculate_effects(w_11, w_00, w_10, w_01, y_outcome)
+calculate_effects(w_11, w_00, w_10, w_01, y_outcome, sampw = NULL)
 }
 \arguments{
 \item{w_11}{The Y(1, M(1)) weights}

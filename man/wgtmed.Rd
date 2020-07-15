@@ -12,6 +12,7 @@ wgtmed(
   total_effect_wts = NULL,
   total_effect_ps = NULL,
   total_effect_stop_rule = NULL,
+  method = "ps",
   ps_n.trees = 10000,
   ps_interaction.depth = 3,
   ps_shrinkage = 0.01,
@@ -24,7 +25,8 @@ wgtmed(
   ps_ks.exact = NULL,
   ps_sampw = NULL,
   ps_n.keep = 1,
-  ps_n.grid = 25
+  ps_n.grid = 25,
+  ps_cv.folds = 10
 )
 }
 \arguments{
@@ -48,6 +50,8 @@ A ps object that contains the total effect weights,}
 
 \item{total_effect_stop_rule}{The stopping rule for the total effect weights, which
 only needs to be specified if total_effect_ps is provided. Default : \code{NULL}.}
+
+\item{method}{The method for getting weights ("ps", "logistic", or "cross-validation"). Default : \code{"ps"}.}
 
 \item{ps_n.trees}{integer, optional
 Number of gbm iterations passed on to \link{gbm}. Default: 10000.}
@@ -120,6 +124,10 @@ search of the region most likely to minimize the \code{stop.method}. A
 value of \code{n.grid=50} uses a 50 point grid from \code{1:n.trees}. It
 finds the minimum, say at grid point 35. It then looks for the actual
 minimum between grid points 34 and 36.Only used with \code{xgboost}. Default: 25.}
+
+\item{ps_cv.folds}{integer, optional
+A numeric variable that sets the number of cross-validation folds if
+using method='crossval'. Default: 10.}
 
 \item{total_effect_weights}{vector
 A vector of total effect weights, which if left \code{NULL}

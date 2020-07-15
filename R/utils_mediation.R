@@ -102,13 +102,18 @@ check_equal_wts_stopping <- function(weights,
 #' @param w_10 The Y(1, M(0)) weights
 #' @param w_01 The Y(0, M(1)) weights
 #' @param y_outcome The Y variable
-calculate_effects <- function(w_11, w_00, w_10, w_01, y_outcome) {
+calculate_effects <- function(w_11, w_00, w_10, w_01, y_outcome,sampw=NULL) {
   
+  if (is.null(sampw)) {
+    sampW <- rep(1, length(y_outcome))
+   } 
+   else { sampW <- sampw }
+
   # Calculate the weighted means for each of the conditions
-  E_11 <- weighted_mean(y_outcome, w_11)
-  E_00 <- weighted_mean(y_outcome, w_00)
-  E_10 <- weighted_mean(y_outcome, w_10)
-  E_01 <- weighted_mean(y_outcome, w_01)
+  E_11 <- weighted_mean(y_outcome, w_11*sampW)
+  E_00 <- weighted_mean(y_outcome, w_00*sampW)
+  E_10 <- weighted_mean(y_outcome, w_10*sampW)
+  E_01 <- weighted_mean(y_outcome, w_01*sampW)
   
   # Calculate total, natural direct, and natural indirect effects
   # These are, as follows:
