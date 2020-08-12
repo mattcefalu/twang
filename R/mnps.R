@@ -147,7 +147,7 @@ mnps<-function(formula,
       ## throw some errors if the user specifies an option not allowed in legacy version of ps
       if (!is.null(ks.exact))     stop("Option ks.exact is not allowed with version='legacy'")
       if (!is.null(params))       stop("Option params is not allowed with version='legacy'")
-      if (!missing(tree_method))  stop("Option tree_method is not allowed with version='legacy'")
+      if (!is.null(args$tree_method))  stop("Option tree_method is not allowed with version='legacy'")
       if (!missing(n.keep))       stop("Option n.keep is not allowed with version='legacy'")
       if (!missing(n.grid))       stop("Option n.grid is not allowed with version='legacy'")
       if (!is.null(args$tree_method))  stop("Option tree_method is not allowed with version='legacy'")
