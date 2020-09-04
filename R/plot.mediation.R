@@ -40,7 +40,7 @@ plot.mediation <- function(x,
   
   # we want the mediator and the treatment variables
   mediators <- x$data[,x$mediator_names, drop = F]
-  treatment <- x$data[['A']]
+  treatment <- x$data[[x$a_treatment]]
   
   if (plots != 'density') {
     args <- list(plots = plots, subset = subset, color = color)
@@ -55,12 +55,13 @@ plot.mediation <- function(x,
     plot1 <- update(plot1, ylab.right = model_names)
     if (is.null(model_subset)) {
       new_plot <- suppressWarnings(c(plot1, plot2))
-      new_plot <- update(new_plot, ylab.right = model_names)
+      new_plot <- update(new_plot, ylab.right = rev(model_names),layout=c(length(new_plot$packet.sizes)/2,2))
     } else if (model_subset == 1) {
       new_plot <- update(plot1, ylab.right = model_names[[1]])
     } else {
       new_plot <- update(plot2, ylab.right = model_names[[2]])
     }
+    new_plot$as.table	<- TRUE
     return(new_plot)
   }
 
@@ -93,7 +94,7 @@ plot.mediation <- function(x,
         a1 <- aggregate(weights[treat], by = list(m = factor(mediators[treat, m])), FUN = sum)
         a0 <- aggregate(weights[ctrl], by = list(m = factor(mediators[ctrl, m])), FUN = sum)
         
-        a1['A'] <- 1; a0['A'] <- 0
+        a1[x$a_treatment] <- 1; a0[x$a_treatment] <- 0 ##kat: check this works
         
         combined <- rbind(a1, a0)
         combined['mediator'] <- m
@@ -103,8 +104,9 @@ plot.mediation <- function(x,
       }
     }
     factor_data <- do.call(rbind, factor_frames)
+    trt <- factor_data[,x$a_treatment]
     factor_plot <- lattice::barchart(x ~ factor(m) | factor(method) + factor(mediator),
-                                     groups = factor(A, levels = c(0, 1), labels = c('control', 'treatment')),
+                                     groups = factor(trt, levels = c(0, 1), labels = c('control', 'treatment')),
                                      data = factor_data,                                   
                                      origin = 0, 
                                      par.settings = list(superpose.polygon = list(col = c("#478BB8", "#B87447"))),
