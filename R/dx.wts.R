@@ -52,7 +52,7 @@ dx.wts <- function(x,
 	if(!(estimand %in% c("ATE","ATT")))
 	stop("'estimand' must be either 'ATT' or 'ATE'")
 	
-   if (class(x)!="ps"){
+   if (class(x)[1]!="ps"){
       if(!is.vector(x) && !is.matrix(x) && !is.data.frame(x))
          stop("x must be a ps object, a vector, a matrix, or a data frame")
       if(any(x < 0)) stop("x has negative values")
@@ -74,8 +74,8 @@ dx.wts <- function(x,
         	p.s[data[,treat.var]==0] <- (w[data[,treat.var]==0]-1)/w[data[,treat.var]==0] 
         	p.s[data[,treat.var]==1] <- 1/w[data[,treat.var]==1]
         	}
-      } 
-      else {
+      }     
+  else {
       	if(any(x > 1) && !x.as.weights) stop("x has values greater than 1. With x.as.weights=FALSE x should be a vector of propensity scores.")
         w <- matrix(1,nrow=nrow(x),ncol=ncol(x))
         i <- data[,treat.var]==0
@@ -120,14 +120,14 @@ dx.wts <- function(x,
 #   zz      <- textConnection("alert","a")
 #   if(plots) pdf(file=paste(title,".pdf",sep=""))
 
-   n.tp <- ifelse(class(x)=="ps",length(x$desc),ncol(w))
-   if(class(x)!="ps"){ 
+   n.tp <- ifelse(class(x)[1]=="ps",length(x$desc),ncol(w))
+   if(class(x)[1]!="ps"){ 
      desc<-vector("list",ncol(w))
      names(desc) <- colnames(w)
    }
 
    for(i.tp in 1:n.tp){
-      if((class(x)=="ps") & is.null(vars)){
+      if((class(x)[1]=="ps") & is.null(vars)){
          desc.temp <- x$desc[[i.tp]]
          iter      <- desc.temp$n.trees
          tp        <- names(x$desc)[i.tp]
