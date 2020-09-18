@@ -51,7 +51,7 @@ A ps object that contains the total effect weights,}
 \item{total_effect_stop_rule}{The stopping rule for the total effect weights, which
 only needs to be specified if total_effect_ps is provided. Default : \code{NULL}.}
 
-\item{method}{The method for getting weights ("ps", "logistic", or "cross-validation"). Default : \code{"ps"}.}
+\item{method}{The method for getting weights ("ps", "logistic", or "crossval"). Default : \code{"ps"}.}
 
 \item{sampw}{numeric, optional
 Optional sampling weights Default : \code{NULL}.}

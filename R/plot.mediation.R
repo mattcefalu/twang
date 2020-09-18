@@ -38,13 +38,54 @@ plot.mediation <- function(x,
     stop("The `model_subset` must be NULL, 1, or 2.")
   }
   
+  # return error if ask for plots="optimize" or 1 for method!=ps
+  if (x$method!="ps" & (plots=="optimize" || plots==1)) { stop("The optimize plot is only available for method='ps'.")}
   # we want the mediator and the treatment variables
   mediators <- x$data[,x$mediator_names, drop = F]
   treatment <- x$data[[x$a_treatment]]
   
   if (plots != 'density') {
     args <- list(plots = plots, subset = subset, color = color)
-    
+    if(x$method=="logistic") {
+       x$model_a$ps  <- data.frame(logistic=predict(x$model_a,type="response"))
+       x$model_m0$ps  <- data.frame(logistic=predict(x$model_m0,type="response"))
+       x$model_a$w  <- data.frame(logistic=ifelse(x$data[,x$a_treatment]==1,1/x$model_a$ps[,1],1/(1-x$model_a$ps[,1])))
+       x$model_m0$w  <- data.frame(logistic=ifelse(x$data[,x$a_treatment]==1,1/x$model_m0$ps[,1],1/(1-x$model_m0$ps[,1])))
+	 x$model_a$treat <- x$data[,x$a_treatment]
+	 x$model_m0$treat <- x$data[,x$a_treatment]
+
+	x$model_a$desc  <- vector("list",length=2)
+	names(x$model_a$desc)  <- c("unw","logistic")
+	bala	<- bal.table(x)
+	x$model_a$desc[[1]]$bal.tab$results <- bala$balance_a[grep("unw",rownames(bala$balance_a)),1:8]
+	x$model_a$desc[[2]]$bal.tab$results <- bala$balance_a[grep("logistic",rownames(bala$balance_a)),1:8]
+
+	x$model_m0$desc  <- vector("list",length=2)
+	names(x$model_m0$desc)  <- c("unw","logistic")
+	x$model_m0$desc[[1]]$bal.tab$results <- bala$balance_m0[grep("unw",rownames(bala$balance_m0)),1:8]
+	x$model_m0$desc[[2]]$bal.tab$results <- bala$balance_m0[grep("logistic",rownames(bala$balance_m0)),1:8]
+    }
+    if(x$method=="crossval") {
+       best.iter.a 		<- gbm:::gbm.perf(x$model_a, method="cv",plot.it=FALSE)
+       best.iter.m 		<- gbm:::gbm.perf(x$model_m0, method="cv",plot.it=FALSE)
+       x$model_a$ps  <- data.frame(crossval=predict(x$model_a, n.trees=best.iter.a,newdata=x$data,type="response"))
+       x$model_m0$ps  <- data.frame(crossval=predict(x$model_m0,n.trees=best.iter.m,newdata=x$data,type="response"))
+       x$model_a$w  <- data.frame(crossval=ifelse(x$data[,x$a_treatment]==1,1/x$model_a$ps[,1],1/(1-x$model_a$ps[,1])))
+       x$model_m0$w  <- data.frame(crossval=ifelse(x$data[,x$a_treatment]==1,1/x$model_m0$ps[,1],1/(1-x$model_m0$ps[,1])))
+	 x$model_a$treat <- x$data[,x$a_treatment]
+	 x$model_m0$treat <- x$data[,x$a_treatment]
+
+	x$model_a$desc  <- vector("list",length=2)
+	names(x$model_a$desc)  <- c("unw","crossval")
+	bala	<- bal.table(x)
+	x$model_a$desc[[1]]$bal.tab$results <- bala$balance_a[grep("unw",rownames(bala$balance_a)),1:8]
+	x$model_a$desc[[2]]$bal.tab$results <- bala$balance_a[grep("crossval",rownames(bala$balance_a)),1:8]
+
+	x$model_m0$desc  <- vector("list",length=2)
+	names(x$model_m0$desc)  <- c("unw","crossval")
+	x$model_m0$desc[[1]]$bal.tab$results <- bala$balance_m0[grep("unw",rownames(bala$balance_m0)),1:8]
+	x$model_m0$desc[[2]]$bal.tab$results <- bala$balance_m0[grep("crossval",rownames(bala$balance_m0)),1:8]
+    }
     model_a <- x$model_a
     model_m <- x$model_m0
     model_names <- c('Model A', 'Model M')

@@ -161,7 +161,7 @@ if (plots == "optimize" || plots == 1) {
 #   	pt1 <- histogram.dxwts(...)
    	
    	if (plots == "boxplot" || plots == 2){
-			pt1 <- boxplot(x, color = color, subset = subset, time = time, ...)
+			pt1 <- boxplot.ps(x, color = color, subset = subset, time = time, ...)         
    		}
    	
    	if (plots == "histogram" || plots == 6){

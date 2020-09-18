@@ -27,7 +27,7 @@
 #'   The stopping rule for the total effect weights, which 
 #'   only needs to be specified if total_effect_ps is provided. Default : `NULL`.
 #' @param method
-#'   The method for getting weights ("ps", "logistic", or "cross-validation"). Default : `"ps"`.
+#'   The method for getting weights ("ps", "logistic", or "crossval"). Default : `"ps"`.
 #' @param sampw numeric, optional
 #'   Optional sampling weights Default : `NULL`.
 #' @param ps_n.trees integer, optional
