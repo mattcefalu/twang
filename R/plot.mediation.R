@@ -50,7 +50,7 @@ plot.mediation <- function(x,
        x$model_a$ps  <- data.frame(logistic=predict(x$model_a,type="response"))
        x$model_m0$ps  <- data.frame(logistic=predict(x$model_m0,type="response"))
        x$model_a$w  <- data.frame(logistic=ifelse(x$data[,x$a_treatment]==1,1/x$model_a$ps[,1],1/(1-x$model_a$ps[,1])))
-       x$model_m0$w  <- data.frame(logistic=ifelse(x$data[,x$a_treatment]==1,1/x$model_m0$ps[,1],1/(1-x$model_m0$ps[,1])))
+       x$model_m0$w  <- data.frame(logistic=ifelse(x$data[,x$a_treatment]==1,1/exp(predict(x$model_m0,type="link")),1))
 	 x$model_a$treat <- x$data[,x$a_treatment]
 	 x$model_m0$treat <- x$data[,x$a_treatment]
 
@@ -71,7 +71,7 @@ plot.mediation <- function(x,
        x$model_a$ps  <- data.frame(crossval=predict(x$model_a, n.trees=best.iter.a,newdata=x$data,type="response"))
        x$model_m0$ps  <- data.frame(crossval=predict(x$model_m0,n.trees=best.iter.m,newdata=x$data,type="response"))
        x$model_a$w  <- data.frame(crossval=ifelse(x$data[,x$a_treatment]==1,1/x$model_a$ps[,1],1/(1-x$model_a$ps[,1])))
-       x$model_m0$w  <- data.frame(crossval=ifelse(x$data[,x$a_treatment]==1,1/x$model_m0$ps[,1],1/(1-x$model_m0$ps[,1])))
+       x$model_m0$w  <- data.frame(crossval=ifelse(x$data[,x$a_treatment]==1,1/exp(predict(x$model_m0, n.trees=best.iter.m, newdata=x$data, type="link")),1))
 	 x$model_a$treat <- x$data[,x$a_treatment]
 	 x$model_m0$treat <- x$data[,x$a_treatment]
 
