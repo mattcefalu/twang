@@ -109,16 +109,55 @@ plot.mediation <- function(x,
   # we separate out the mediators that are factors and those that aren't
   mediator_is_factor <- x$mediator_names %in% names(Filter(is.factor, x$data[,x$mediator_names, drop=F]))
   
+  ##check if any mediators binary and make factors 
+  for(i in 1:length(x$mediator_names)) {
+    if(length(unique(x$data[,x$mediator_names[i]]))==2) {
+      mediator_is_factor[i] <- TRUE
+	}
+  }
+
   mediators_factors <- x$mediator_names[mediator_is_factor == T, drop = T]
   mediators_numbers <- x$mediator_names[mediator_is_factor == F, drop = T]
   
-  # get the actual weights from the mediation object
-  w_00 <- attr(x, 'w_00')
-  w_10 <- attr(x, 'w_10')
+  ## Create a function for generating the plots so it can be replicated for NIE1 and NIE0
+
+  genplot <- function(which_nie){
+
+     if(which_nie == 1){
+        # Plot to check that the weighted counterfactual density of mediator from the treatment sample 
+        # matches the estimated population density of the mediator under control or M(0)  
+        # The population sample is control and its weight is w_00
+        # The counterfactual is M(0) from the treatment sample and its weight is w_10
+        
+        # get the actual weights from the mediation object
+        w_pop <- attr(x, 'w_00')
+        w_cfac <- attr(x, 'w_10')
+      
+        # finally, create indicators for treatment and control
+        cfac <- which(treatment == 1)
+        pop  <- which(treatment == 0)
+     
+     }else{
+        # Plot to check that the weighted counterfactual density of mediator from the control sample 
+        # matches the estimated population density of the mediator under treatment or M(1)  
+        # The population sample is treatment and its weight is w_11
+        # The counterfactual is M(1) from the treatment sample and its weight is w_01
   
-  # finally, create indicators for treatment and control
-  treat <- which(treatment == 1)
-  ctrl  <- which(treatment == 0)
+        # get the actual weights from the mediation object
+        # w_pop is the population wait -- now f
+        w_pop <- attr(x, 'w_11')
+        w_cfac <- attr(x, 'w_01')
+   
+        # finally, create indicators for treatment and control
+        cfac <- which(treatment == 1)
+        pop   <- which(treatment == 0)
+        }
+        
+     if(which_nie==1){
+        ptitle <- "NIE1: Density of Mediator for Treatment Sample Weighted to Match \n Density of Mediator under Control for the Population"
+     }else{
+        ptitle <- "NIE0: Density of Mediator for Control Sample Weighted to Match \n Density of Mediator under Treatment for the Population"
+     }
   
   factor_plot <- NULL
   if (any((mediator_is_factor == T))) {
@@ -127,15 +166,19 @@ plot.mediation <- function(x,
       for (m in mediators_factors) {
         
         method <- x$stopping_methods[i]
-        weights <- ifelse(!is.na(w_10[,i]), w_10[,i], w_00[,i])
+        weights <- ifelse(!is.na(w_cfac[,i]), w_cfac[,i], w_pop[,i])
         
-        weights[treat] <- (weights[treat] / sum(weights[treat]))
-        weights[ctrl] <- (weights[ctrl] / sum(weights[ctrl]))
+        weights[cfac] <- (weights[cfac] / sum(weights[cfac]))
+        weights[pop] <- (weights[pop] / sum(weights[pop]))
         
-        a1 <- aggregate(weights[treat], by = list(m = factor(mediators[treat, m])), FUN = sum)
-        a0 <- aggregate(weights[ctrl], by = list(m = factor(mediators[ctrl, m])), FUN = sum)
+        a1 <- aggregate(weights[cfac], by = list(m = factor(mediators[cfac, m])), FUN = sum)
+        a0 <- aggregate(weights[pop], by = list(m = factor(mediators[pop, m])), FUN = sum)
         
-        a1[x$a_treatment] <- 1; a0[x$a_treatment] <- 0 ##kat: check this works
+        if(which_nie == 1){
+              a1[x$a_treatment] <- 1; a0[x$a_treatment] <- 0 ##kat: check this works
+           }else{        
+              a1[x$a_treatment] <- 0; a0[x$a_treatment] <- 1 ##kat: check this works
+           }
         
         combined <- rbind(a1, a0)
         combined['mediator'] <- m
@@ -146,16 +189,22 @@ plot.mediation <- function(x,
     }
     factor_data <- do.call(rbind, factor_frames)
     trt <- factor_data[,x$a_treatment]
-    factor_plot <- lattice::barchart(x ~ factor(m) | factor(method) + factor(mediator),
-                                     groups = factor(trt, levels = c(0, 1), labels = c('control', 'treatment')),
-                                     data = factor_data,                                   
+    factor_plot <- vector("list",length(mediators_factors))
+    pos <- 0
+    for(mm in mediators_factors) {
+      pos <- pos+1   
+      factor_plot[[pos]] <- lattice::barchart(x ~ factor(m) | factor(method) + factor(mediator),
+                                     groups = factor(trt, levels = c(0, 1), labels = c('population', 'counterfactual')),
+                                     data = factor_data[factor_data$mediator==mm,],                                   
                                      origin = 0, 
                                      par.settings = list(superpose.polygon = list(col = c("#478BB8", "#B87447"))),
                                      auto.key = TRUE,
                                      ylab = "Proportion",
                                      xlab = "Weighted Mediator",
-                                     main = "Weighted Mediation Histogram, Control vs. Treatment",
-                                     horiz = FALSE)
+                                     main = ptitle,
+                                     horiz = FALSE,
+                                     cex.main=0.85)
+  }
   }
   
   number_plot <- NULL
@@ -165,10 +214,10 @@ plot.mediation <- function(x,
       for (m in mediators_numbers) {
         
         method <- x$stopping_methods[i]
-        weights <- ifelse(!is.na(w_10[,i]), w_10[,i], w_00[,i])
+        weights <- ifelse(!is.na(w_cfac[,i]), w_cfac[,i], w_pop[,i])
         
-        weights[treat] <- (weights[treat] / sum(weights[treat]))
-        weights[ctrl] <- (weights[ctrl] / sum(weights[ctrl]))
+        weights[cfac] <- (weights[cfac] / sum(weights[cfac]))
+        weights[pop] <- (weights[pop] / sum(weights[pop]))
 
         number_frames[[paste(method, m, sep='')]] <- data.frame('m' = mediators[,m],
                                                                 'mediator' = m,
@@ -178,9 +227,13 @@ plot.mediation <- function(x,
       }
     }
     number_data <- do.call(rbind, number_frames)
-    number_plot <- lattice::densityplot(~m | factor(method) + factor(mediator),
-                                        groups = factor(A, levels = c(0, 1), labels = c('control', 'treatment')),
-                                        data = number_data,
+    number_plot <- vector("list",length(mediators_numbers))
+    pos <- 0
+    for(mm in mediators_numbers) {
+      pos <- pos+1
+      number_plot[[pos]] <- lattice::densityplot(~m | factor(method) + factor(mediator),
+                                        groups = factor(A, levels = c(0, 1), labels = c('population', 'counterfactual')),
+                                        data = number_data[number_data$mediator==mm,],
                                         weights = weights,
                                         plot.points = FALSE,
                                         origin = 0,
@@ -188,23 +241,49 @@ plot.mediation <- function(x,
                                         auto.key = TRUE,
                                         ylab = "Density",
                                         xlab = "Weighted Mediator",
-                                        main = "Weighted Mediation Density, Control vs. Treatment")
-    
+                                        main = ptitle,
+                                        cex.main=0.55)
+    }
   }
   
   if (!is.null(factor_plot) && !is.null(number_plot)) {
-
-    # NOTE :: Using `grid.arrange()`` is very slow, so we just plot the 
-    #         images in the function here, rather than returning.
-    #
-    # new_plot <- grid.arrange(factor_plot, number_plot)
-    # return(new_plot)
-    plot(factor_plot, split = c(1, 1, 1, 2))
-    plot(number_plot, split = c(1, 2, 1, 2), newpage = FALSE)
+    for(i in 1:length(factor_plot)) {
+      plot(factor_plot[[i]])
+      cc <- par()$ask
+      par(ask=TRUE)
+    }
+      for(i in 1:length(number_plot)) {
+      plot(number_plot[[i]])
+      cc <- par()$ask
+      par(ask=TRUE)
+    }
+       par(ask=cc)
   } else if (!is.null(factor_plot)) {
-    plot(factor_plot)
+    for(i in 1:length(factor_plot)) {
+      plot(factor_plot[[i]])
+      cc <- par()$ask
+      par(ask=TRUE)
+    }
+     par(ask=cc)
   } else {
-    plot(number_plot)
+      for(i in 1:length(number_plot)) {
+      plot(number_plot[[i]])
+      cc <- par()$ask
+      par(ask=TRUE)
+    }
+     par(ask=cc)
   }
+} # closes function genplot
+
+  cask <- par()$ask
+
+  # Run the density plots for NIE1
+  genplot(which_nie=1)
+
+  # Run the density plots for NIE0
+  par(ask=TRUE)
+  genplot(which_nie=0)
+ 
+  par(ask=cask)
 }
 
