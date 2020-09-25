@@ -2,23 +2,24 @@
 #'
 #' @param x weighted_mediation object
 #' @param plots An indicator of which type of plot is desired. The options are
-#'   * `"optimize" or 1` A plot of the balance criteria as a function of the GBM
+#'   * `"optimize"` A plot of the balance criteria as a function of the GBM
 #'     iteration.
-#'   * `"boxplot" or 2` Boxplots of the propensity scores for the treatment and
+#'   * `"boxplot"` Boxplots of the propensity scores for the treatment and
 #'     control cases
-#'   * `"es" or 3` Plots of the standardized effect size of the pre-treatment
+#'   * `"es"` Plots of the standardized effect size of the pre-treatment
 #'     variables before and after reweighing
-#'   * `"t" or 4` Plots of the p-values from t-statistics comparing means of
-#'     treated and control subjects for pretreatment variables, before and after
-#'     weighting.
-#'   * `"ks" or 5` Plots of the p-values from Kolmogorov-Smirnov statistics
-#'     comparing distributions of pretreatment variables of treated and control
-#'     subjects, before and after weighting.
+#'   * `"density"` Distriubtion plots of NIE1 (distribution of mediator for treatment
+#'     sample weighted to match distribution of mediator under control for the population)
+#'     and NIE0 (distribution of mediator for control sample weighted to match 
+#'     distribution of mediator under treatment for the population) for each mediator.
+#'     For continuous mediators, distributions are plotted with density curves and 
+#'     for categorical (factor) mediators, distributions are plotted with barplots. 
 #' @param subset Used to restrict which of the `stop.method`s will be used
 #'   in the figure. For example `subset = c(1,3)` would indicate that the
 #'   first and third `stop.method`s (in alphabetical order of those specified
 #'   in the original call to the mediation function) should be included in the
-#'   figure.
+#'   figure. If x$method = `logistic` or `crossval`, there is no need to subset 
+#'   as there is only one method used. 
 #' @param color If `color = FALSE`, figures will be gray scale. Default: `TRUE`.
 #' @param model_subset integer
 #'   Choose either model A or model M only.
@@ -33,13 +34,19 @@ plot.mediation <- function(x,
                            model_subset = NULL,
                            ...) {
   
-  # TODO : We'll probably want to fix / clean up this function ...
+  # return error if model subset is not 1, 2 or NULL
   if (!is.null(model_subset) && !(model_subset %in% c(1, 2))) {
     stop("The `model_subset` must be NULL, 1, or 2.")
   }
   
+  # return error if ask for any plots other than available 
+  if (!plots %in% c("optimize","boxplot","es","density")) {
+     stop("The `plots` options must be `optimize`,`boxplot`,`es`,or `density`.")
+  }
   # return error if ask for plots="optimize" or 1 for method!=ps
-  if (x$method!="ps" & (plots=="optimize" || plots==1)) { stop("The optimize plot is only available for method='ps'.")}
+  if (x$method!="ps" & (plots=="optimize" || plots==1)) { 
+   stop("The optimize plot is only available for method='ps'.")}
+
   # we want the mediator and the treatment variables
   mediators <- x$data[,x$mediator_names, drop = F]
   treatment <- x$data[[x$a_treatment]]
@@ -111,8 +118,10 @@ plot.mediation <- function(x,
   
   ##check if any mediators binary and make factors 
   for(i in 1:length(x$mediator_names)) {
-    if(length(unique(x$data[,x$mediator_names[i]]))==2) {
+    if(length(unique(x$data[,x$mediator_names[i]]))<=5 & mediator_is_factor[i]==FALSE) {
       mediator_is_factor[i] <- TRUE
+      warning(paste("Mediator",x$mediator_names[i],"is being treated like a factor to plot distributions
+       with barplots instead of with density curves."))
 	}
   }
 
@@ -154,11 +163,16 @@ plot.mediation <- function(x,
         }
         
      if(which_nie==1){
-        ptitle <- "NIE1: Density of Mediator for Treatment Sample Weighted to Match \n Density of Mediator under Control for the Population"
+        ptitle <- "NIE1: Distribution of Mediator for Treatment Sample Weighted to Match \n Distribution of Mediator under Control for the Population"
      }else{
-        ptitle <- "NIE0: Density of Mediator for Control Sample Weighted to Match \n Density of Mediator under Treatment for the Population"
+        ptitle <- "NIE0: Distribution of Mediator for Control Sample Weighted to Match \n Distribution of Mediator under Treatment for the Population"
      }
   
+  if(color) {
+    cols <- c("#478BB8", "#B87447")
+  } else { cols <- c("black","gray80") }
+  stripBgCol <- ifelse(color, "#ffe5cc", "transparent")
+
   factor_plot <- NULL
   if (any((mediator_is_factor == T))) {
     factor_frames <- list()
@@ -175,9 +189,9 @@ plot.mediation <- function(x,
         a0 <- aggregate(weights[pop], by = list(m = factor(mediators[pop, m])), FUN = sum)
         
         if(which_nie == 1){
-              a1[x$a_treatment] <- 1; a0[x$a_treatment] <- 0 ##kat: check this works
+              a1[x$a_treatment] <- 1; a0[x$a_treatment] <- 0 
            }else{        
-              a1[x$a_treatment] <- 0; a0[x$a_treatment] <- 1 ##kat: check this works
+              a1[x$a_treatment] <- 0; a0[x$a_treatment] <- 1 
            }
         
         combined <- rbind(a1, a0)
@@ -197,7 +211,7 @@ plot.mediation <- function(x,
                                      groups = factor(trt, levels = c(0, 1), labels = c('population', 'counterfactual')),
                                      data = factor_data[factor_data$mediator==mm,],                                   
                                      origin = 0, 
-                                     par.settings = list(superpose.polygon = list(col = c("#478BB8", "#B87447"))),
+                                     par.settings = list(superpose.polygon = list(col = cols),strip.background = list(col=stripBgCol)),
                                      auto.key = TRUE,
                                      ylab = "Proportion",
                                      xlab = "Weighted Mediator",
@@ -237,7 +251,7 @@ plot.mediation <- function(x,
                                         weights = weights,
                                         plot.points = FALSE,
                                         origin = 0,
-                                        par.settings = list(superpose.line = list(lwd = 3, col = c("#478BB8", "#B87447"))),
+                                        par.settings = list(superpose.line = list(lwd = 3, col = cols),strip.background = list(col=stripBgCol)),
                                         auto.key = TRUE,
                                         ylab = "Density",
                                         xlab = "Weighted Mediator",

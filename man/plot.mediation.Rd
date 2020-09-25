@@ -18,25 +18,26 @@
 
 \item{plots}{An indicator of which type of plot is desired. The options are
 \itemize{
-\item \verb{"optimize" or 1} A plot of the balance criteria as a function of the GBM
+\item \code{"optimize"} A plot of the balance criteria as a function of the GBM
 iteration.
-\item \verb{"boxplot" or 2} Boxplots of the propensity scores for the treatment and
+\item \code{"boxplot"} Boxplots of the propensity scores for the treatment and
 control cases
-\item \verb{"es" or 3} Plots of the standardized effect size of the pre-treatment
+\item \code{"es"} Plots of the standardized effect size of the pre-treatment
 variables before and after reweighing
-\item \verb{"t" or 4} Plots of the p-values from t-statistics comparing means of
-treated and control subjects for pretreatment variables, before and after
-weighting.
-\item \verb{"ks" or 5} Plots of the p-values from Kolmogorov-Smirnov statistics
-comparing distributions of pretreatment variables of treated and control
-subjects, before and after weighting.
+\item \code{"density"} Distriubtion plots of NIE1 (distribution of mediator for treatment
+sample weighted to match distribution of mediator under control for the population)
+and NIE0 (distribution of mediator for control sample weighted to match
+distribution of mediator under treatment for the population) for each mediator.
+For continuous mediators, distributions are plotted with density curves and
+for categorical (factor) mediators, distributions are plotted with barplots.
 }}
 
 \item{subset}{Used to restrict which of the \code{stop.method}s will be used
 in the figure. For example \code{subset = c(1,3)} would indicate that the
 first and third \code{stop.method}s (in alphabetical order of those specified
 in the original call to the mediation function) should be included in the
-figure.}
+figure. If x$method = \code{logistic} or \code{crossval}, there is no need to subset
+as there is only one method used.}
 
 \item{color}{If \code{color = FALSE}, figures will be gray scale. Default: \code{TRUE}.}
 
