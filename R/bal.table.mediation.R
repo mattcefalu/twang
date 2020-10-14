@@ -43,7 +43,7 @@ function(x, ...)
     wts_a[is.na(wts_a)] <- w_00[is.na(wts_a)]
     tmp_a <- bal.table(dx.wts(wts_a, data = data, 
         vars = x$covariate_names, treat.var = x$a_treatment, x.as.weights = TRUE, 
-        estimand = "ATT"))
+        estimand = "ATE"))
     names(tmp_a)[2] <- x$method
     balance_a <- do.call(rbind, tmp_a)
     balance_a['model'] <- 'Model A'
