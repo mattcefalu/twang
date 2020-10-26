@@ -122,6 +122,6 @@ function(x, ...)
   balance_nie_0 <- balance_nie_0[,-which(colnames(balance_nie_0)=="model")]
 
   return(list(balance_a = balance_a, balance_m0 = balance_m0, balance_m1 = balance_m1, 
-        check_counterfactorial_nie_1 = balance_nie_1, check_counterfactorial_nie_0 = balance_nie_0))
+        check_counterfactual_nie_1 = balance_nie_1, check_counterfactual_nie_0 = balance_nie_0))
   
 }
