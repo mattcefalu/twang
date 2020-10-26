@@ -5,7 +5,7 @@
 #' @method bal.table mediation
 #' @export
 bal.table.mediation <- 
-function(x, digits = digits, ...) 
+function(x, digits = 3, ...) 
 {
 
   # we extract what we need from the mediation object
