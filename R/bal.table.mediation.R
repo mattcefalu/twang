@@ -27,15 +27,15 @@ function(x, ...)
 
     # get the balance table for Model A
     balance_a <- do.call(rbind, bal.table(model_a))
-    balance_a['model'] <- 'Model A'
+    #balance_a['model'] <- 'Model A'
 
     # get the balance table for Model M0
     balance_m0 <- do.call(rbind, bal.table(model_m0))
-    balance_m0["model"] <- "Model M0"
+    #balance_m0["model"] <- "Model M0"
   
     # get the balance table for Model M1
     balance_m1 <- do.call(rbind, bal.table(model_m1))
-    balance_m1["model"] <- "Model M1"
+    #balance_m1["model"] <- "Model M1"
   }
   ##results if method = "logistic" or "crossval"
   if(x$method!="ps") {
@@ -88,7 +88,7 @@ function(x, ...)
         vars = x$mediator_names, treat.var = x$a_treatment, x.as.weights = TRUE, 
         estimand = "ATE"))
   balance_nie_1 <- do.call(rbind, balance_nie_1)
-  balance_nie_1["model"] = "NIE_1"
+  #balance_nie_1["model"] = "NIE_1"
   names(balance_nie_1) <- gsub("tx","cntfact",gsub("ct","target",names(balance_nie_1)))
    
   # Compare the weighted distribution of M(0)=m weighted to have the distribution of M(1)=m on the entire pop'n 
@@ -102,7 +102,7 @@ function(x, ...)
       vars = x$mediator_names, treat.var = x$a_treatment, x.as.weights = TRUE, 
       estimand = "ATE"))
   balance_nie_0 <- do.call(rbind, balance_nie_0)
-  balance_nie_0["model"] = "NIE_0"
+  #balance_nie_0["model"] = "NIE_0"
   names(balance_nie_0) <- gsub("tx","target",gsub("ct","cntfact",names(balance_nie_0)))
   balance_nie_0 <- balance_nie_0[,c(3,4,1,2,5:10)]
   balance_nie_0$std.eff.sz <- -1*balance_nie_0$std.eff.sz
