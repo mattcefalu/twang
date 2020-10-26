@@ -12,7 +12,7 @@
 #' @param data data.frame
 #'   The dataset
 #' @param a_treatment character
-#'   The name of the treatement variable, a, which must be
+#'   The name of the treatment variable, a, which must be
 #'   dichotomous.
 #' @param y_outcome character, optional
 #'   The name of the outcome variable, y. If this is not provided, then
@@ -35,10 +35,10 @@
 #' @param ps_interaction.depth integer, optional
 #'   A positive integer denoting the tree depth used in
 #'   gradient boosting. Default: 3.
-#' @param ps_shrinkage numerc, optional
+#' @param ps_shrinkage numeric, optional
 #'   A numeric value between 0 and 1 denoting the learning rate.
 #'   See [gbm] for more details. Default: 0.01.
-#' @param ps_bag.fraction numerc, optional
+#' @param ps_bag.fraction numeric, optional
 #'   A numeric value between 0 and 1 denoting the fraction of
 #'   the observations randomly selected in each iteration of the gradient
 #'   boosting algorithm to propose the next tree. See [gbm] for
