@@ -66,7 +66,7 @@ bal.table <- function(x,
    return(bal.tab)
    }
    else if(class(x) == "mediation"){
-   bal.tab <- bal.table.mediation(x, digits = digits)
+   bal.tab <- bal.table.mediation(x)
    return(bal.tab)
 	}
    else if(class(x) == "iptw"){

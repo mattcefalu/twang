@@ -5,7 +5,7 @@
 #' @method bal.table mediation
 #' @export
 bal.table.mediation <- 
-function(x, digits = digits, ...) 
+function(x, ...) 
 {
 
   # we extract what we need from the mediation object
@@ -25,7 +25,7 @@ function(x, digits = digits, ...)
   if(x$method=="ps") {
 
     # get the balance table for Model A
-    balance_a <- do.call(rbind, bal.table(model_a, digits = digits))
+    balance_a <- do.call(rbind, bal.table(model_a))
     balance_a['model'] <- 'Model A'
 
     # get the balance table for Model M0
