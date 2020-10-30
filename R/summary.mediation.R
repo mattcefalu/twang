@@ -83,9 +83,9 @@ function(object,...)
     }
     # Get balance tables for NIE_1 and NIE_0
     # to check that weights for the counterfactual 
-    # mediator distributions yeild distributions of 
+    # mediator distributions yield distributions of 
     # mediators that match the target
-    mediator_distribution_check <- bal.table.mediation(object)[c("check_counterfactorial_nie_1","check_counterfactorial_nie_0")]
+    mediator_distribution_check <- bal.table.mediation(object)[c("check_counterfactual_nie_1","check_counterfactual_nie_0")]
     for(i in 1:length(mediator_distribution_check)) {
       cat(paste("Mediator Distribution Check:",names(mediator_distribution_check)[[i]],"\n"))
       cat(paste(paste(rep('-', 90), collapse = ''), '\n', sep=''))
