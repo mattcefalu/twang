@@ -5,7 +5,7 @@
 #' @method bal.table mediation
 #' @export
 bal.table.mediation <- 
-function(x, ...) 
+function(x,digits=3, ...) 
 {
 
   # we extract what we need from the mediation object
@@ -25,15 +25,15 @@ function(x, ...)
   if(x$method=="ps") {
 
     # get the balance table for Model A
-    balance_a <- do.call(rbind, bal.table(model_a))
+    balance_a <- do.call(rbind, bal.table(model_a,digits=digits))
     balance_a['model'] <- 'Model A'
 
     # get the balance table for Model M0
-    balance_m0 <- do.call(rbind, bal.table(model_m0))
+    balance_m0 <- do.call(rbind, bal.table(model_m0,digits=digits))
     balance_m0["model"] <- "Model M0"
   
     # get the balance table for Model M1
-    balance_m1 <- do.call(rbind, bal.table(model_m1))
+    balance_m1 <- do.call(rbind, bal.table(model_m1,digits=digits))
     balance_m1["model"] <- "Model M1"
   }
   ##results if method = "logistic" or "crossval"
@@ -43,7 +43,7 @@ function(x, ...)
     wts_a[is.na(wts_a)] <- w_00[is.na(wts_a)]
     tmp_a <- bal.table(dx.wts(wts_a, data = data, 
         vars = x$covariate_names, treat.var = x$a_treatment, x.as.weights = TRUE, 
-        estimand = "ATE"))
+        estimand = "ATE"),digits=digits)
     names(tmp_a)[2] <- x$method
     balance_a <- do.call(rbind, tmp_a)
     balance_a['model'] <- 'Model A'
@@ -60,7 +60,7 @@ function(x, ...)
     wts_m0 <- ifelse(data[,x$a_treatment]==0,1,1/exp(model_m_preds))
     tmp_m0 <- bal.table(dx.wts(wts_m0, data = data, 
         vars = m_and_x_names, treat.var = "trt0", x.as.weights = TRUE, 
-        estimand = "ATT"))
+        estimand = "ATT"),digits=digits)
     names(tmp_m0)[2] <- x$method
     balance_m0 <- do.call(rbind, tmp_m0)
     balance_m0["model"] <- "Model M0"
@@ -69,7 +69,7 @@ function(x, ...)
     wts_m1 <- ifelse(data[,x$a_treatment]==0,exp(model_m_preds),1)
     tmp_m1 <- bal.table(dx.wts(wts_m1, data = data, 
         vars = m_and_x_names, treat.var = x$a_treatment, x.as.weights = TRUE, 
-        estimand = "ATT"))
+        estimand = "ATT"),digits=digits)
     names(tmp_m1)[2] <- x$method
     balance_m1<- do.call(rbind, tmp_m1)
     balance_m1["model"] <- "Model M1"
@@ -85,7 +85,7 @@ function(x, ...)
   names(nie_1_wts) <- paste(stopping_methods, "ATE", sep = ".")
   balance_nie_1 <- bal.table(dx.wts(nie_1_wts, data = data, 
         vars = x$mediator_names, treat.var = x$a_treatment, x.as.weights = TRUE, 
-        estimand = "ATE"))
+        estimand = "ATE"),digits=digits)
   balance_nie_1 <- do.call(rbind, balance_nie_1)
   balance_nie_1["model"] = "NIE_1"
   names(balance_nie_1) <- gsub("tx","cntfact",gsub("ct","target",names(balance_nie_1)))
@@ -99,7 +99,7 @@ function(x, ...)
 
   balance_nie_0 <- bal.table(dx.wts(nie_0_wts, data = data, 
       vars = x$mediator_names, treat.var = x$a_treatment, x.as.weights = TRUE, 
-      estimand = "ATE"))
+      estimand = "ATE"),digits=digits)
   balance_nie_0 <- do.call(rbind, balance_nie_0)
   balance_nie_0["model"] = "NIE_0"
   names(balance_nie_0) <- gsub("tx","target",gsub("ct","cntfact",names(balance_nie_0)))
@@ -114,7 +114,9 @@ function(x, ...)
   balance_nie_1 <- balance_nie_1[,-which(colnames(balance_nie_1)=="ks.pval")]
   balance_nie_0 <- balance_nie_0[,-which(colnames(balance_nie_0)=="ks.pval")]
 
-  return(list(balance_a = balance_a, balance_m0 = balance_m0, balance_m1 = balance_m1, 
+  cat("**********************************************************\nNotes: Treatment and control are switched for model m0.\nModel m0 is used for NDE_0 and NIE_1 effects.\nModel m1 is used for NDE_1 and NIE_0 effects.\n**********************************************************\n")
+
+  return(list(balance_a = balance_a, balance_m0 = balance_m0,balance_m1 = balance_m1, 
         check_counterfactorial_nie_1 = balance_nie_1, check_counterfactorial_nie_0 = balance_nie_0))
   
 }

@@ -4,7 +4,7 @@
 \alias{bal.table.mediation}
 \title{Compute the balance table for mediation object.}
 \usage{
-\method{bal.table}{mediation}(x, ...)
+\method{bal.table}{mediation}(x, digits = 3, ...)
 }
 \arguments{
 \item{x}{A \code{mediation} object}

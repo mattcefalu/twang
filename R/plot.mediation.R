@@ -95,7 +95,7 @@ plot.mediation <- function(x,
     }
     model_a <- x$model_a
     model_m <- x$model_m0
-    model_names <- c('Model A', 'Model M')
+    model_names <- c('Model A', 'Model M0')
     
     plot1 <- do.call(getS3method("plot", "ps"), c(list(model_a), args))
     plot2 <- do.call(getS3method("plot", "ps"), c(list(model_m), args))
