@@ -124,6 +124,6 @@ function(x,digits=3, ...)
   cat("**********************************************************\nNotes: Treatment and control are switched for model m0.\nModel m0 is used for NDE_0 and NIE_1 effects.\nModel m1 is used for NDE_1 and NIE_0 effects.\n**********************************************************\n")
 
   return(list(balance_a = balance_a, balance_m0 = balance_m0,balance_m1 = balance_m1, 
-        check_counterfactorial_nie_1 = balance_nie_1, check_counterfactorial_nie_0 = balance_nie_0))
+        check_counterfactual_nie_1 = balance_nie_1, check_counterfactual_nie_0 = balance_nie_0))
   
 }

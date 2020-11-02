@@ -38,7 +38,7 @@ to the covariates}
 The dataset}
 
 \item{a_treatment}{character
-The name of the treatement variable, a, which must be
+The name of the treatment variable, a, which must be
 dichotomous.}
 
 \item{y_outcome}{character, optional
@@ -63,11 +63,11 @@ Number of gbm iterations passed on to \link{gbm}. Default: 10000.}
 A positive integer denoting the tree depth used in
 gradient boosting. Default: 3.}
 
-\item{ps_shrinkage}{numerc, optional
+\item{ps_shrinkage}{numeric, optional
 A numeric value between 0 and 1 denoting the learning rate.
 See \link{gbm} for more details. Default: 0.01.}
 
-\item{ps_bag.fraction}{numerc, optional
+\item{ps_bag.fraction}{numeric, optional
 A numeric value between 0 and 1 denoting the fraction of
 the observations randomly selected in each iteration of the gradient
 boosting algorithm to propose the next tree. See \link{gbm} for
@@ -145,11 +145,11 @@ The \code{mediation} object includes the following:
 \item \code{datestamp} The date when the analysis was run.
 \item For each \code{stop.method}, a list with the following:
 \itemize{
-\item \code{overall_effect} The overall effect.
-\item \code{natural_direct_effect0} The natural direct effect, holding the mediator constant at 0.
-\item \code{natural_indirect_effect1} The natural indirect effect, holding the exposure constant at 1.
-\item \code{natural_direct_effect1} The natural direct effect, holding the mediator constant at 1.
-\item \code{natural_indirect_effect0} The natural indirect effect, holding the exposure constant at 0.
+\item \code{TE} The total effect.
+\item \code{NDE_0} The natural direct effect, holding the mediator constant at 0.
+\item \code{NIE_1} The natural indirect effect, holding the exposure constant at 1.
+\item \code{NDE_1} The natural direct effect, holding the mediator constant at 1.
+\item \code{NIE_0} The natural indirect effect, holding the exposure constant at 0.
 \item \code{expected_treatment0_mediator0} E(Y(0, M(0)))
 \item \code{expected_treatment1_mediator1} E(Y(1, M(1)))
 \item \code{expected_treatment1_mediator0} E(Y(1, M(0)))
