@@ -41,7 +41,7 @@ function(x,digits=3, ...)
     # get the balance table for Model A
 
     if(x$method=="logistic") {
-      model_a_preds <- predict(object$model_a,type="response")
+      model_a_preds <- predict(x$model_a,type="response")
     }
    if(x$method=="crossval") {     
       best.iter <- gbm.perf(x$model_a, method="cv",plot.it=FALSE)
