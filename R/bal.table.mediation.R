@@ -39,8 +39,16 @@ function(x,digits=3, ...)
   ##results if method = "logistic" or "crossval"
   if(x$method!="ps") {
     # get the balance table for Model A
-    wts_a <- w_11
-    wts_a[is.na(wts_a)] <- w_00[is.na(wts_a)]
+
+    if(object$method=="logistic") {
+      model_a_preds <- predict(object$model_a,type="response")
+    }
+   if(object$method=="crossval") {     
+      best.iter <- gbm.perf(object$model_a, method="cv",plot.it=FALSE)
+      model_a_preds <- predict(object$model_a, n.trees=best.iter, newdata=data, type="response")
+    }
+    wts_a <- ifelse(data[,object$a_treatment]==1,1/model_a_preds,1/(1-model_a_preds))
+
     tmp_a <- bal.table(dx.wts(wts_a, data = data, 
         vars = x$covariate_names, treat.var = x$a_treatment, x.as.weights = TRUE, 
         estimand = "ATE"),digits=digits)
