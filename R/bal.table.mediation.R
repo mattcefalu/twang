@@ -40,14 +40,14 @@ function(x,digits=3, ...)
   if(x$method!="ps") {
     # get the balance table for Model A
 
-    if(object$method=="logistic") {
+    if(x$method=="logistic") {
       model_a_preds <- predict(object$model_a,type="response")
     }
-   if(object$method=="crossval") {     
-      best.iter <- gbm.perf(object$model_a, method="cv",plot.it=FALSE)
-      model_a_preds <- predict(object$model_a, n.trees=best.iter, newdata=data, type="response")
+   if(x$method=="crossval") {     
+      best.iter <- gbm.perf(x$model_a, method="cv",plot.it=FALSE)
+      model_a_preds <- predict(x$model_a, n.trees=best.iter, newdata=data, type="response")
     }
-    wts_a <- ifelse(data[,object$a_treatment]==1,1/model_a_preds,1/(1-model_a_preds))
+    wts_a <- ifelse(data[,x$a_treatment]==1,1/model_a_preds,1/(1-model_a_preds))
 
     tmp_a <- bal.table(dx.wts(wts_a, data = data, 
         vars = x$covariate_names, treat.var = x$a_treatment, x.as.weights = TRUE, 
