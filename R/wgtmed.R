@@ -246,6 +246,11 @@ wgtmed <- function(formula.med,
     #* Get p(A|X) using same covariates and stopping rules as for mediation model 
     model_a_res <- do.call(ps, c(list(data = data, estimand = "ATE"), 
           ps_args))
+
+    #~Remove data in the ps object to reduce memory usage
+    model_a_res[["data"]] <- NULL
+    gc()
+
     #* Calculate w_10 weights
     #* Note p(A = 0 | M, X)/p(A = 1 | M, X) are the "ATT" weights for the tx group when estimate the average treatment on the control
     #* So we run ps with "tx" = 1- tx and ATT and the estimand
@@ -259,6 +264,7 @@ wgtmed <- function(formula.med,
 
     #~Remove data in the ps object to reduce memory usage
     model_m0_res[["data"]] <- NULL
+    gc()
 
     #~  1/(1-p(A=1 | X))
     w_1 <- 1/(1 - model_a_res$ps)
@@ -278,6 +284,7 @@ wgtmed <- function(formula.med,
     
     #~ Remove data in the ps object to reduce memory usage
     model_m1_res[["data"]] <- NULL
+    gc()
 
     #~  1/p(A=1 | X)
     w_1 <- 1/model_a_res$ps
