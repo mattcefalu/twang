@@ -91,7 +91,8 @@ mnps.fast <- function(formula,
                       version=version,
                       tree_method=tree_method,
                       n.keep = n.keep,
-                      n.grid = n.grid
+                      n.grid = n.grid,
+                      keep.data = FALSE
                       )
       
          hldFts[[i]] <- currPs
@@ -122,7 +123,8 @@ mnps.fast <- function(formula,
                       version=version,
                       tree_method=tree_method,
                       n.keep = n.keep,
-                      n.grid = n.grid
+                      n.grid = n.grid,
+                      keep.data = FALSE
                       )
          
          hldFts[[i]] <- currPs
