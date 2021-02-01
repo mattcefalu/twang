@@ -8,6 +8,8 @@
 \bibliographystyle{plain}
 \usepackage[active]{srcltx}
 \usepackage{url}
+\usepackage{xcolor}
+\usepackage{array}
 \addtolength{\topmargin}{-0.5in}
 \addtolength{\textheight}{0.75in}
 \addtolength{\oddsidemargin}{-0.5in}
@@ -15,9 +17,11 @@
 \newcommand{\EV}{\mathrm{E}}
 \newcommand{\Var}{\mathrm{Var}}
 \newcommand{\aRule}{\begin{center} \rule{5in}{1mm} \end{center}}
+\newcolumntype{L}{>{\arraybackslash}m{.8\linewidth}}
 
-\title{Toolkit for Weighting and Analysis of Nonequivalent Groups:\\A
-tutorial for the \texttt{twang} package}
+
+\title{Propensity scores for binary treatments:\\A
+tutorial for the \texttt{ps} function in the \texttt{twang} package, Version 2.0}
 
 \author{Greg Ridgeway, Dan McCaffrey, Andrew Morral, Lane
   Burgette and Beth Ann Griffin\footnote{The twang package and
@@ -43,61 +47,100 @@ tutorial for the \texttt{twang} package}
 
 \section{Introduction}
 
-The Toolkit for Weighting and Analysis of Nonequivalent Groups, \texttt{twang}, contains a set of functions and procedures to support causal modeling of observational data through the estimation and evaluation of propensity scores and associated weights. This package was developed in 2004.  After extensive use, it received major updates in 2012 and 2020. In the most recent version (2.0), the \texttt{twang} package has undergone extensive revisions to improve computational efficiency. Code written for prior versions of \texttt{twang} should still run without modification. However, in certain situations, results from the updated version of \texttt{twang} will no longer replicate prior implementations. This tutorial provides an introduction to \texttt{twang} and demonstrates its use through illustrative examples. 
+The Toolkit for Weighting and Analysis of Nonequivalent Groups, \texttt{twang}, contains a set of functions and procedures to support causal modeling of observational data through the estimation and evaluation of propensity scores and associated weights for binary, multinomial, and time-varying treatments. This package was developed in 2004. After extensive use, it received major updates in 2012 and 2020. Starting with version 2.0, the \texttt{twang} package has undergone extensive revisions to improve computational efficiency. Code written for prior versions of \texttt{twang} should still run without modification. However, in certain situations, results from the updated version of \texttt{twang} will no longer replicate previous results. If a user wishes to results from a prior version of twang, a new option (\texttt{version="legacy"}) must be specified. This tutorial provides an introduction to \texttt{twang} and demonstrates its use through illustrative examples. Interested readers can review the related tutorials for more than two treatment groups and time-varying treatments at \url{https://www.rand.org/statistics/twang/tutorials.html}.
 
-\vspace{2 mm} The foundation to the methods supported by \texttt{twang} is the propensity score. The propensity score is the probability that a particular case would be assigned or exposed to a treatment condition. Rosenbaum \& Rubin (1983) showed that knowing the propensity score is sufficient to separate the effect of a treatment on an outcome from observed confounding factors that influence both treatment assignment and outcomes, provided the necessary conditions hold. The propensity score has the balancing property that given the propensity score the distribution of features for the treatment cases is the same as that for the
-control cases. While the treatment selection probabilities are generally not known, good estimates of them can be effective at diminishing or eliminating confounds between pretreatment group differences and treatment outcomes in the estimation of treatment effects.
+The foundation of the methods supported by \texttt{twang} is the propensity score. The propensity score is the probability that a particular case would be assigned or exposed to a treatment condition. Rosenbaum \& Rubin (1983) showed that knowing the propensity score is sufficient to separate the effect of a treatment on an outcome from observed confounding factors that influence both treatment assignment and outcomes, provided the necessary conditions hold. The propensity score has the balancing property that given the propensity score the distribution of features for the treatment cases is the same as that for the control cases. While the treatment selection probabilities are generally not known, good estimates of them can be effective at diminishing or eliminating confounds between pretreatment group differences and treatment outcomes in the estimation of treatment effects.
 
-\vspace{2 mm} There are now numerous propensity scoring methods in the literature. They differ in how they estimate the propensity score (e.g. logistic regression, CART), the target estimand
-(e.g. treatment effect on the treated, population treatment effect), and how they utilize the resulting estimated propensity scores (e.g. stratification, matching, weighting, doubly robust estimators). We originally developed the \texttt{twang} package with a particular process in mind, namely, generalized boosted regression to estimate the propensity
-scores and weighting of the comparison cases to estimate the average treatment effect on the treated (ATT). However, we have updated the package to also meaningfully handle the case where interest lies in using the population weights (e.g., weighting of comparison
-and treatment cases to estimate the population average treatment effect, ATE). 
+There are now numerous propensity scoring methods in the literature. They differ in how they estimate the propensity score (e.g. logistic regression, CART), the target estimand (e.g. treatment effect on the treated, population treatment effect), and how they utilize the resulting estimated propensity scores (e.g. stratification, matching, weighting, doubly robust estimators). We originally developed the \texttt{twang} package with a particular process in mind, namely, generalized boosted regression to estimate the propensity scores and weighting of the comparison cases to estimate the average treatment effect on the treated (ATT). However, we have updated the package to also meaningfully handle the case where interest lies in using the population weights (e.g., weighting of comparison and treatment cases to estimate the population average treatment effect, ATE). 
 
-\vspace{2 mm} The main workhorse of \texttt{twang} is the \texttt{ps()} function which implements generalized boosted regression modeling to estimate the propensity scores. However, the framework of the package is flexible enough to allow the user to use propensity score estimates from other methods and to assess the usefulness of those estimates for ensuring equivalence (or ``balance'') in the pretreatment covariate distributions of treatment and control groups using tools from the package. The same set of functions is also useful for other tasks such as non-response weighting, as discussed in Section~\ref{sec:nonresponse}.
+The main workhorse of \texttt{twang} is the \texttt{ps()} function, which implements gradient boosted models with either the \texttt{gbm} package or the \texttt{xgboost} package to estimate the propensity scores. However, the framework of the package is flexible enough to allow the user to use propensity score estimates from other methods and to assess the usefulness of those estimates for ensuring equivalence (or ``balance'') in the pretreatment covariate distributions of treatment and control groups using tools from the package. The same set of functions is also useful for other tasks such as non-response weighting, as discussed in Section~\ref{sec:nonresponse}.
 
-\vspace{2 mm} The \texttt{twang} package aims to (i) compute from the data estimates of the propensity scores which yield accurate causal effect estimates, (ii) check the quality of the resulting propensity score weights by assessing whether or not they have the balancing properties that we expect in theory, and (iii) use them in computing treatment effect estimates. Users who are more comfortable with SAS than R are encouraged to visit
-\url{www.rand.org/statistics/twang/sas-tutorial.html} for information SAS macros that implement these methods. 
+The \texttt{twang} package aims to (i) compute from the data estimates of the propensity scores which yield accurate causal effect estimates, (ii) check the quality of the resulting propensity score weights by assessing whether or not they have the balancing properties that we expect in theory, and (iii) use them in computing treatment effect estimates. Users who are more comfortable with Stata or SAS than R are encouraged to visit \url{www.rand.org/statistics/twang/} for information on Stata commands and SAS macros that implement these methods. 
 
-\section{An ATT example to start}
+\section{Principles of \texttt{twang}}
+
+The \texttt{twang} package utilizes gradient boosted models to estimate propensity scores. These models are flexible, machine learning approaches that can automatically incorporate nonlinearities and interactions among the covariates. In general, the algorithms implemented in the \texttt{twang} package optimize the similarity between treatment and comparison observations by selecting the iteration (complexity) of the gradient boosted model that achieves the best balance. The user simply selects the set of covariates they wish to balance, and the algorithm automatically incorporates nonlinearity and interactions to achieve the optimal balance. This vignette focuses on binary treatments using the \texttt{ps} function of the \texttt{twang} package, but many of the functions and arguements are shared across \texttt{twang} functions developed for other treatment types (e.g., multinomial treatment using \texttt{mnps}). See \url{www.rand.org/statistics/twang/} for more information. 
+
+The arguements to the \texttt{ps} can be broken up into three categories: (1) those that specify the model; (2)  those that control the gradient boosting; and (3) those that improve computational efficiency. We will describe these arguments in detail now, and then highlight their use in the next section. 
+
+\subsection{Arguements that specify the propensity score model}
+
+\begin{description}
+  \item[\texttt{formula}] is a symbolic description of the propensity score model using standard R syntax with the treatment indicator on the left side of the formula and the potential confounding variables on the right side. In contrast to the \texttt{lm()} function, there is no need to specify interaction terms in the formula as the gradient boosted model automatically considers interactions. There is also no need --- and it can be counterproductive --- to create indicator, or ``dummy coded,'' variables to represent categorical covariates, provided the categorical variables are stored as a \texttt{factor} or as \texttt{ordered} (see \texttt{help(factor)} for more details).
+    \item[\texttt{data}] indicates the dataset to be used, which should include a binary treatment indicator and the covariates to be balanced.
+    \item[\texttt{estimand}] is the causal effect of interest, which is either ``ATE'' (average treatment effect) or ``ATT'' (average treatment effect on the treated). ATE estimates the change in the outcome if the treatment were applied to the entire population versus if the control were applied to the entire population. ATT estimates the analogous effect, averaging only over the treated population. The \texttt{estimand} argument was added to the 2012 revision of the package which integrated ATE weighting into the package and the \texttt{ps} function estimate of the propensity score. The default value is ``ATE''.
+    \item[\texttt{sampw}] are optional sampling weights. If specified, the sampling weights are automatically incorporated into the derivation of the propensity score weights.
+\end{description}
+
+\subsection{Arguements that control the gradient boosting}
+
+\begin{description}
+  \item[\texttt{stop.method}] is a method or set of methods for measuring and summarizing balance across pretreatment variables. The \texttt{ps} function selects the optimal number of gradient boosting iterations to minimize the differences between the treatment and control groups as measured by the rules of the given \texttt{stop.method}. Current options are ks.mean, ks.max, es.mean, and es.max. ks refers to the Kolmogorov-Smirnov statistic and es refers to standardized effect size. These are summarized across the pretreatment variables by either the maximum (.max) or the mean (.mean). The default value is to utilize both ks.mean and es.mean.
+  \item[\texttt{n.trees}] is the maximum number of gradient boosting iterations to be considered. The more iterations allows for more nonlienarity and interactions to be considered. The default value is 10,000.
+  \item[\texttt{interaction.depth}] is a positive integer denoting the tree depth used in gradient boosting. This can be loosely be interpreted as the maximum number of variables that can be included in an interaction. Higher values allow for greater model complexity. The default value is 3.
+  \item[\texttt{shrinkage}] is a numeric value between 0 and 1 denoting the learning rate. Smaller values restrict the complexity that is added at each iteration of the gradient boosting algorithm. A smaller learning rate requires more iterations (\texttt{n.trees}), but adds  some protection against model overfit. The default value is 0.01. 
+  \item[\texttt{n.minobsinnode}] is the minimum number of observations in the terminal nodes of the trees used in the gradient boosting algorithm. Smaller values allow for more model complexity, while larger values provide some protection against model overfit. The default value is 10.
+\end{description}
+
+\subsection{Arguements that improve computational efficiency}
+
+\begin{description}
+\item[\texttt{n.keep}] is a positive integer indicating that the algorithm should only consider every \texttt{n.keep}-th iteration of the propensity score model and optimize balance over this set instead of all iterations. Larger values of \texttt{n.keep} improve computational efficiency by only assessing balance on a subset of the gradient boosting iterations, but is likely to achieve worse balance than considering every iteration. The default value is 1, which is to optimize over all iterations. 
+\item[\texttt{n.grid}] is a positive integer that sets the grid size for an initial search of the region most likely to minimize the \texttt{stop.method}. \texttt{n.grid} corresponds to a grid of points on the kept iterations as defined by \texttt{n.keep}. For example, \texttt{n.keep=20} with \texttt{n.trees=5000} will keep the iterations \texttt{(20,40,...,5000)}. The option \texttt{n.grid=10} then splits this vector into 10 points. Thus, \texttt{n.grid*n.keep} must be less than or equal to \texttt{n.trees}. The default grid size is 25.
+\item[\texttt{ks.exact}] improves the speed when calculating the p-value for the weighted two-sample Kolmogorov–Smirnov (KS) statistic. The default behavior when calculating the weighted two-sample KS p-value differs from implementations of \texttt{twang} prior to Version 2.0. Specifically, if \texttt{ks.exact=NULL} and the product of the effective sample sizes is less than 10,000, then an approximation based on the exact distribution of the unweighted KS statistic is used. This approximation via the exact distribution can also be requested directly by \texttt{ks.exact=TRUE}. Otherwise, an approximation based on the asymptotic distribution of the unweighted KS statistic is used. The default is \texttt{ks.exact=NULL}. We note that \texttt{ks.exact=TRUE} replicates the calculation of KS p-values from version of \texttt{twang} prior to Version 2.0 but adds substantial computation time for larger datasets. We recommend using the default value.
+\item[\texttt{version}] allows the user to specify which gradient boosting package to use for the propensity score model. Current options are \texttt{"gbm"}, \texttt{"xgboost"}, and \texttt{"legacy"}. The default value is \texttt{version="gbm"} which uses gradient boosting from the \texttt{gbm} package and provides a faster implementation of key components of the \texttt{twang} package to improve speed when calculating and optimizing the balance statistics. \texttt{version="xgboost"} uses gradient boosting from the \texttt{xgboost} package. This provides users with access to a cutting-edge implementation of gradient boosting, while potentially providing speed improvements in larger datasets. The behavior of \texttt{xgboost} can be controlled using the the boosting parameters of \texttt{gbm} discussed earlier, but can also be controlled directly using the options of \texttt{xgboost}. See \url{https://xgboost.readthedocs.io/en/latest/parameter.html} for a description of the different options. \texttt{version="legacy"} uses the implementation of the \texttt{ps} function prior to Version 2.0. To replicate results from analyses utilizing twang prior to Version 2.0, specify the \texttt{version="legacy"} option.
+\end{description}
+
+\subsection{Typical workflow with \texttt{twang}}
+
+Here, we outline the usual steps for a propensity score analysis using \texttt{twang}. While meant to be illustrative, these steps should not be considered comprehensive. Every analysis is unique and requires careful consideration. These steps will be expanded upon in the subsequent examples.
+
+\begin{enumerate}
+  \item Determine the estimand of interest, either ATE or ATT.
+  \item Determine the observed confounding factors to be balanced.
+  \item Fit the propensity score model using the \texttt{ps()} function.
+  \begin{itemize}
+    \item Evaluate the convergence of the algorithm.
+    \item Assess the balance of the confounding factors before and after applying the propensity score weights.
+    \item If needed, rerun the algorithm adjusting the gradient boosting parameters to achieve convergence or improve balance.
+  \end{itemize}
+  \item Extract the propensity score weights and fit a weighted model to estimate the treatment effect.
+\end{enumerate}
+
+\section{An ATT example}
 
 <<echo=FALSE>>=
 options(width=80)
 @
 
+\subsection{Installing \texttt{twang} for first time users}
+
+The package is installed by typing \texttt{install.packages("twang", dependencies=TRUE)} into the R console. You will only need to do this step once. In the future, running \texttt{update.packages()} regularly will ensure that you have the latest versions of the packages, including bug fixes and new features.
+
 \subsection{Load the data}
 
-Start by installing the package by typing \texttt{install.packages("twang")}. \texttt{twang} relies on other R packages, especially \texttt{gbm},  \texttt{survey}, and \texttt{lattice}. You may have to run \texttt{install.packages()} for these as well if they are not already installed. You will only need to do this step once. In the future running \texttt{update.packages()} regularly will ensure that you have the latest versions of the packages, including bug fixes and new features.
-
-To start using \texttt{twang}, first load the package. You will have to do this step once for each R session that you run.  We also set the seed of R's pseudo random number generator so that the results are exactly replicable. (There is a stochastic element to the fitting of the propensity score models.)
+To start using \texttt{twang}, first load the package using \texttt{library(twang)}. This is required at the beginning of each R session. We will highlight features of \texttt{twang} using data from Lalonde's National Supported Work Demonstration analysis (Lalonde 1986, Dehejia \& Wahba 1999, \url{http://users.nber.org/~rdehejia/nswdata2.html}). This dataset is provided with the \texttt{twang} package and can be loaded using \texttt{data(lalonde)}.
 
 <<>>=
 library(twang)
-set.seed(1)
-@
-
-To demonstrate the package we utilize data from Lalonde's National Supported Work Demonstration analysis (Lalonde 1986, Dehejia \& Wahba 1999, \url{http://users.nber.org/~rdehejia/nswdata2.html}). This dataset is provided with the \texttt{twang} package.
-
-<<>>=
 data(lalonde)
 @
 
 R can read data from many other sources. The manual ``R Data Import/Export,'' available at \url{http://cran.r-project.org/doc/manuals/R-data.pdf}, describes that process in detail. 
 
-\subsection{Fit the ps() function}
+\subsection{Fit a gradient boosted model with \texttt{ps}}
 
-For the \texttt{lalonde} dataset, the variable \texttt{treat} is the 0/1 treatment indicator, 1 indicates ``treatment'' by being part of the National Supported Work Demonstration and 0 indicates ``comparison'' cases drawn from the Current Population Survey. In order to estimate a treatment effect for this demonstration program that is unbiased by pretreatment group differences on other observed covariates, we include these covariates in a propensity score model of treatment assignment: age, education, black, Hispanic, having no degree, married, earnings in 1974 (pretreatment), and earnings in 1978 (pretreatment). Note that we specify no outcome variables at this time. The \texttt{ps()} function is the primary method in \texttt{twang} for estimating propensity scores. This step is computationally intensive and can take a few minutes.
+For the \texttt{lalonde} dataset, the variable \texttt{treat} is the treatment indicator, where 1 indicates being part of the National Supported Work Demonstration (``treatment'') and 0 indicates cases drawn from the Current Population Survey (``comparison''). In order to estimate a treatment effect for this demonstration program that is unbiased by pretreatment group differences on other observed covariates, we include the following covariates in a propensity score model of treatment: age, education, black, Hispanic, having no degree, married, earnings in 1974 (pretreatment), and earnings in 1975 (pretreatment). Note that we specify no outcome variables at this time. The \texttt{ps()} function is the primary method in \texttt{twang} for estimating propensity scores for binary treatments. 
 
 <<>>=
-ps.lalonde <- ps(treat ~ age + educ + black + hispan + nodegree +
-                         married + re74 + re78,
+ps.lalonde.gbm = ps(treat ~ age + educ + black + hispan + nodegree +
+                         married + re74 + re75,
                  data = lalonde,
                  n.trees=5000,
                  interaction.depth=2,
                  shrinkage=0.01,
-                 perm.test.iters=0,
                  estimand = "ATT",
                  stop.method=c("es.mean","ks.max"),
-                 bag.fraction = 1,
                  n.minobsinnode = 10,
                  n.keep = 1,
                  n.grid = 25,
@@ -105,221 +148,19 @@ ps.lalonde <- ps(treat ~ age + educ + black + hispan + nodegree +
                  verbose=FALSE)
 @
 
+In this model, we have specified \texttt{estimand = "ATT"} indicating that we will estimate the average treatment effect among those who partcipated in the National Supported Work Demonstration. We also specified two stopping criteria: \texttt{es.mean} and \texttt{ks.max}. This indicates that the algorithm should separately determine the iteration that minimizes the average absolute standardized effect size (\texttt{es.mean}) and the maximum KS statistic (\texttt{ks.max}). We will compare the results of these stopping rules to evaluate the sensitivity of the results to this choice.
 
-\noindent The arguments to \texttt{ps()} require some discussion.
+The saved object \texttt{ps.lalonde.gbm} is of class \texttt{ps} and contains the propensity score model fit information. We will work with this object to assess model convergence, to assess the balance of pretreatment characteristics, and to extract the propensity score weights needed for subsequent analysis. By default, the \texttt{ps()} function uses the \texttt{gbm} package for gradient boosting. A user can request use of \texttt{xgboost} by specifying the option \texttt{version="xgboost"}. The use of \texttt{xgboost} will not be discussed further in this tutorial. See the documentation for additional details. 
 
-\subsubsection{Description and usage of the arguments to \texttt{ps()} function}
+\subsubsection{Convergence diagnostic checks}
 
-\begin{description}
+\noindent Before continuing to outcome analyses, an analyst should perform diagnostic checks assessing the convergence of the gradient boosting algorithm. The specified value of \texttt{n.trees} should be large enough to allows the gradient boosted model to have explored sufficiently complicated models. We can do this quickly with the \texttt{plot()} function.\footnote{In versions 1.0.x of the \texttt{twang} package, the \texttt{ps} function itself included some plotting functions.  This is no longer the case (and the function no longer includes a \texttt{plots} argument); these functions have been moved to the generic \texttt{plot()} function.} As a default, the \texttt{plot()} function applied to a \texttt{ps} object gives the balance measures as a function of the number of iterations in the gradient boosting algorithm, with higher iterations corresponding to more complicated fitted models. In the example below, \Sexpr{ps.lalonde.gbm$desc$es.mean.ATT$n.trees} iterations minimized the average absolute standardized effect size and \Sexpr{ps.lalonde.gbm$desc$ks.max.ATT$n.trees} iterations minimized the largest of the eight Kolmogorov-Smirnov (KS) statistics computed for the covariates. 
 
-\item[\texttt{formula}] the first argument, specifies a formula indicating that \texttt{treat} is the 0/1 treatment indicator and that the propensity score model should predict \texttt{treat} from the eight covariates listed there separated by ``+''. As when fitting linear models via the \texttt{lm()} function, ``+'' does \emph{not} mean that these variables are being summed; in contrast to the \texttt{lm()} function, neither does it mean that the model is linear. This is just R's notation for including predictor variables in the model. There is no need to specify interaction terms in the formula. There is also no need --- and it can be counterproductive --- to create indicator, or ``dummy coded,'' variables to represent categorical covariates, provided the categorical variables are stored as a \texttt{factor} or as \texttt{ordered} (see \texttt{help(factor)} for more details). 
-
-\item[\texttt{data}] indicates the dataset to be used.
-
-\item[\texttt{n.trees}] indicates the number of gbm iterations passed on to \texttt{gbm}. Default value is 10000.
-
-\item[\texttt{interaction.depth}] is a positive integer denoting the tree depth used in gradient boosting. Default value is 3.
-
-\item[\texttt{shrinkage}] is a numeric value between 0 and 1 denoting the learning rate. Default value is 0.01.
-
-\vspace{2 mm} \noindent \texttt{n.trees}, \texttt{interaction.depth}, and \texttt{shrinkage} are the boosting options, parameters for the \texttt{gbm} model that \texttt{ps()} computes and stores. The resulting \texttt{gbm} object describes a family of candidate propensity score models indexed by the number of GBM iterations from one to \texttt{n.trees}. The argument \texttt{n.trees} is the maximum number of iterations that \texttt{gbm} will run. \texttt{ps()} will issue a warning if the estimated optimal number of iterations is too close to the bound selected in this argument because it indicates that balance may improve if more complex models (i.e., those with more trees) are considered. The user should increase \texttt{n.trees} or decrease \texttt{shrinkage} if this warning appears. The argument \texttt{interaction.depth} controls the level of interactions allowed in the GBM.  We typically use the default in our analyses. The GBM estimation algorithm uses shrinkage to enhance the smoothness of resulting model. The \texttt{shrinkage} argument controls the amount of shrinkage. Small values such as 0.005 or 0.001 yield smooth fits but require greater values of \texttt{n.trees} to achieve adequate fits. Computational time increases inversely with \texttt{shrinkage} argument. Additional details on \texttt{n.trees}, \texttt{interaction.depth}, and \texttt{shrinkage} can be found McCaffrey, Ridgeway, and Morral (2004).
-
-\item[\texttt{perm.test.iters}] specifies whether $p$-values for KS statistics should be calculated using Monte Carlo methods, which is slow but can be accurate, or estimated using an analytic approximation that is fast, but produces poor estimates in the presence of many ties. If \texttt{perm.test.iters=0} is called, then analytic approximations are used. If \texttt{perm.test.iters = 500} is called, then 500 Monte Carlo trials are run to establish the reference distribution of KS statistics for each covariate. Higher numbers of trials will produce more precise $p$-values. Specifying \texttt{perm.test.iters} greater than zero can greatly slow down the \texttt{twang} computations. We tend to rely on the approximations (\texttt{perm.test.iters}=0) when using \texttt{twang} in practice.
-
-\item[\texttt{estimand}] is used to indicate whether the analyst is interested in estimating the average treatment effect (ATE) or the average treatment effect on the treated (ATT), as we do above.  ATE addresses the question of how outcomes would differ if everyone in the sample were given the treatment versus everyone being given the control (Wooldridge, 2002). ATT, on the other hand, estimates the analogous quantity averaging only over the subjects who were actually treated.  The \texttt{estimand} argument was added to the 2012 revision of the package which integrated ATE weighting into the package and the \texttt{ps} function estimate of the propensity score. Defaualt value is \texttt{"ATE"}.
-
-\item[\texttt{stop.method}] specifies a set (or sets) of rules and measures for assessing the balance, or equivalence, established on the pretreatment covariates of the weighted treatment and control groups. The \texttt{ps} function selects the optimal number of GBM iterations to minimize the differences between the treatment and control groups as measured by the rules of the given \texttt{stop.method} object. The package includes four built-in \texttt{stop.method} objects. They are \texttt{es.mean}, \texttt{es.max}, \texttt{ks.mean}, and \texttt{ks.max}. The four stopping rules are defined by two components: a balance metric for covariates and rule for summarizing across covariates.  
-
-The balance metric summarizes the difference between two univariate distributions of a single pre-treatment variable (e.g. age).  The default stopping rules in \texttt{twang} use two balance metrics: absolute standardized bias (also referred to as the absolute
-standardized mean difference or the \textit{E}ffect \textit{S}ize) and the Kolmogorov-Smirnov (KS) statistic.  The stopping rule use two different rules for summarizing across covariates: the mean of the covariate balance metrics (``mean'') or the maximum of the balance metrics (``max'').  The first piece of the stopping rule name identifies the balance metric (ES or KS) and the second piece specifies the method for summarizing across balance metrics.  For instance, \texttt{es.mean} uses the effect size or the absolute standardized bias and summarizes across variables with the mean and the \texttt{ks.max} uses the KS statistics to assess balances and summarizes using the maximum across variables and the other two stopping rules use the remaining two combinations of balance metrics and summary statistics. The variable distributions used in the balance metrics depend on whether we are interested in estimating the ATT or ATE, and correct specification of these distributions is set automatically by the specification of the \texttt{estimand} in the \texttt{ps()} function.
-
-\end{description}
-
-\noindent Other additional boosting parameters that can be passed are as follows:
-
-\begin{description}
-
-\item[\texttt{bag.fraction}] is the subsampling fraction. A numeric value between 0 and 1 denoting the fraction of the observations randomly selected in each iteration of the gradient boosting algorithm to propose the next tree. Thus \texttt{bag.fraction=0.5} denotes that half of the training sample will be randomly selected at each iteration. Default value is 1.0.
-
-\item[\texttt{n.minobsinnode}] specifies an integer denoting the minimum number of observations in the terminal nodes of the trees used in the gradient boosting. Default value is 10. This is a new addition in the current version where user can pass the minimum number of observations in the terminal nodes of the trees, to the underlying gradient boosting algorithm. Previously, this parameter was not an available argument for the user and was always fixed at 10.
-<<>>=
-Ex_M1 <- ps(treat ~ age + educ + black + hispan + nodegree +
-                    married + re74 + re78,
-            data = lalonde,
-            n.minobsinnode = 100,
-            verbose = FALSE)
-
-Ex_M1$gbm.obj$n.minobsinnode
-@
-
-\vspace{2 mm} \noindent \texttt{bag.fraction} and \texttt{n.minobsinnode} along with \texttt{n.trees}, \texttt{interaction.depth}, and \texttt{shrinkage} are parameters needed to fine-tune the \texttt{gbm} model.
-
-\end{description}
-
-\noindent Two of the new options included in Version 2.0 of \texttt{twang} are \texttt{n.keep} and \texttt{n.grid}. These options control how \texttt{twang} determines the iterations over which the algorithm optimizes balance. Before describing the options, we first describe how \texttt{twang} determines the optimal iteration. The algorithm first creates a grid of points, which is a 25 point grid by default, and assesses the balance at each iteration of the grid. The algorithm finds the optimal iteration based on this grid, and then does a finer search for the optimum between this grid point and its neighbors. For example, say we find that grid point 15 achieves the optimal balance, then the algorithm focuses it search for the optimal iteration between grid points 14 and 16.
-
-\begin{description}
-
-\item[\texttt{n.keep}] option is a numeric variable indicating that the algorithm should only consider every \texttt{n.keep}-th iteration of the propensity score model and optimize balance over this set instead of all iterations. The default value is 1, which is to optimize over all iterations.
-
-\item[\texttt{n.grid}] option is a numeric variable that sets the grid size for an initial search of the region most likely to minimize the \texttt{stop.method}. Default grid size is 25. When \texttt{n.keep=1}, a value of \texttt{n.grid=50} uses a 50 point grid from \texttt{1:n.trees}.
-
-<<>>=
-Ex_M2 <- ps(treat ~ age + educ + black + hispan + nodegree +
-                    married + re74 + re78,
-            data = lalonde,
-            estimand = "ATT",
-            n.grid = 50,
-            verbose = FALSE)
-
-# how many points are in the grid?
-length(Ex_M2$iters)
-@
-
-The options \texttt{n.grid} and \texttt{n.keep} can be combined. The option \texttt{n.grid} corresponds to a grid of points on the kept iterations as defined by \texttt{n.keep}. For example, \texttt{n.keep=10} with \texttt{n.trees=5000} will keep the iterations \texttt{(10,20,...,5000)}. The option \texttt{n.grid=10} then splits this vector into 10 points. Thus, \texttt{n.grid*n.keep} must be less than or equal to \texttt{n.trees}.
-
-<<>>=
-Ex_M3 <- ps(treat ~ age + educ + black + hispan + nodegree +
-                    married + re74 + re78,
-            data = lalonde,
-            estimand = "ATT",
-            n.trees = 5000,
-            n.keep = 10,
-            n.grid = 10,
-            verbose = FALSE)
-
-summary(Ex_M3)
-@
-
-In case \texttt{n.grid*n.keep} is greater than \texttt{n.trees} the user should recieve an error message.
-
-<<eval=FALSE>>=
-Ex_M4 <- ps(treat ~ age + educ + black + hispan + nodegree +
-                    married + re74 + re78,
-            data = lalonde,
-            estimand = "ATT",
-            n.trees = 5000,
-            n.keep = 100,
-            n.grid = 100,
-            verbose = FALSE)
-@
-
-<<echo=FALSE, eval=TRUE, results=verbatim, tidy=TRUE>>=
-try_out <- try(Ex_M4 <- ps(treat ~ age + educ + black + hispan + nodegree + married + re74 + re78,
-                           data = lalonde,
-                           estimand = "ATT",
-                           n.trees = 5000,
-                           n.keep = 100,
-                           n.grid = 100,
-                           verbose = FALSE))
-cat(try_out)
-@
-
-\item[\texttt{version}] option is another new addition to \texttt{twang} 2.0 which helps specifying the version of the package, \texttt{"gbm"}, \texttt{"xgboost"}, or \texttt{"legacy"}. The default value is \texttt{version="gbm"} which uses gradient boosting from the \texttt{gbm} package and it provides a faster implementation of key components of the \texttt{twang} package to improve speed when calculating and optimizing the balance statistics. 
-
-\texttt{version="xgboost"} uses gradient boosting from the \texttt{xgboost} package. This provides users with access to a cutting-edge implementation of gradient boosting, while also providing substantial speed improvements in larger datasets. The behavior of \texttt{xgboost} can be controlled using the the boosting parameters of \texttt{gbm} discussed earlier, but can also be controlled directly using the options of \texttt{xgboost}. See https://xgboost.readthedocs.io/en/latest/parameter.html for a description of the different options.
-
-<<>>=
-## The following model specifications are equivalent
-#  Model 1 using "gbm" options
-Ex_M5 <- ps(treat ~ age + educ + black + hispan + nodegree + 
-                    married + re74 + re78,
-            data = lalonde,
-            estimand = "ATT", 
-            n.trees = 5000, 
-            shrinkage = 0.05,
-            interaction.depth = 3, 
-            n.minobsinnode = 15,
-            version = "xgboost", 
-            verbose = FALSE)
-
-#  Model 2 using "xgboost" options
-Ex_M6 <- ps(treat ~ age + educ + black + hispan + nodegree +
-                    married + re74 + re78,
-            data = lalonde, 
-            estimand = "ATT", 
-            nrounds = 5000, 
-            eta = 0.05,
-            max_depth = 3, 
-            min_child_weight = 15,
-            version = "xgboost", 
-            verbose = FALSE)
-
-# verify this is true by checking balance. 
-all.equal(bal.table(Ex_M5),bal.table(Ex_M6))
-@
-
-Alternatively, the list of parameters passed to \texttt{xgboost} can be specified with \texttt{params}.
-
-<<>>=
-Ex_M7 <- ps(treat ~ age + educ + black + hispan + nodegree +
-                    married + re74 + re78,
-            data = lalonde, 
-            estimand = "ATT",
-            nrounds = 5000,
-            params = list(eta = 0.05, max_depth = 3, min_child_weight = 15),
-            version = "xgboost",
-            verbose = FALSE)
-
-all.equal(bal.table(Ex_M6),bal.table(Ex_M7))
-@
-
-Details on assessing "balance" via \texttt{bal.table} is discussed in later sections of this turtorial.
-
-\texttt{version="legacy"} uses the prior implementation of the \texttt{ps} function. Version 2.0 of \texttt{twang} defaults to using updated balance and optimization routines. Once installed, the user does not need to modify any existing code to use the update functions that improves computational efficiency. If the user wishes to use the prior implementation of twang, they can request this by specifying the \texttt{version="legacy"} option.
-
-<<>>=
-Ex_M8 <- ps(treat ~ age + educ + black + hispan + nodegree +
-                    married + re74 + re78,
-            data = lalonde,
-            version = "legacy",
-            verbose = FALSE)
-@
-
-However, the new options included in Version 2.0 of \texttt{twang} are not allowed when the user requests the \texttt{legacy} version of the code. If specified together, the user should receive an error message. For example,
-
-<<eval=FALSE>>=
-Ex_M9 <- ps(treat ~ age + educ + black + hispan + nodegree +
-                    married + re74 + re78,
-            data = lalonde,
-            version = "legacy",
-            ks.exact = TRUE,
-            verbose = FALSE)
-@
-
-<<echo=FALSE, eval=TRUE, results=verbatim>>=
-try_out <- try(ps(treat ~ age + educ + black + hispan + nodegree + married + re74 + re78,
-                  data = lalonde,
-                  version = "legacy",
-                  ks.exact = TRUE,
-                  verbose = FALSE))
-cat(try_out)
-@
-
-\item[\texttt{ks.exact}] is a new option in Version 2.0 to improve the speed when calculating the p-value for the weighted two-sample Kolmogorov–Smirnov (KS) statistic. The default behavior when calculating the weighted two-sample KS p-value differs from previous implementations of \texttt{twang}. Specifically, if \texttt{ks.exact=NULL} and the product of the effective sample sizes is less than 10,000, then an approximation based on the exact distribution of the unweighted KS statistic is used. This approximation via the exact distribution can also be requested directly by \texttt{ks.exact=TRUE}. Otherwise, an approximation based on the asymptotic distribution of the unweighted KS statistic is used.
-
-\item[\texttt{sampw}] are optional sampling weights.
-
-\item[\texttt{multinom}] is to \texttt{TRUE} only when called from \texttt{mnps} function.
-
-\item[\texttt{print.level}] is the amount of detail to print to the screen. Default value is 2.
-
-\item[\texttt{verbose}] is the argument that determines the printing of information on the console. If \texttt{TRUE}, lots of information will be printed to monitor the progress of the fitting. Default value is \texttt{TRUE}. Thus printing to the console will be carried out by default unless explicitly mentioned in the function call earlier as \texttt{verbose=FALSE}.
-
-\end{description}
-
-\subsubsection{Diagnostic checks with plot() function}
-
-\noindent Having fit the \texttt{ps} object, the analyst should perform several diagnostic checks before estimating the causal effect in question. The first of these diagnostic checks makes sure that the specified value of \texttt{n.trees} allowed GBM to explore sufficiently complicated models. We can do this quickly with the \texttt{plot()} function.\footnote{In versions 1.0.x of the \texttt{twang} package, the \texttt{ps} function itself included some plotting functions.  This is no longer the case (and the function no longer includes a \texttt{plots} argument); these functions have been moved to the generic \texttt{plot()} function.}
-
-\vspace{2 mm} As a default, the \texttt{plot()} function applied to a \texttt{ps} object gives the balance measures as a function of the number of iterations in the GBM algorithm, with higher iterations corresponding to more complicated fitted models. In the example below, 1672 iterations minimized the average effect size difference and 1151 iterations minimized the largest of the eight Kolmogorov-Smirnov (KS) statistics computed for the covariates. 
-If it appears that additional iterations would be likely to result in lower values of the balance statistic, \texttt{n.trees} should be increased. However, after a point, additional complexity typically makes the balance worse, as in the example below.  
-This figure also gives information on how compatible two or more stopping rules are: if the
-minima for multiple stopping rules under consideration are near one another, the results should not be sensitive to which stopping rule one uses for the final analysis. See Section~\ref{sec:pseval} for a discussion of these and other balance measures.  
+If it appears that additional iterations would be likely to result in lower values of the balance statistic, \texttt{n.trees} should be increased. However, after a point, additional complexity typically makes the balance worse, as in the example below. This figure also gives information on how compatible two or more stopping rules are: if the minima for multiple stopping rules under consideration are near one another, the results should not be sensitive to which stopping rule one uses for the final analysis. See Section~\ref{sec:pseval} for a discussion of these and other balance measures.  
 
 \begin{center}
 <<label=iterPt, fig=TRUE, echo=TRUE, include = TRUE, height = 4, width = 6>>= 
-    plot(ps.lalonde)
+    plot(ps.lalonde.gbm)
 @
 \end{center}
 
@@ -337,49 +178,26 @@ minima for multiple stopping rules under consideration are near one another, the
 %additional iterations offer no improvement or actually make the
 %balance worse. 
 
-If we wish to focus on only one stopping rule, the plotting commands also take a \texttt{subset} argument.
 
-\pagebreak
-
-\begin{center}
-<<label=iterPt2, fig=TRUE, echo=TRUE, include = TRUE, height = 3.5, width = 6>>= 
-    plot(ps.lalonde, subset = 2)
-@
-\end{center}
+% \begin{center}
+% <<label=iterPt2, fig=TRUE, echo=TRUE, include = TRUE, height = 3.5, width = 6>>= 
+%     plot(ps.lalonde.gbm, subset = 2)
+% @
+% \end{center}
 
 
+\subsubsection{Assessing ``balance'' using balance tables}
 
-The \texttt{gbm} package has various tools for exploring the relationship between the covariates and the treatment assignment indicator if these are of interest. \texttt{summary()} computes the relative influence of each variable for estimating the probability of treatment assignment. The gbm estimates depend on the number of iterations at which the gbm model is evaluated, which is specified by the \texttt{n.trees} argument in the \texttt{summary} method for gbm. In this example, we choose the number of iterations to be the optimal number for minimizing the largest of the KS statistics. This value can be found in the \texttt{ps.lalonde\$desc\$ks.max.ATT\$n.trees}. Figure~\ref{fig:relativeinfluence} shows the barchart of the relative influence and is produced when \texttt{plot=TRUE} in the call to \texttt{summary()}.
+Having estimated the propensity scores, \texttt{bal.table()} produces a table that shows how well the resulting weights succeed in manipulating the control group so that its weighted pretreatment characteristics match, or balance, those of the unweighted treatment group when \texttt{estimand = "ATT"}. If \texttt{estimand = "ATE"}, both the control and treatment groups are weighted so that the weighted pretreatment characteristics match, or balance, with one another.
 
-<<include=FALSE,width=6,height=8.5>>=
-summary(ps.lalonde$gbm.obj,
-        n.trees=ps.lalonde$desc$ks.max.ATT$n.trees,
-        plot=FALSE)
-@
-
-\begin{figure}[h!]
-\begin{center}
-<<fig=TRUE,echo=FALSE,term=FALSE,width=6,height=8.5>>=
-summary(ps.lalonde$gbm.obj,
-        n.trees=ps.lalonde$desc$ks.max.ATT$n.trees)
-@
-\end{center}
-\caption{Relative influence of the covariates on the estimated propensity score.}
-\label{fig:relativeinfluence}
-\end{figure}
-
-\clearpage
-\subsection{Assessing ``balance'' using balance tables}
-
-Having estimated the propensity scores, \texttt{bal.table()} produces a table that shows how well the resulting weights succeed in manipulating the control group so that its weighted pretreatment characteristics match, or balance, those of the unweighted treatment group if \texttt{estimand = "ATT"} or the control and treatment groups so that the weighted pretreatment characteristics match, or balance, with one another if \texttt{estimand = "ATE"}.
-By default, the \texttt{bal.table()} function uses the value of \texttt{estimand} set with the \texttt{ps()} function call (default value of \texttt{estimand = "ATE"}.  For example, in the analysis we set \texttt{estimand =  "ATT"} when calling \texttt{ps()} to estimate the propensity scores and the resulting \texttt{ps.object}, \texttt{ps.lalonde}, contains an element ``estimand`` which takes the value \texttt{ "ATT"}.  The function \texttt{bal.table()} checks this value and automatically uses \texttt{ATT} weights when checking balance and comparing the distributions of pre-treatment variables for the weighted control group with those from the unweighted treatment group.
+By default, the \texttt{bal.table()} function uses the value of \texttt{estimand} set with the \texttt{ps()} function call. For example, in the analysis we set \texttt{estimand =  "ATT"} when calling \texttt{ps()} to estimate the propensity scores. The function \texttt{bal.table()} automatically uses the correct weights when checking balance and comparing the distributions of pre-treatment variables for the weighted control group with those from the unweighted treatment group.
 
 <<echo=FALSE>>=
 options(width=85)
 @
 
 <<>>=
-lalonde.balance <- bal.table(ps.lalonde)
+lalonde.balance <- bal.table(ps.lalonde.gbm)
 lalonde.balance
 @
 
@@ -406,39 +224,39 @@ standard deviations.
 \item[\texttt{ks, ks.pval}] The Kolmogorov-Smirnov test statistic and its associated p-value. P-values for the KS statistics are either derived from Monte Carlo simulations or analytic approximations, depending on the specifications made in the \texttt{perm.test.iters} argument of the \texttt{ps} function. For categorical variables this is just the $\chi^2$ test p-value.
 \end{description}
 
-Components of these tables are useful for demonstrating that pretreatment differences between groups on observed variables have been eliminated using the weights. The \texttt{xtable} package aids in formatting for \LaTeX { }and Word documents. Table~\ref{tab:balance} shows the results for \texttt{ks.max} reformatted for a \LaTeX { }document. For Word documents, paste the \LaTeX { }description of the table into a Word document, highlight it and use Word tools to convert the text to a table using ``\&`` as the separator.  
+Components of these tables are useful for demonstrating that pretreatment differences between groups on observed variables have been eliminated using the weights. %The \texttt{xtable} package aids in formatting for \LaTeX { }and Word documents. Table~\ref{tab:balance} shows the results for \texttt{ks.max} reformatted for a \LaTeX { }document. For Word documents, paste the \LaTeX { }description of the table into a Word document, highlight it and use Word tools to convert the text to a table using ``\&`` as the separator.  
 
+% 
+% # <<eval=FALSE>>=
+% # library(xtable)
+% # pretty.tab <- lalonde.balance$ks.max.ATT[,c("tx.mn","ct.mn","ks")]
+% # pretty.tab <- cbind(pretty.tab, lalonde.balance$unw[,"ct.mn"])
+% # names(pretty.tab) <- c("E(X|t=1)","E(X|t=1)","KS","E(Y0|t=0)")
+% # xtable(pretty.tab,
+% #        caption = "Balance of the treatment and comparison groups",
+% #        label = "tab:balance",
+% #        digits = c(0, 2, 2, 2, 2),
+% #        align=c("l","r","r","r","r"))
+% # @
+% 
+% \clearpage
+% <<echo=FALSE, results=tex>>=
+% library(xtable)
+% pretty.tab <- lalonde.balance$ks.max.ATT[,c("tx.mn","ct.mn","ks")]
+% pretty.tab <- cbind(pretty.tab, lalonde.balance$unw[,"ct.mn"])
+% names(pretty.tab) <- c("E(X|t=1)","E(X|t=1)","KS","E(X|t=0)")
+% t1 <- xtable(pretty.tab,
+%              caption = "Balance of the treatment and comparison groups",
+%              label = "tab:balance",
+%              digits = c(0, 2, 2, 2, 2),
+%              align=c("l","r","r","r","r"))
+% t1
+% @
 
-<<eval=FALSE>>=
-library(xtable)
-pretty.tab <- lalonde.balance$ks.max.ATT[,c("tx.mn","ct.mn","ks")]
-pretty.tab <- cbind(pretty.tab, lalonde.balance$unw[,"ct.mn"])
-names(pretty.tab) <- c("E(Y1|t=1)","E(Y0|t=1)","KS","E(Y0|t=0)")
-xtable(pretty.tab,
-       caption = "Balance of the treatment and comparison groups",
-       label = "tab:balance",
-       digits = c(0, 2, 2, 2, 2),
-       align=c("l","r","r","r","r"))
-@
-
-\clearpage
-<<echo=FALSE, results=tex>>=
-library(xtable)
-pretty.tab <- lalonde.balance$ks.max.ATT[,c("tx.mn","ct.mn","ks")]
-pretty.tab <- cbind(pretty.tab, lalonde.balance$unw[,"ct.mn"])
-names(pretty.tab) <- c("E(Y1|t=1)","E(Y0|t=1)","KS","E(Y0|t=0)")
-t1 <- xtable(pretty.tab,
-             caption = "Balance of the treatment and comparison groups",
-             label = "tab:balance",
-             digits = c(0, 2, 2, 2, 2),
-             align=c("l","r","r","r","r"))
-t1
-@
-
-The \texttt{summary()} method for \texttt{ps} objects offers a compact summary of the sample sizes of the groups and the balance measures. If \texttt{perm.test.iters>0} was used to create the \texttt{ps} object, then Monte Carlo simulation is used to estimate p-values for the maximum KS statistic that would be expected across the covariates, had individuals with the same covariate values been assigned to groups randomly. Thus, a p-value of 0.04 for \texttt{max.ks.p} indicates that the largest KS statistic found across the covariates is larger than would be expected in 96\% of trials in which the same cases were randomly assigned to groups.
+The \texttt{summary()} method for \texttt{ps} objects offers a compact summary of the sample sizes of the groups and the balance measures. If \texttt{perm.test.iters>0} was used to create the \texttt{ps} object, then Monte Carlo simulation is used to estimate p-values for the maximum KS statistic that would be expected across the covariates, had individuals with the same covariate values been assigned to groups randomly. Thus, a p-value of 0.04 for \texttt{max.ks.p} indicates that the largest KS statistic found across the covariates is larger than would be expected in 96\% of trials in which the same cases were randomly assigned to groups. Otherwise, \texttt{max.ks.p} will be NA.
 
 <<>>=
-summary(ps.lalonde)
+summary(ps.lalonde.gbm)
 @
 
 
@@ -457,7 +275,7 @@ precision due to weighting.
 The \texttt{ess.treat} and \texttt{ess.ctrl} columns in the summary results shows the ESS for the estimated propensity scores. Note that although the original comparison group had 429 cases, the propensity score estimates effectively utilize only 24 or 36.4 of the comparison cases, depending on the rules and measures used to estimate the propensity scores. While this may seem like a large loss of sample size, this indicates that many of the original cases were unlike the treatment cases and, hence, were not useful for isolating the
 treatment effect. Moreover, similar or even greater reductions in ESS would be expected from alternative approaches to using propensity scores, such as matching or stratification. Since the estimand of interest in this example is ATT, \texttt{ess.treat = n.treat} throughout (i.e., all treatment cases have a weight of 1). 
 
-\subsection{Graphical assessments of balance}
+\subsubsection{Graphical assessments of balance}
 \label{sec:plots} 
 
 The \texttt{plot()} function can generate useful diagnostic plots from the propensity score objects. The full set of plots available in \texttt{twang} and the argument value of \texttt{plot} to produce each one are given in Table~\ref{tab:allArg}.  The convergence plot --- the default --- was discussed above.
@@ -489,7 +307,7 @@ The \texttt{plot()} function takes a \texttt{plots} argument in order to produce
 
 \begin{center}
 <<fig=TRUE,height=4,width=6>>=
-plot(ps.lalonde, plots=2)
+plot(ps.lalonde.gbm, plots=2)
 @
 \end{center}
 
@@ -497,7 +315,7 @@ The effect size plot illustrates the effect of weights on the magnitude of diffe
 
 \begin{center}
 <<fig=TRUE,height=4,width=6>>=
-plot(ps.lalonde, plots=3)
+plot(ps.lalonde.gbm, plots=3)
 @
 \end{center}
 
@@ -508,7 +326,7 @@ the quantiles of the observed p-values to the quantiles of the uniform distribut
 
 \begin{center}
 <<fig =TRUE, height=4, width = 6>>=
-plot(ps.lalonde, plots = 4)
+plot(ps.lalonde.gbm, plots = 4)
 @ 
 \end{center}
 
@@ -518,7 +336,7 @@ One can inspect similar plots for the KS statistic with the argument \texttt{plo
 
 \begin{center}
 <<fig =TRUE, height=4, width = 6>>=
-plot(ps.lalonde, plots = 5)
+plot(ps.lalonde.gbm, plots = 5)
 @ 
 \end{center}
 
@@ -552,12 +370,38 @@ plot(ps.lalonde, plots = 5)
 In all cases, the \texttt{subset} argument can be used if we wish to focus on results from one stopping rule.  
 \begin{center}
 <<fig =TRUE, height=4, width = 6>>=
-plot(ps.lalonde, plots = 3, subset = 2)
+plot(ps.lalonde.gbm, plots = 3, subset = 2)
 @ 
 \end{center}
 
+\subsubsection{Understanding the relationship between the covariates and the treatment assignment}
+
+The \texttt{gbm} package has various tools for exploring the relationship between the covariates and the treatment assignment indicator if these are of interest. These tools can be used with the \texttt{ps} object to extract useful information. In particular, the \texttt{summary()} function applied to the underling \texttt{gbm} object computes the relative influence of each variable for estimating the probability of treatment assignment. The relaive influence of each variable changes as more iteration are added to the gradient boosted model. In this example, we choose the number of iterations to be the optimal number for minimizing the largest of the KS statistics. This value can be found in the \texttt{ps.lalonde.gbm\$desc\$ks.max.ATT\$n.trees}. Figure~\ref{fig:relativeinfluence} shows the barchart of the relative influence and is produced when \texttt{plot=TRUE} in the call to \texttt{summary()}.
+
+<<include=FALSE,width=6,height=8.5>>=
+summary(ps.lalonde.gbm$gbm.obj,
+        n.trees=ps.lalonde.gbm$desc$ks.max.ATT$n.trees,
+        plot=FALSE)
+@
+
+\begin{figure}[h!]
+\begin{center}
+<<fig=TRUE,echo=FALSE,term=FALSE,width=6,height=8.5>>=
+summary(ps.lalonde.gbm$gbm.obj,
+        n.trees=ps.lalonde.gbm$desc$ks.max.ATT$n.trees)
+@
+\end{center}
+\caption{Relative influence of the covariates on the estimated propensity score.}
+\label{fig:relativeinfluence}
+\end{figure}
+
+
+
+
 
 \subsection{Analysis of outcomes}
+
+\subsubsection{Propensity scores from \texttt{ps()}}
 
 A separate R package, the \texttt{survey} package, is useful for performing the outcomes analyses using weights. Its statistical methods account for the weights when computing standard error estimates. It is not a part of the standard R installation but installing \texttt{twang} should automatically install \texttt{survey} as well.
 
@@ -568,7 +412,7 @@ library(survey)
 The \texttt{get.weights()} function extracts the propensity score weights from a \texttt{ps} object. Those weights may then be used as case weights in a \texttt{svydesign} object.  By default, it returns weights corresponding to the estimand (ATE or ATT) that was specified in the original call to \texttt{ps()}. If needed, the user can override the default via the optional \texttt{estimand} argument. 
 
 <<>>=
-lalonde$w <- get.weights(ps.lalonde, stop.method="es.mean")
+lalonde$w <- get.weights(ps.lalonde.gbm, stop.method="es.mean")
 design.ps <- svydesign(ids=~1, weights=~w, data=lalonde)
 @
 
@@ -586,14 +430,7 @@ design.ps <- svydesign(ids=~1, weights=~w, data=lalonde)
 %\texttt{stop.method} objects optimize for the treatment effect on
 %the treated and it is possible that a different set of propensity
 %scores would be optimal for a treatment on the population analysis.
-The \texttt{stop.method} argument specifies which GBM model, and consequently which weights, to utilize.
-%The third argument to \texttt{get.weights} selects which set of
-%weights to utilize. 
-%If no \texttt{stop.method} is selected then it
-%returns the first set of weights.
-
-
-The \texttt{svydesign} function from the \texttt{survey} package creates an object that stores the dataset along with design information needed for analyses. See \texttt{help(svydesign)} for more details on setting up \texttt{svydesign} objects.
+The \texttt{stop.method} argument specifies which GBM model, and consequently which weights, to utilize. The \texttt{svydesign} function from the \texttt{survey} package creates an object that stores the dataset along with design information needed for analyses. See \texttt{help(svydesign)} for more details on setting up \texttt{svydesign} objects.
 
 The aim of the National Supported Work Demonstration analysis is to determine whether the program was effective at increasing earnings in 1978. The propensity score adjusted test can be computed with \texttt{svyglm}.
 
@@ -604,17 +441,17 @@ summary(glm1)
 
 
 
-The analysis estimates an increase in earnings of \$290 for those that participated in the NSW compared with similarly situated people observed in the CPS. The effect, however, does not appear to be statistically significant.
+The analysis estimates an increase in earnings of \$\Sexpr{round(glm1$coefficients["treat"],0)} for those that participated in the NSW compared with similarly situated people observed in the CPS. The effect, however, does not appear to be statistically significant.
 
 
-Some authors have recommended utilizing both propensity score adjustment and additional covariate adjustment to minimize mean square error or to obtain ``doubly robust`` estimates of the treatment effect (Huppler-Hullsiek \& Louis 2002, Bang \& Robins 2005). These estimators are consistent if either the propensity scores are estimated correctly \textit{or} the regression model is specified correctly. For example, note that the balance table for \texttt{ks.max.ATT} made the two groups more similar on \texttt{nodegree}, but still some differences remained, 70.8\% of the treatment group had no degree while 60\% of the comparison group had no degree. While linear regression is sensitive to model misspecification when the treatment and comparison groups are dissimilar, the propensity score weighting has made them more similar, perhaps enough so that additional modeling with covariates can adjust for any remaining differences. In addition to potential bias reduction, the inclusion of additional covariates can reduce the standard error of the treatment effect if some of the covariates are strongly related to the outcome.
+Some authors have recommended utilizing both propensity score adjustment and additional covariate adjustment to minimize mean square error or to obtain ``doubly robust`` estimates of the treatment effect (Huppler-Hullsiek \& Louis 2002, Bang \& Robins 2005). These estimators are consistent if either the propensity scores are estimated correctly \textit{or} the regression model is specified correctly. For example, note that the balance table for \texttt{es.mean.ATT} made the two groups more similar on \texttt{nodegree}, but still some differences remained, \Sexpr{round(100*ps.lalonde.gbm$desc$es.mean.ATT$bal.tab$results["nodegree","tx.mn"],1)}\% of the treatment group had no degree while \Sexpr{round(100*ps.lalonde.gbm$desc$es.mean.ATT$bal.tab$results["nodegree","ct.mn"],1)}\% of the comparison group had no degree. While linear regression is sensitive to model misspecification when the treatment and comparison groups are dissimilar, the propensity score weighting has made them more similar, perhaps enough so that additional modeling with covariates can adjust for any remaining differences. In addition to potential bias reduction, the inclusion of additional covariates can reduce the standard error of the treatment effect if some of the covariates are strongly related to the outcome.
 
 <<>>=
 glm2 <- svyglm(re78 ~ treat + nodegree, design=design.ps)
 summary(glm2)
 @
 
-Adjusting for the remaining group difference in the \texttt{nodegree} variable slightly increased the estimate of the program's effect to \$463, but the difference is still not statistically significant. We can further adjust for the other covariates, but that too in this case has little effect on the estimated program effect.
+Adjusting for the remaining group difference in the \texttt{nodegree} variable slightly increased the estimate of the program's effect to \$\Sexpr{round(glm2$coefficients["treat"],0)}, but the difference is still not statistically significant. We can further adjust for the other covariates, but that too in this case has little effect on the estimated program effect.
 
 
 
@@ -625,9 +462,9 @@ glm3 <- svyglm(re78 ~ treat + age + educ + black + hispan + nodegree +
 summary(glm3)
 @
 
-\subsection{Estimating the program effect using linear regression}
+\subsubsection{Estimating the program effect using linear regression}
 
-The more traditional regression approach to estimating the program effect would fit a linear model with a treatment indicator and linear terms for each of the covariates.
+The classical regression approach to estimating the program effect would fit a linear model with a treatment indicator and linear terms for each of the covariates.
 
 <<>>=
 glm4 <- lm(re78 ~ treat + age + educ + black + hispan + nodegree +
@@ -643,16 +480,16 @@ glm5 <- lm(sqrt(re78) ~ treat + age + educ + black + hispan + nodegree +
 @
 
 
-This model estimates a rather strong treatment effect, estimating a program effect of \$\Sexpr{round(coef(glm4)[2])} with a p-value=\Sexpr{round(coef(summary(glm4))[2,4],3)}. Several variations of this regression approach also estimate strong program effects. For example using square root transforms on the earnings variables yields a p-value=\Sexpr{round(coef(summary(glm5))[2,4],3)}. These estimates, however, are very sensitive to the model structure since the treatment and control subjects differ greatly as seen in the unweighted balance comparison (\$unw) from \texttt{bal.table(ps.lalonde)}.
+This model estimates a rather strong treatment effect, estimating a program effect of \$\Sexpr{round(coef(glm4)[2])} with a p-value=\Sexpr{round(coef(summary(glm4))[2,4],3)}. Several variations of this regression approach also estimate strong program effects. For example using square root transforms on the earnings variables yields a p-value=\Sexpr{round(coef(summary(glm5))[2,4],3)}. These estimates, however, are very sensitive to the model structure since the treatment and control subjects differ greatly as seen in the unweighted balance comparison from \texttt{bal.table(ps.lalonde.gbm)}.
 
 
-\subsection{Propensity scores estimated from logistic regression}
+\subsection{Propensity scores from logistic regression}
 
 Propensity score analysis is intended to avoid problems associated with the misspecification of covariate adjusted models of outcomes, but the quality of the balance and the treatment effect estimates can be sensitive to the method used to estimate the propensity scores. Consider estimating the propensity scores using logistic regression instead of \texttt{ps()}.
 
 <<>>=
 ps.logit <- glm(treat ~ age + educ + black + hispan + nodegree +
-                        married + re74 + re78,
+                        married + re74 + re75,
                 data = lalonde,
                 family = binomial)
 lalonde$w.logit <- rep(1,nrow(lalonde))
@@ -666,7 +503,7 @@ lalonde$w.logit[lalonde$treat==0] <- exp(predict(ps.logit,subset(lalonde,treat==
 bal.logit <- dx.wts(x = lalonde$w.logit,
                     data=lalonde,
                     vars=c("age","educ","black","hispan","nodegree",
-                      "married","re74","re78"),
+                      "married","re74","re75"),
                     treat.var="treat",
                     perm.test.iters=0, estimand = "ATT")
 bal.logit
@@ -676,30 +513,66 @@ bal.logit
 Applying the \texttt{bal.table()} function to this object returns a variable-by-variable summary of balance, just like it did for the \texttt{ps} object.  
 
 <<>>=
-bal.logit <- dx.wts(x = lalonde$w.logit,
-                    data=lalonde,
-                    vars=c("age","educ","black","hispan","nodegree",
-                      "married","re74","re78"),
-                    treat.var="treat",
-                    perm.test.iters=0, estimand = "ATT")
-bal.logit
+bal.table(bal.logit)
 @ 
 
-For weights estimated with logistic regression, the largest KS statistic was reduced from the unweighted sample's largest KS of 0.64 to 0.31, which is still quite a large KS statistic. Table~\ref{tab:balancelogit} shows the details of the balance of the treatment and comparison groups. The means of the two groups appear to be quite similar while the KS statistic shows substantial differences in their distributions.
+For weights estimated with logistic regression, the largest KS statistic was reduced from the unweighted sample's largest KS of 0.64 to 0.31, which is still quite a large KS statistic. %Table~\ref{tab:balancelogit} shows the details of the balance of the treatment and comparison groups. The means of the two groups appear to be quite similar while the KS statistic shows substantial differences in their distributions.
 
-% Code for Table 3, which is not evaluated here but later for formatting purposes
-<<eval=FALSE>>=
-pretty.tab <- bal.table(bal.logit)[[2]][,c("tx.mn","ct.mn","ks")]
-pretty.tab <- cbind(pretty.tab, bal.table(bal.logit)[[1]]$ct.mn)
-names(pretty.tab) <- c("E(Y1|t=1)","E(Y0|t=1)","KS","E(Y0|t=0)")
-xtable(pretty.tab,
-       caption = "Logistic regression estimates of the propensity scores",
-       label = "tab:balancelogit",
-       digits = c(0, 2, 2, 2, 2),
-       align=c("l","r","r","r","r"))
-@
+% % Code for Table 3, which is not evaluated here but later for formatting purposes
+% <<eval=FALSE>>=
+% pretty.tab <- bal.table(bal.logit)[[2]][,c("tx.mn","ct.mn","ks")]
+% pretty.tab <- cbind(pretty.tab, bal.table(bal.logit)[[1]]$ct.mn)
+% names(pretty.tab) <- c("E(Y1|t=1)","E(Y0|t=1)","KS","E(Y0|t=0)")
+% xtable(pretty.tab,
+%        caption = "Logistic regression estimates of the propensity scores",
+%        label = "tab:balancelogit",
+%        digits = c(0, 2, 2, 2, 2),
+%        align=c("l","r","r","r","r"))
+% @
 
-Table~\ref{tab:balancecompare} compares the balancing quality of the weights directly with one another.
+Table \ref{tab:balancecompare} and \ref{tab:balancecompare2} compares the balancing quality of the weights directly with one another using the standardize effect size and the KS statistic, respectively. The standardized effect sizes for both sets of propensity score weights are improved compared to the unweighted analysis. The KS statistics for \texttt{age} and \texttt{re74} are larger for the logistic regression model than the GBM-based propensity score model. Combining the results of Table \ref{tab:balancecompare} and \ref{tab:balancecompare2} we can conclude that logistic regression is achieving mean balance between the groups (Table \ref{tab:balancecompare}), but it does not balance the full distribution (Table \ref{tab:balancecompare2}).
+
+\begin{table}[ht]
+\begin{center}
+\begin{tabular}{rccc}
+\hline
+Covariate & Unweighted & Using \texttt{ps} & Using logistic regression \\
+\hline
+age & \Sexpr{round(ps.lalonde.gbm$desc$unw$bal.tab$results["age","std.eff.sz"],3)} & \Sexpr{round(ps.lalonde.gbm$desc$es.mean.ATT$bal.tab$results["age","std.eff.sz"] , 3)} & \Sexpr{round(bal.table(bal.logit)[[2]]["age","std.eff.sz"],3)} \\
+educ & \Sexpr{round(ps.lalonde.gbm$desc$unw$bal.tab$results["educ","std.eff.sz"],3)} & \Sexpr{round(ps.lalonde.gbm$desc$es.mean.ATT$bal.tab$results["educ","std.eff.sz"] , 3)} & \Sexpr{round(bal.table(bal.logit)[[2]]["educ","std.eff.sz"],3)} \\
+black & \Sexpr{round(ps.lalonde.gbm$desc$unw$bal.tab$results["black","std.eff.sz"],3)} & \Sexpr{round(ps.lalonde.gbm$desc$es.mean.ATT$bal.tab$results["black","std.eff.sz"] , 3)} & \Sexpr{round(bal.table(bal.logit)[[2]]["black","std.eff.sz"],3)} \\
+hispan & \Sexpr{round(ps.lalonde.gbm$desc$unw$bal.tab$results["hispan","std.eff.sz"],3)} & \Sexpr{round(ps.lalonde.gbm$desc$es.mean.ATT$bal.tab$results["hispan","std.eff.sz"] , 3)} & \Sexpr{round(bal.table(bal.logit)[[2]]["hispan","std.eff.sz"],3)} \\
+nodegree & \Sexpr{round(ps.lalonde.gbm$desc$unw$bal.tab$results["nodegree","std.eff.sz"],3)} & \Sexpr{round(ps.lalonde.gbm$desc$es.mean.ATT$bal.tab$results["nodegree","std.eff.sz"] , 3)} & \Sexpr{round(bal.table(bal.logit)[[2]]["nodegree","std.eff.sz"],3)} \\
+married & \Sexpr{round(ps.lalonde.gbm$desc$unw$bal.tab$results["married","std.eff.sz"],3)} & \Sexpr{round(ps.lalonde.gbm$desc$es.mean.ATT$bal.tab$results["married","std.eff.sz"] , 3)} & \Sexpr{round(bal.table(bal.logit)[[2]]["married","std.eff.sz"],3)} \\
+re74 & \Sexpr{round(ps.lalonde.gbm$desc$unw$bal.tab$results["re74","std.eff.sz"],3)} & \Sexpr{round(ps.lalonde.gbm$desc$es.mean.ATT$bal.tab$results["re74","std.eff.sz"] , 3)} & \Sexpr{round(bal.table(bal.logit)[[2]]["re74","std.eff.sz"],3)} \\
+re75 & \Sexpr{round(ps.lalonde.gbm$desc$unw$bal.tab$results["re75","std.eff.sz"],3)} & \Sexpr{round(ps.lalonde.gbm$desc$es.mean.ATT$bal.tab$results["re75","std.eff.sz"] , 3)} & \Sexpr{round(bal.table(bal.logit)[[2]]["re75","std.eff.sz"],3)} \\
+\hline
+\end{tabular}
+\caption{Standardized effect size of covariates using GBM and logistic regression.}
+\label{tab:balancecompare}
+\end{center}
+\end{table}
+
+\begin{table}[ht]
+\begin{center}
+\begin{tabular}{rccc}
+\hline
+Covariate & Unweighted & Using \texttt{ps} & Using logistic regression \\
+\hline
+age & \Sexpr{round(ps.lalonde.gbm$desc$unw$bal.tab$results["age","ks"],3)} & \Sexpr{round(ps.lalonde.gbm$desc$es.mean.ATT$bal.tab$results["age","ks"] , 3)} & \Sexpr{round(bal.table(bal.logit)[[2]]["age","ks"],3)} \\
+educ & \Sexpr{round(ps.lalonde.gbm$desc$unw$bal.tab$results["educ","ks"],3)} & \Sexpr{round(ps.lalonde.gbm$desc$es.mean.ATT$bal.tab$results["educ","ks"] , 3)} & \Sexpr{round(bal.table(bal.logit)[[2]]["educ","ks"],3)} \\
+black & \Sexpr{round(ps.lalonde.gbm$desc$unw$bal.tab$results["black","ks"],3)} & \Sexpr{round(ps.lalonde.gbm$desc$es.mean.ATT$bal.tab$results["black","ks"] , 3)} & \Sexpr{round(bal.table(bal.logit)[[2]]["black","ks"],3)} \\
+hispan & \Sexpr{round(ps.lalonde.gbm$desc$unw$bal.tab$results["hispan","ks"],3)} & \Sexpr{round(ps.lalonde.gbm$desc$es.mean.ATT$bal.tab$results["hispan","ks"] , 3)} & \Sexpr{round(bal.table(bal.logit)[[2]]["hispan","ks"],3)} \\
+nodegree & \Sexpr{round(ps.lalonde.gbm$desc$unw$bal.tab$results["nodegree","ks"],3)} & \Sexpr{round(ps.lalonde.gbm$desc$es.mean.ATT$bal.tab$results["nodegree","ks"] , 3)} & \Sexpr{round(bal.table(bal.logit)[[2]]["nodegree","ks"],3)} \\
+married & \Sexpr{round(ps.lalonde.gbm$desc$unw$bal.tab$results["married","ks"],3)} & \Sexpr{round(ps.lalonde.gbm$desc$es.mean.ATT$bal.tab$results["married","ks"] , 3)} & \Sexpr{round(bal.table(bal.logit)[[2]]["married","ks"],3)} \\
+re74 & \Sexpr{round(ps.lalonde.gbm$desc$unw$bal.tab$results["re74","ks"],3)} & \Sexpr{round(ps.lalonde.gbm$desc$es.mean.ATT$bal.tab$results["re74","ks"] , 3)} & \Sexpr{round(bal.table(bal.logit)[[2]]["re74","ks"],3)} \\
+re75 & \Sexpr{round(ps.lalonde.gbm$desc$unw$bal.tab$results["re75","ks"],3)} & \Sexpr{round(ps.lalonde.gbm$desc$es.mean.ATT$bal.tab$results["re75","ks"] , 3)} & \Sexpr{round(bal.table(bal.logit)[[2]]["re75","ks"],3)} \\
+\hline
+\end{tabular}
+\caption{KS statistic of covariates using GBM and logistic regression.}
+\label{tab:balancecompare2}
+\end{center}
+\end{table}
 
 <<>>=
 design.logit <- svydesign(ids=~1, weights=~w.logit, data=lalonde)
@@ -707,38 +580,38 @@ glm6 <- svyglm(re78 ~ treat, design=design.logit)
 summary(glm6)
 @
 
-% Code for Table 3, which is evaluated here
-<<echo= FALSE, results=tex>>=
-pretty.tab <- bal.table(bal.logit)[[2]][,c("tx.mn","ct.mn","ks")]
-pretty.tab <- cbind(pretty.tab, bal.table(bal.logit)[[1]]$ct.mn)
-names(pretty.tab) <- c("E(Y1|t=1)","E(Y0|t=1)","KS","E(Y0|t=0)")
-xtable(pretty.tab,
-       caption = "Logistic regression estimates of the propensity scores",
-       label = "tab:balancelogit",
-       digits = c(0, 2, 2, 2, 2),
-       align=c("l","r","r","r","r"))
-@
+% % Code for Table 3, which is evaluated here
+% <<echo= FALSE, results=tex>>=
+% pretty.tab <- bal.table(bal.logit)[[2]][,c("tx.mn","ct.mn","ks")]
+% pretty.tab <- cbind(pretty.tab, bal.table(bal.logit)[[1]]$ct.mn)
+% names(pretty.tab) <- c("E(Y1|t=1)","E(Y0|t=1)","KS","E(Y0|t=0)")
+% xtable(pretty.tab,
+%        caption = "Logistic regression estimates of the propensity scores",
+%        label = "tab:balancelogit",
+%        digits = c(0, 2, 2, 2, 2),
+%        align=c("l","r","r","r","r"))
+% @
 
-% Code for Table 4, which is evaluated here
-<<echo=FALSE, results=tex>>=
-bal.gbm <- dx.wts(ps.lalonde,
-                  data=lalonde, estimand = "ATE",
-                  vars=c("age","educ","black","hispan","nodegree","married","re74","re78"),
-                  treat.var="treat",
-                  perm.test.iters=0)
-pretty.tab <- rbind(bal.logit$summary.tab,
-                    bal.gbm$summary.tab[-1,])
-rownames(pretty.tab) <- pretty.tab$type
-rownames(pretty.tab)[2] <- "logit"
-pretty.tab <- pretty.tab[,c("n.treat","ess.ctrl","max.es","mean.es","max.ks","mean.ks")]
-xtable(pretty.tab,
-       caption = "Summary of the balancing properties of logistic regression and gbm",
-       label = "tab:balancecompare",
-       digits = c(0, 0, 2, 2, 2, 2, 2),
-       #digits = c(0,0, rep(2,9)),
-       align=c("l","r","r","r","r","r","r"))
-       #align = rep("l", 11))
-@
+% % Code for Table 4, which is evaluated here
+% <<echo=FALSE, results=tex>>=
+% bal.gbm <- dx.wts(ps.lalonde.gbm,
+%                   data=lalonde, estimand = "ATE",
+%                   vars=c("age","educ","black","hispan","nodegree","married","re74","re75"),
+%                   treat.var="treat",
+%                   perm.test.iters=0)
+% pretty.tab <- rbind(bal.logit$summary.tab,
+%                     bal.gbm$summary.tab[-1,])
+% rownames(pretty.tab) <- pretty.tab$type
+% rownames(pretty.tab)[2] <- "logit"
+% pretty.tab <- pretty.tab[,c("n.treat","ess.ctrl","max.es","mean.es","max.ks","mean.ks")]
+% xtable(pretty.tab,
+%        caption = "Summary of the balancing properties of logistic regression and gbm",
+%        label = "tab:balancecompare",
+%        digits = c(0, 0, 2, 2, 2, 2, 2),
+%        #digits = c(0,0, rep(2,9)),
+%        align=c("l","r","r","r","r","r","r"))
+%        #align = rep("l", 11))
+% @
 
 The analysis estimates an increase in earnings of \$\Sexpr{round(coef(glm6)[2])} for those that participated in the NSW compared with similarly situated people observed in the CPS. Table~\ref{tab:allTE} compares all of the treatment effect estimates.
 
@@ -901,9 +774,9 @@ The goal of nonresponse weighting is to develop weights for the
 respondents that make them look like the entire sample --- both the
 respondents and nonrespondents. Since the respondents already look
 like themselves, the hard part is to figure out how well each
-respondent represents the nonrespondents. 
+respondent represents the nonrespondents.
 Nonresponse weights equal the reciprocal of the
-probability of response and are applied only to respondents.  
+probability of response and are applied only to respondents.
 
 
 Note that the the probability of response is equivalent to the propensity score if we
@@ -913,7 +786,7 @@ We wish to reweight the sample to make it equivalent to the population
 from which the sample was drawn, so ATE weights are more appropriate
 in this case.  Further, recall that the weights for the treated
 subjects are $1/p$ in an ATE analysis.  Therefore we can reweight the
-sample of respondents 
+sample of respondents
 using the \texttt{get.weights()} function.
 
 
@@ -927,26 +800,26 @@ data(egsingle)
 @
 
 Next we create a response indicator variable that we can merge onto the student by test score level data.
-We want to include only students with scores from all of grades 1 to 4. The data include scores from 
-kindergarten (grade = 0) to grade 5 with some students having multiple scores from the same grade.  First 
+We want to include only students with scores from all of grades 1 to 4. The data include scores from
+kindergarten (grade = 0) to grade 5 with some students having multiple scores from the same grade.  First
 we keep the unique grades for each student:
 
 <<>>=
-tmp <- tapply(egsingle$grade, egsingle$childid, unique) 
+tmp <- tapply(egsingle$grade, egsingle$childid, unique)
 @
 
 Because students do not all have the same number of score,
-\texttt{tapply()} returns a list with one element per student.  
+\texttt{tapply()} returns a list with one element per student.
 Each element contains the unique set of grades observed for each
-student. We now check for grades in 1 to 4: 
+student. We now check for grades in 1 to 4:
 
 <<>>=
 tmp <- lapply(tmp, function(x){return(x %in% 1:4)})
 @
 
-The list tmp now contains a boolean vector for each student, where ``TRUE'' indicates the grade 
-took on a value in 1 to 4. The sum of this vector for each student determines how many of grades 1 to 4 
-we observed for him or her. 
+The list tmp now contains a boolean vector for each student, where ``TRUE'' indicates the grade
+took on a value in 1 to 4. The sum of this vector for each student determines how many of grades 1 to 4
+we observed for him or her.
 
 <<>>=
 tmp <- lapply(tmp, sum)
@@ -989,7 +862,7 @@ egsingle.one$race <- as.factor(race <- ifelse(egsingle.one$black==1, 1,
 
 As discussed above, to use \texttt{ps()} to estimate nonresponse, we
 need to let respondents be the treatment group by modeling an
-indicator of response.  
+indicator of response.
 
 
 %<<>>=
@@ -1008,7 +881,7 @@ egsingle.ps <-  ps(resp ~ race + female + size + lowinc + mobility,
 As in standard propensity score applications, we should check that
 \texttt{n.trees} was set large enough, so that balance would seem not
 to be improved if more complex models were considered. Recall that for
-\texttt{es.mean.ATE} the measure is the average effect size 
+\texttt{es.mean.ATE} the measure is the average effect size
 difference between the two groups and for \texttt{ks.max.ATE} the
 measure is the largest of the KS statistics.
 
@@ -1027,29 +900,29 @@ plot(egsingle.ps)
 %group covariates to those of the nonrespondents as shown in
 %Table~\ref{tab:balance2}.
 
-By default the balance table generated by \texttt{ps()} compares 
+By default the balance table generated by \texttt{ps()} compares
 the weighted treatment group (respondents) to the weighted comparison
-group (nonresponders) -- both groups weighted to equal the overall 
-population.  However, the  goal is to weight the respondents to match 
-the population not to compare the weighted respondents and 
-nonrespondents. The default balance table may be useful for 
-evaluating the propensity scores, but it does not directly assess the 
-quality of the weights for  balancing the weighted respondents with 
+group (nonresponders) -- both groups weighted to equal the overall
+population.  However, the  goal is to weight the respondents to match
+the population not to compare the weighted respondents and
+nonrespondents. The default balance table may be useful for
+evaluating the propensity scores, but it does not directly assess the
+quality of the weights for  balancing the weighted respondents with
 the overall population.
 
 We can ``trick'' the \texttt{dx.wts()} function in the \texttt{twang}
-package into making the desired comparison. We want to compare the 
+package into making the desired comparison. We want to compare the
 weighted respondents to the unweighted full sample. When evaluating
 ATT weights we compare the weighted comparison group with the unweighted
 treatment group. If we apply \texttt{dx.wts()} to a data set where
 the ``treatment'' group is the entire \texttt{esingle.one} sample
 and the ``control'' group is the \texttt{esingle.one} respondents and
 the weights equal one for every student in the pseudo-treatment group
-and equal the weights from \texttt{ps()} for every student in the 
+and equal the weights from \texttt{ps()} for every student in the
 pseudo-control group, we can obtain the balance statistics we want.
 
 We begin by setting up the data with the pseudo-treatment and control groups.
-We add ATE weights from the ``ks.max'' stopping rule as our nonresponse 
+We add ATE weights from the ``ks.max'' stopping rule as our nonresponse
 weights.
 
 <<>>=
@@ -1057,13 +930,13 @@ egsingle.one$wgt <- get.weights(egsingle.ps, stop.method="ks.max")
 @
 
 We now stack the full sample and the respondents. The variable ``nr2''
-is the pseudo-treatment indicator.  We set it equal to one for the 
-full sample and 0 for the respondents. Similarly, ``wgt2'' is the 
+is the pseudo-treatment indicator.  We set it equal to one for the
+full sample and 0 for the respondents. Similarly, ``wgt2'' is the
 pseudo-ATT weight which is set equal to one for the full sample and
 equal to the nonresponse weights for the respondents.
 
 <<>>=
-egtmp <- rbind(data.frame(egsingle.one, nr2=1, wgt2=1), 
+egtmp <- rbind(data.frame(egsingle.one, nr2=1, wgt2=1),
                 data.frame(egsingle.one, nr2=0, wgt2=egsingle.one$wgt)[egsingle.one$resp==1,])
 @
 
@@ -1071,22 +944,23 @@ We now run \texttt{dx.wts()} to obtain the balance statistics.
 Switching to ATT from ATE yields a warning that can be ignored in this case.
 
 <<>>=
-egdxwts <- dx.wts(x=egtmp$wgt2, 
-                   data=egtmp, 
-                   estimand="ATT", 
+egdxwts <- dx.wts(x=egtmp$wgt2,
+                   data=egtmp,
+                   estimand="ATT",
                    vars=c("race", "female", "size",  "lowinc",  "mobility"),
                    treat.var="nr2")
 @
 
 <<results=tex>>=
-pretty.tab<-bal.table(egdxwts)[[2]][,c("tx.mn","ct.mn","std.eff.sz","ks")]
-names(pretty.tab) <- c("OverallS Sample","Weighted responders","Std ES","KS")
-xtable(pretty.tab,
-        caption = "Balance of the nonrespondents and respondents",
-        label = "tab:balance2",
-        digits = c(0, 2, 2, 2, 2),
-        align=c("l","r","r","r","r"))
-@ 
+# pretty.tab<-bal.table(egdxwts)[[2]][,c("tx.mn","ct.mn","std.eff.sz","ks")]
+# names(pretty.tab) <- c("OverallS Sample","Weighted responders","Std ES","KS")
+# xtable(pretty.tab,
+#         caption = "Balance of the nonrespondents and respondents",
+#         label = "tab:balance2",
+#         digits = c(0, 2, 2, 2, 2),
+#         align=c("l","r","r","r","r"))
+bal.table(egdxwts)[[2]]
+@
 
 
 The balance is very good. We can use the weighted respondents

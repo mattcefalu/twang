@@ -9,7 +9,7 @@ ps(formula = formula(data), data, n.trees = 10000,
   n.minobsinnode = 10, perm.test.iters = 0, print.level = 2,
   verbose = TRUE, estimand = "ATE", stop.method = c("ks.mean",
   "es.mean"), sampw = NULL, version = "gbm", ks.exact = NULL,
-  n.keep = 1, n.grid = 25, ...)
+  n.keep = 1, n.grid = 25, keep.data = TRUE, ...)
 }
 \arguments{
 \item{formula}{An object of class \link{formula}: a symbolic
@@ -89,6 +89,9 @@ value of \code{n.grid=50} uses a 50 point grid from \code{1:n.trees}. It
 finds the minimum, say at grid point 35. It then looks for the actual
 minimum between grid points 34 and 36. If specified with \code{n.keep>1}, \code{n.grid}
 corresponds to a grid of points on the kept iterations as defined by \code{n.keep}. Default: 25.}
+
+\item{keep.data}{A logical variable indicating whether or not the data is saved in
+the resulting \code{ps} object. Default: \code{TRUE}.}
 
 \item{...}{Additional arguments that are passed to ps function.}
 }
