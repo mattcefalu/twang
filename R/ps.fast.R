@@ -18,6 +18,7 @@ ps.fast<-function(formula ,
              tree_method="hist",
              n.keep = 1,
              n.grid = 25,
+             keep.data=TRUE,
              ...){
              	
 	
@@ -359,8 +360,10 @@ ps.fast<-function(formula ,
                   balance = balance,
                   es = std.effect,
                   ks = ks.effect,
-                  n.trees = n.trees,
-                  data = data)
+                  n.trees = n.trees)
+   if (keep.data){
+      result = c(result , list(data=data))
+   }
    class(result) <- "ps"
    return(result)
 }

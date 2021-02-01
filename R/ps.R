@@ -74,6 +74,8 @@
 #'   finds the minimum, say at grid point 35. It then looks for the actual
 #'   minimum between grid points 34 and 36. If specified with `n.keep>1`, `n.grid` 
 #'   corresponds to a grid of points on the kept iterations as defined by ```n.keep```. Default: 25.
+#' @param keep.data A logical variable indicating whether or not the data is saved in 
+#'   the resulting `ps` object. Default: `TRUE`.
 #' @param ... Additional arguments that are passed to ps function.
 #'
 #' @return Returns an object of class `ps`, a list containing 
@@ -148,6 +150,7 @@ ps<-function(formula = formula(data),
              ks.exact = NULL,
              n.keep = 1,
              n.grid = 25,
+             keep.data=TRUE,
              ...){
    # check if data is a data.frame
    # if (class(data)!="data.frame"){
@@ -187,6 +190,7 @@ ps<-function(formula = formula(data),
       if (!missing(n.keep))       stop("Option n.keep is not allowed with version='legacy'")
       if (!missing(n.grid))       stop("Option n.grid is not allowed with version='legacy'")
       if (!missing(n.minobsinnode) | !is.null(args$min_child_weight)) stop("Options n.minobsinnode or min_child_weight are not allowed with version='legacy'")
+      if (!missing(keep.data)) stop("Option keep.data is not allowed with version='legacy'")
       
       return(ps.old(formula = formula,
                      data = data,                         # data
@@ -226,7 +230,8 @@ ps<-function(formula = formula(data),
                   version = version,
                   tree_method = tree_method,
                   n.keep = n.keep,
-                  n.grid = n.grid))
+                  n.grid = n.grid,
+                  keep.data=keep.data))
   }
   
 }
