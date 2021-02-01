@@ -11,50 +11,50 @@ bal.stat(data, vars = NULL, treat.var, w.all, sampw, get.means = TRUE,
 \arguments{
 \item{data}{A data frame containing the data}
 
-\item{vars}{A vector of character strings with the names of the variables
+\item{vars}{A vector of character strings with the names of the variables 
 on which the function will assess the balance}
 
 \item{treat.var}{The name of the treatment variable}
 
-\item{w.all}{Oobservation weights (e.g. propensity score weights, sampling
+\item{w.all}{Oobservation weights (e.g. propensity score weights, sampling 
 weights, or both)}
 
-\item{sampw}{Sampling weights. These are passed in addition to \code{w.all} because
+\item{sampw}{Sampling weights. These are passed in addition to `w.all` because
 the "unweighted" results shoud be adjusted for sample weights (though not propensity
 score weights).}
 
-\item{get.means}{logical. If \code{TRUE} then \code{bal.stat} will compute means
+\item{get.means}{logical. If `TRUE` then `bal.stat` will compute means
 and variances}
 
-\item{get.ks}{logical. If \code{TRUE} then \code{bal.stat} will compute KS statistics}
+\item{get.ks}{logical. If `TRUE` then `bal.stat` will compute KS statistics}
 
-\item{na.action}{A character string indicating how \code{bal.stat} should
+\item{na.action}{A character string indicating how `bal.stat` should 
 handle missing values. Current options are "level", "exclude", or "lowest"}
 
 \item{estimand}{Either "ATT" or "ATE"}
 
-\item{multinom}{logical. \code{TRUE} if used for multinomial propensity scores.}
+\item{multinom}{logical. `TRUE` if used for multinomial propensity scores.}
 
-\item{fillNAs}{logical. If \code{TRUE}, fills in zeros for missing values.}
+\item{fillNAs}{logical. If `TRUE`, fills in zeros for missing values.}
 }
 \value{
-\code{get.means} and \code{get.ks} manipulate the inclusion of certain
-columns in the returned result.
+`get.means` and `get.ks` manipulate the inclusion of certain 
+  columns in the returned result.
 }
 \description{
-\code{bal.stat} compares the treatment and control subjects by means, standard
+`bal.stat` compares the treatment and control subjects by means, standard 
 deviations, effect size, and KS statistics
 }
 \details{
-\code{bal.stat} calls  auxiliary functions for each variable and assembles
+`bal.stat` calls  auxiliary functions for each variable and assembles
 the results in a table.
 }
 \references{
 Dan McCaffrey, G. Ridgeway, Andrew Morral (2004). "Propensity
-Score Estimation with Boosted Regression for Evaluating Adolescent
-Substance Abuse Treatment", \emph{Psychological Methods} 9(4):403-425.
+  Score Estimation with Boosted Regression for Evaluating Adolescent
+  Substance Abuse Treatment", *Psychological Methods* 9(4):403-425.
 }
 \seealso{
-The example for \link{ps} contains an example of the use of \link{bal.table}
+The example for [ps] contains an example of the use of [bal.table]
 }
 \keyword{multivariate}

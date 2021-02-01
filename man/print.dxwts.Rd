@@ -2,15 +2,15 @@
 % Please edit documentation in R/print.dxwts.R
 \name{print.dxwts}
 \alias{print.dxwts}
-\title{Default print statement for \code{dxwts} class}
+\title{Default print statement for `dxwts` class}
 \usage{
 \method{print}{dxwts}(x, ...)
 }
 \arguments{
-\item{x}{A \code{dxwts} object}
+\item{x}{A `dxwts` object}
 
 \item{...}{Additional arguments.}
 }
 \description{
-Default print statement for \code{dxwts} class
+Default print statement for `dxwts` class
 }

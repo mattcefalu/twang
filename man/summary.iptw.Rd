@@ -2,27 +2,27 @@
 % Please edit documentation in R/summary.iptw.R
 \name{summary.iptw}
 \alias{summary.iptw}
-\title{Summarize a \code{iptw} object}
+\title{Summarize a `iptw` object}
 \usage{
 \method{summary}{iptw}(object, ...)
 }
 \arguments{
-\item{object}{An \code{iptw} object.}
+\item{object}{An `iptw` object.}
 
 \item{...}{Additional arguments.}
 }
 \value{
-See \link{iptw} for details on the returned table.
+See [iptw] for details on the returned table.
 }
 \description{
-Computes summary information about a stored \code{iptw} object
+Computes summary information about a stored `iptw` object
 }
 \details{
-Compresses the information in the \code{desc} component of the \code{iptw} object
+Compresses the information in the `desc` component of the `iptw` object
 into a short summary table describing the size of the dataset and the quality of
 the propensity score weights.
 }
 \seealso{
-\link{iptw}
+[iptw]
 }
 \keyword{models}

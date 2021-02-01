@@ -9,8 +9,8 @@
 stop.methods
 }
 \description{
-In older versions of twang, the \code{ps} function specified the \code{stop.method} in a different
-manner. This \code{stop.methods} object is used to ensure backward compatibility; new twang
+In older versions of twang, the `ps` function specified the `stop.method` in a different
+manner. This `stop.methods` object is used to ensure backward compatibility; new twang
 users should not make use of it.
 }
 \details{

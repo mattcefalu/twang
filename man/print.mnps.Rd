@@ -2,15 +2,15 @@
 % Please edit documentation in R/print.mnps.R
 \name{print.mnps}
 \alias{print.mnps}
-\title{Default print statement for \code{mnps} class}
+\title{Default print statement for `mnps` class}
 \usage{
 \method{print}{mnps}(x, ...)
 }
 \arguments{
-\item{x}{An \code{mnps} object}
+\item{x}{An `mnps` object}
 
 \item{...}{Additional arguments.}
 }
 \description{
-Default print statement for \code{mnps} class
+Default print statement for `mnps` class
 }

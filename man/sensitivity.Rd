@@ -9,7 +9,7 @@ sensitivity(ps1, data, outcome, order.by.importance = TRUE,
   verbose = TRUE)
 }
 \arguments{
-\item{ps1}{A \code{ps} object.}
+\item{ps1}{A `ps` object.}
 
 \item{data}{The dataset including the outcomes}
 
@@ -17,14 +17,12 @@ sensitivity(ps1, data, outcome, order.by.importance = TRUE,
 
 \item{order.by.importance}{Orders the output by relative importance of covariates.}
 
-\item{verbose}{If \code{TRUE}, extra information will be printed.}
+\item{verbose}{If `TRUE`, extra information will be printed.}
 }
 \value{
 Returns the following
-\itemize{
-\item \code{tx} Summary for treated observations.
-\item \code{ctrl} Summary for control observations.
-}
+  * `tx` Summary for treated observations.
+  * `ctrl` Summary for control observations.
 }
 \description{
 Performs the sensitivity analyses described in Ridgeway (2006).
@@ -33,5 +31,5 @@ know if you have problems with it.
 }
 \references{
 Ridgeway, G. (2006). "The effect of race bias in post-traffic stop
-outcomes using propensity scores", \emph{Journal of Quantitative Criminology} 22(1):1-29.
+  outcomes using propensity scores", *Journal of Quantitative Criminology* 22(1):1-29.
 }

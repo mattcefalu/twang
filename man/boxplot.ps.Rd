@@ -2,24 +2,24 @@
 % Please edit documentation in R/boxplot.ps.R
 \name{boxplot.ps}
 \alias{boxplot.ps}
-\title{Boxplot for \code{ps} objects}
+\title{Boxplot for `ps` objects}
 \usage{
 \method{boxplot}{ps}(x, subset = NULL, color = TRUE, time = NULL,
   ...)
 }
 \arguments{
-\item{x}{A \code{ps} object}
+\item{x}{A `ps` object}
 
-\item{subset}{If multiple \code{stop.method} rules were used in the \code{ps()} call, \code{subset}
+\item{subset}{If multiple `stop.method` rules were used in the `ps()` call, `subset` 
 restricts the plots of a subset of the stopping rules that were employed. This argument
-expects a subset of the integers from 1 to k, if k \code{stop.method}s were used.}
+expects a subset of the integers from 1 to k, if k `stop.method`s were used.}
 
-\item{color}{If \code{FALSE}, a grayscale figure will be returned.}
+\item{color}{If `FALSE`, a grayscale figure will be returned.}
 
 \item{time}{For use with iptw fits.}
 
 \item{...}{Additional arguments that are passed to boxplot function, which may bepassed to
-the underlying \code{lattice} package plotting functions.}
+the underlying `lattice` package plotting functions.}
 }
 \description{
 This function produces a collection of diagnostic plots for ps objects.
@@ -29,10 +29,10 @@ This function produces lattice-style graphics of diagnostic plots.
 }
 \references{
 Dan McCaffrey, G. Ridgeway, Andrew Morral (2004). "Propensity
-Score Estimation with Boosted Regression for Evaluating Adolescent
-Substance Abuse Treatment", \emph{Psychological Methods} 9(4):403-425.
+  Score Estimation with Boosted Regression for Evaluating Adolescent
+  Substance Abuse Treatment", *Psychological Methods* 9(4):403-425.
 }
 \seealso{
-\link{ps}
+[ps]
 }
 \keyword{multivariate}

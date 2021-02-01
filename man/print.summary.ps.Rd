@@ -2,15 +2,15 @@
 % Please edit documentation in R/print.summary.ps.R
 \name{print.summary.ps}
 \alias{print.summary.ps}
-\title{Produces a summary table for \code{ps} object}
+\title{Produces a summary table for `ps` object}
 \usage{
 \method{print}{summary.ps}(x, ...)
 }
 \arguments{
-\item{x}{An \code{ps} object}
+\item{x}{An `ps` object}
 
 \item{...}{Additional arguments.}
 }
 \description{
-Produces a summary table for \code{ps} object
+Produces a summary table for `ps` object
 }

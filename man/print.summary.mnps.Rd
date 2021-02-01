@@ -2,15 +2,15 @@
 % Please edit documentation in R/print.summary.mnps.R
 \name{print.summary.mnps}
 \alias{print.summary.mnps}
-\title{Produces a summary table for \code{mnps} object}
+\title{Produces a summary table for `mnps` object}
 \usage{
 \method{print}{summary.mnps}(x, ...)
 }
 \arguments{
-\item{x}{An \code{mnps} object}
+\item{x}{An `mnps` object}
 
 \item{...}{Additional arguments.}
 }
 \description{
-Produces a summary table for \code{mnps} object
+Produces a summary table for `mnps` object
 }

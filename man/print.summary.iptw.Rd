@@ -2,15 +2,15 @@
 % Please edit documentation in R/print.summary.iptw.R
 \name{print.summary.iptw}
 \alias{print.summary.iptw}
-\title{Produces a summary table for \code{iptw} object}
+\title{Produces a summary table for `iptw` object}
 \usage{
 \method{print}{summary.iptw}(x, ...)
 }
 \arguments{
-\item{x}{An \code{iptw} object}
+\item{x}{An `iptw` object}
 
 \item{...}{Additional arguments.}
 }
 \description{
-Produces a summary table for \code{iptw} object
+Produces a summary table for `iptw` object
 }

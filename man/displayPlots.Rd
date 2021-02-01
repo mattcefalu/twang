@@ -15,7 +15,7 @@ displayPlots(ptList, figureRows, singlePlot, multiPage, bxpt = FALSE)
 
 \item{multiPage}{Whether to display plots on multiple pages.}
 
-\item{bxpt}{Whether to display boxplots. Default: \code{FALSE}.}
+\item{bxpt}{Whether to display boxplots. Default: `FALSE`.}
 }
 \description{
 Display plots

@@ -2,15 +2,15 @@
 % Please edit documentation in R/print.mniptw.R
 \name{print.mniptw}
 \alias{print.mniptw}
-\title{Default print statement for \code{mniptw} class}
+\title{Default print statement for `mniptw` class}
 \usage{
 \method{print}{mniptw}(x, ...)
 }
 \arguments{
-\item{x}{A \code{mniptw} object}
+\item{x}{A `mniptw` object}
 
 \item{...}{Additional arguments.}
 }
 \description{
-Default print statement for \code{mniptw} class
+Default print statement for `mniptw` class
 }

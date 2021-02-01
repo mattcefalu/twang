@@ -2,7 +2,7 @@
 % Please edit documentation in R/get.weights.num.R
 \name{get.weights.num}
 \alias{get.weights.num}
-\title{Get numerators to stabilize propensity score weights for \code{iptw} fits.}
+\title{Get numerators to stabilize propensity score weights for `iptw` fits.}
 \usage{
 get.weights.num(iptw, fitList)
 }
@@ -12,12 +12,12 @@ get.weights.num(iptw, fitList)
 \item{fitList}{A list containing objects with an associated "fitted" function.}
 }
 \value{
-Returns numerator of stabilized weights to be used in conjunction with
-\code{get.weights.unstab}
+Returns numerator of stabilized weights to be used in conjunction with 
+  `get.weights.unstab`
 }
 \description{
 Forms numerators to stabilize weights for an iptw object.
 }
 \seealso{
-\link{iptw}
+[iptw]
 }

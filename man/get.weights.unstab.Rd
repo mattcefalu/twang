@@ -2,28 +2,28 @@
 % Please edit documentation in R/get.weights.unstab.R
 \name{get.weights.unstab}
 \alias{get.weights.unstab}
-\title{Extract unstabilized propensity score weights for \code{iptw} fits}
+\title{Extract unstabilized propensity score weights for `iptw` fits}
 \usage{
 get.weights.unstab(x, stop.method = NULL, withSampW = TRUE)
 }
 \arguments{
-\item{x}{An \code{iptw} or \code{mniptw} object.}
+\item{x}{An `iptw` or `mniptw` object.}
 
 \item{stop.method}{The twop method used for the fit of interest.}
 
-\item{withSampW}{Returns weights with sample weights multiplied in, if they were
-provided in the original \code{iptw} call. Default: \code{TRUE}.}
+\item{withSampW}{Returns weights with sample weights multiplied in, if they were 
+provided in the original `iptw` call. Default: `TRUE`.}
 }
 \value{
 Returns a data.frame of weights.
 }
 \description{
-Extracts propensity score weights from an \code{iptw} or \code{mniptw}  object.
+Extracts propensity score weights from an `iptw` or `mniptw`  object.
 }
 \details{
 Weights are the reciprocal of the product of the probability of receiving
 the treatment received.
 }
 \seealso{
-\link{iptw}
+[iptw]
 }

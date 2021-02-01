@@ -20,103 +20,99 @@ iptw(formula, data, timeInvariant = NULL, cumulative = TRUE,
 \item{timeInvariant}{An optional formula (with no left-hand variable) specifying time-invariant
 chararacteristics.}
 
-\item{cumulative}{If \code{TRUE}, the time t model includes time-varying characteristics from times 1
-through t-1. Default: \code{TRUE}.}
+\item{cumulative}{If `TRUE`, the time t model includes time-varying characteristics from times 1
+through t-1. Default: `TRUE`.}
 
 \item{timeIndicators}{For long format fits, a vector of times for each observation.}
 
 \item{ID}{For long format fits, a vector of numeric identifiers for unique analytic units.}
 
-\item{priorTreatment}{For long format fits, includes treatment levels from previous times if \code{TRUE}. This
-argument is ignored for wide format fits. Default: \code{TRUE}.}
+\item{priorTreatment}{For long format fits, includes treatment levels from previous times if `TRUE`. This
+argument is ignored for wide format fits. Default: `TRUE`.}
 
-\item{n.trees}{Number of gbm iterations passed on to \link{gbm}.}
+\item{n.trees}{Number of gbm iterations passed on to [gbm].}
 
 \item{interaction.depth}{A positive integer denoting the tree depth used in
 gradient boosting. Default: 3.}
 
 \item{shrinkage}{A numeric value between 0 and 1 denoting the learning rate.
-See \link{gbm} for more details. Default: 0.01.}
+See [gbm] for more details. Default: 0.01.}
 
 \item{bag.fraction}{A numeric value between 0 and 1 denoting the fraction of
-the observations randomly selected in each iteration of the gradient
-boosting algorithm to propose the next tree. See \link{gbm} for
-more details. Default: 1.0.
-@param n.minobsinnode An integer specifying the minimum number of observations
-in the terminal nodes of the trees used in the gradient boosting.  See \link{gbm} for
-more details. Default: 10.}
+ the observations randomly selected in each iteration of the gradient
+ boosting algorithm to propose the next tree. See [gbm] for
+ more details. Default: 1.0.
+@param n.minobsinnode An integer specifying the minimum number of observations 
+ in the terminal nodes of the trees used in the gradient boosting.  See [gbm] for
+ more details. Default: 10.}
 
 \item{perm.test.iters}{A non-negative integer giving the number of iterations
-of the permutation test for the KS statistic. If \code{perm.test.iters=0}
+of the permutation test for the KS statistic. If `perm.test.iters=0`
 then the function returns an analytic approximation to the p-value. Setting
-\code{perm.test.iters=200} will yield precision to within 3\% if the true
-p-value is 0.05. Use \code{perm.test.iters=500} to be within 2\%. Default: 0.}
+`perm.test.iters=200` will yield precision to within 3\% if the true
+p-value is 0.05. Use `perm.test.iters=500` to be within 2\%. Default: 0.}
 
 \item{print.level}{The amount of detail to print to the screen. Default: 2.}
 
-\item{verbose}{If \code{TRUE}, lots of information will be printed to monitor the
-the progress of the fitting. Default: \code{TRUE}.}
+\item{verbose}{If `TRUE`, lots of information will be printed to monitor the
+the progress of the fitting. Default: `TRUE`.}
 
 \item{stop.method}{A method or methods of measuring and summarizing balance across pretreatment
-variables. Current options are \code{ks.mean}, \code{ks.max}, \code{es.mean}, and \code{es.max}. \code{ks} refers to the
+variables. Current options are `ks.mean`, `ks.max`, `es.mean`, and `es.max`. `ks` refers to the
 Kolmogorov-Smirnov statistic and es refers to standardized effect size. These are summarized
-across the pretreatment variables by either the maximum (\code{.max}) or the mean (\code{.mean}).
-Default: \code{c("es.max")}.}
+across the pretreatment variables by either the maximum (`.max`) or the mean (`.mean`). 
+Default: `c("es.max")`.}
 
 \item{sampw}{Optional sampling weights.}
 
 \item{version}{"gbm", "xgboost", or "legacy", indicating which version of the twang package to use.
-\itemize{
-\item \code{"gbm"} Uses gradient boosting from the \code{gbm} package.
-\item \code{"xgboost"} Uses gradient boosting from the \code{xgboost} package.
-\item \code{"legacy"} Uses the prior implementation of the `ps`` function.
-}}
+* `"gbm"` Uses gradient boosting from the `gbm` package.
+* `"xgboost"` Uses gradient boosting from the `xgboost` package.
+* `"legacy"` Uses the prior implementation of the `ps`` function.}
 
-\item{ks.exact}{\code{NULL} or a logical indicating whether the
+\item{ks.exact}{`NULL` or a logical indicating whether the
 Kolmogorov-Smirnov p-value should be based on an approximation of exact
 distribution from an unweighted two-sample Kolmogorov-Smirnov test. If
-\code{NULL}, the approximation based on the exact distribution is computed
+`NULL`, the approximation based on the exact distribution is computed
 if the product of the effective sample sizes is less than 10,000.
 Otherwise, an approximation based on the asymptotic distribution is used.
-\strong{Warning:} setting \code{ks.exact = TRUE} will add substantial
-computation time for larger sample sizes. Default: \code{NULL}.}
+**Warning:** setting `ks.exact = TRUE` will add substantial
+computation time for larger sample sizes. Default: `NULL`.}
 
 \item{n.keep}{A numeric variable indicating the algorithm should only
-consider every \code{n.keep}-th iteration of the propensity score model and
+consider every `n.keep`-th iteration of the propensity score model and
 optimize balance over this set instead of all iterations. Default: 1.}
 
 \item{n.grid}{A numeric variable that sets the grid size for an initial
-search of the region most likely to minimize the \code{stop.method}. A
-value of \code{n.grid=50} uses a 50 point grid from \code{1:n.trees}. It
+search of the region most likely to minimize the `stop.method`. A
+value of `n.grid=50` uses a 50 point grid from `1:n.trees`. It
 finds the minimum, say at grid point 35. It then looks for the actual
-minimum between grid points 34 and 36. If specified with \code{n.keep>1}, \code{n.grid}
-corresponds to a grid of points on the kept iterations as defined by \code{n.keep}. Default: 25.}
+minimum between grid points 34 and 36. If specified with `n.keep>1`, `n.grid` 
+corresponds to a grid of points on the kept iterations as defined by ```n.keep```. Default: 25.}
 
 \item{...}{Additional arguments that are passed to ps function.}
 }
 \value{
-Returns an object of class \code{iptw}, a list containing
-\itemize{
-\item \code{psList} A list of \code{ps} objects with length equal to the number of time periods.
-\item \code{estimand} The specified estimand.
-\item \code{stop.methods} The stopping rules used to optimize \code{iptw} balance.
-\item \code{nFits} The number of \code{ps} objects (i.e., the number of distinct time points).
-\item \code{uniqueTimes} The unique times in the specified model.
-}
+Returns an object of class `iptw`, a list containing
+  * `psList` A list of `ps` objects with length equal to the number of time periods.
+  * `estimand` The specified estimand.
+  * `stop.methods` The stopping rules used to optimize `iptw` balance.
+  * `nFits` The number of `ps` objects (i.e., the number of distinct time points).
+  * `uniqueTimes` The unique times in the specified model.
 }
 \description{
-\code{iptw} calculates propensity scores for sequential treatments using gradient boosted logistic
+`iptw` calculates propensity scores for sequential treatments using gradient boosted logistic
 regression and diagnoses the resulting propensity scores using a variety of
 methods
 }
 \details{
-For user more comfortable with the options of \link{xgboost},
-the options for \code{iptw} controlling the behavior of the gradient boosting
-algorithm can be specified using the \link{xgboost} naming
-scheme. This includes \code{nrounds}, \code{max_depth}, \code{eta}, and
-\code{subsample}. In addition, the list of parameters passed to
-\link{xgboost} can be specified with \code{params}.
+For user more comfortable with the options of [xgboost],
+the options for `iptw` controlling the behavior of the gradient boosting
+algorithm can be specified using the [xgboost] naming
+scheme. This includes `nrounds`, `max_depth`, `eta`, and
+`subsample`. In addition, the list of parameters passed to
+[xgboost] can be specified with `params`.
 }
 \seealso{
-\link{ps}, \link{mnps}, \link{gbm}, \link{xgboost}, \link{plot.iptw}, \link{bal.table}
+[ps], [mnps], [gbm], [xgboost], [plot.iptw], [bal.table]
 }

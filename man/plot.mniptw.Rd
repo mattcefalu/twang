@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot.mniptw.R
 \name{plot.mniptw}
 \alias{plot.mniptw}
-\title{Plot \code{mniptw}}
+\title{Plot `mniptw`}
 \usage{
 \method{plot}{mniptw}(x, plots = "optimize", pairwiseMax = TRUE,
   figureRows = NULL, color = TRUE, subset = NULL,
@@ -10,56 +10,54 @@
   timePeriods = NULL, hline = c(0.1, 0.5, 0.8), ...)
 }
 \arguments{
-\item{x}{An \code{iptw} object.}
+\item{x}{An `iptw` object.}
 
 \item{plots}{An indicator of which type of plot is desired. The options are
-\itemize{
-\item \code{"optimize" or 1} A plot of the balance criteria as a function of the GBM
-iteration.
-\item \code{"boxplot" or 2} Boxplots of the propensity scores for the treatment and
-control cases
-\item \code{"es" or 3} Plots of the standardized effect size of the pre-treatment
-variables before and after reweighing
-\item \code{"t" or 4} Plots of the p-values from t-statistics comparing means of
-treated and control subjects for pretreatment variables, before and after
-weighting.
-\item \code{"ks" or 5} Plots of the p-values from Kolmogorov-Smirnov statistics
-comparing distributions of pretreatment variables of treated and control
-subjects, before and after weighting.
-}}
+* `"optimize" or 1` A plot of the balance criteria as a function of the GBM 
+  iteration.
+* `"boxplot" or 2` Boxplots of the propensity scores for the treatment and 
+  control cases
+* `"es" or 3` Plots of the standardized effect size of the pre-treatment 
+  variables before and after reweighing
+* `"t" or 4` Plots of the p-values from t-statistics comparing means of 
+  treated and control subjects for pretreatment variables, before and after 
+  weighting.
+* `"ks" or 5` Plots of the p-values from Kolmogorov-Smirnov statistics 
+  comparing distributions of pretreatment variables of treated and control 
+  subjects, before and after weighting.}
 
-\item{pairwiseMax}{If \code{FALSE}, the plots for the underlying \code{ps} fits
+\item{pairwiseMax}{If `FALSE`, the plots for the underlying `ps` fits 
 will be returned.  Otherwise, pairwise maxima will be returned.}
 
-\item{figureRows}{The figure rows, passed to \link{displayPlots}. Default: \code{NULL}.}
+\item{figureRows}{The figure rows, passed to [displayPlots]. Default: `NULL`.}
 
-\item{color}{If \code{color = FALSE}, figures will be gray scale. Default: \code{TRUE}.}
+\item{color}{If `color = FALSE`, figures will be gray scale. Default: `TRUE`.}
 
-\item{subset}{Used to restrict which of the \code{stop.method}s will be used
-in the figure. For example \code{subset = c(1,3)} would indicate that the
-first and third \code{stop.method}s (in alphabetical order of those specified
-in the original call to \code{iptw}) should be included in the figure.}
+\item{subset}{Used to restrict which of the `stop.method`s will be used 
+in the figure. For example `subset = c(1,3)` would indicate that the 
+first and third `stop.method`s (in alphabetical order of those specified 
+in the original call to `iptw`) should be included in the figure.}
 
-\item{treatments}{Only applicable when \code{pairwiseMax} is \code{FALSE} and \code{plots} 3, 4, and 5.
-If left at \code{NULL}, panels for all treatment pairs are created.  If one level of the treatment
+\item{treatments}{Only applicable when `pairwiseMax` is `FALSE` and `plots` 3, 4, and 5.
+If left at `NULL`, panels for all treatment pairs are created.  If one level of the treatment 
 variable is specified, plots comparing that treatment to all others are produced.  If two
 levels are specified, a comparison for that single pair is produced.}
 
-\item{singlePlot}{For Plot calls that produce multiple plots, specifying an integer value of
-\code{singlePlot} will return only the corresponding plot.  E.g., specifying \code{singlePlot = 2}
+\item{singlePlot}{For Plot calls that produce multiple plots, specifying an integer value of 
+`singlePlot` will return only the corresponding plot.  E.g., specifying `singlePlot = 2` 
 will return the second plot.}
 
-\item{multiPage}{When multiple frames of a figure are produced, \code{multiPage = TRUE} will print each
+\item{multiPage}{When multiple frames of a figure are produced, `multiPage = TRUE` will print each
 frame on a different page. This is intended for situations where the graphical output is being
-saved to a file. Default: \code{FALSE}.}
+saved to a file. Default: `FALSE`.}
 
-\item{timePeriods}{The number of distinct time points. If \code{NULL}, this is assumed to be the number
-of \code{ps} objects (i.e., the number of distinct time points).}
+\item{timePeriods}{The number of distinct time points. If `NULL`, this is assumed to be the number
+of `ps` objects (i.e., the number of distinct time points).}
 
-\item{hline}{Arguments passed to \code{panel.abline}.}
+\item{hline}{Arguments passed to `panel.abline`.}
 
 \item{...}{Additional arguments.}
 }
 \description{
-Plot \code{mniptw}
+Plot `mniptw`
 }

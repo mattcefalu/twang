@@ -2,15 +2,15 @@
 % Please edit documentation in R/print.summary.mniptw.R
 \name{print.summary.mniptw}
 \alias{print.summary.mniptw}
-\title{Produces a summary table for \code{mniptw} object}
+\title{Produces a summary table for `mniptw` object}
 \usage{
 \method{print}{summary.mniptw}(x, ...)
 }
 \arguments{
-\item{x}{An \code{mniptw} object}
+\item{x}{An `mniptw` object}
 
 \item{...}{Additional arguments.}
 }
 \description{
-Produces a summary table for \code{mniptw} object
+Produces a summary table for `mniptw` object
 }
