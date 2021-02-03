@@ -88,6 +88,9 @@
 #' @param ps_cv.folds integer, optional
 #'   A numeric variable that sets the number of cross-validation folds if 
 #'   using method='crossval'. Default: 10. 
+#' @param ps_keep.data logical, optional
+#'   A logical variable that determines if the dataset should be saved 
+#'   in the ps model objects. Default: FALSE. 
 #' @return mediation object
 #'   The `mediation` object includes the following:
 #'   - `model_a_res` The model A `ps()` results.
@@ -132,7 +135,8 @@ wgtmed <- function(formula.med,
                                ps_ks.exact = NULL,
                                ps_n.keep = 1,
                                ps_n.grid = 25,
-                               ps_cv.folds=10) {
+                               ps_cv.folds=10,
+                               ps_keep.data=FALSE) {
 
   # Check for errors in specification
   if(!is.data.frame(data)){stop("Object specified in data must be a data frame")}
@@ -238,7 +242,7 @@ wgtmed <- function(formula.med,
       shrinkage = ps_shrinkage, bag.fraction = ps_bag.fraction, 
       perm.test.iters = ps_perm.test.iters, verbose = ps_verbose, 
       stop.method = ps_stop.method, version = ps_version, sampw = sampw, 
-      ks.exact = ps_ks.exact)
+      ks.exact = ps_ks.exact,keep.data=ps_keep.data)
     if (ps_version != "legacy") {
       append(ps_args, list(n.minobsinnode = ps_n.minobsinnode, 
           n.keep = ps_n.keep, n.grid = ps_n.grid))
@@ -246,10 +250,6 @@ wgtmed <- function(formula.med,
     #* Get p(A|X) using same covariates and stopping rules as for mediation model 
     model_a_res <- do.call(ps, c(list(data = data, estimand = "ATE"), 
           ps_args))
-
-    #~Remove data in the ps object to reduce memory usage
-    model_a_res[["data"]] <- NULL
-    gc()
 
     #* Calculate w_10 weights
     #* Note p(A = 0 | M, X)/p(A = 1 | M, X) are the "ATT" weights for the tx group when estimate the average treatment on the control
@@ -261,10 +261,6 @@ wgtmed <- function(formula.med,
     
     #~ Remove a_treatment0 variable in data
     data <- data[,-which(colnames(data)=="a_treatment0")]
-
-    #~Remove data in the ps object to reduce memory usage
-    model_m0_res[["data"]] <- NULL
-    gc()
 
     #~  1/(1-p(A=1 | X))
     w_1 <- 1/(1 - model_a_res$ps)
@@ -281,10 +277,6 @@ wgtmed <- function(formula.med,
     ps_args$formula <- as.formula(paste(a_treatment,"~", paste(c(m_mediators, var.names.med), collapse="+"))) 
     model_m1_res <- do.call(ps, c(list(data = data, estimand = "ATT"), 
       ps_args))
-    
-    #~ Remove data in the ps object to reduce memory usage
-    model_m1_res[["data"]] <- NULL
-    gc()
 
     #~  1/p(A=1 | X)
     w_1 <- 1/model_a_res$ps

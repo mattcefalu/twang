@@ -26,7 +26,8 @@ wgtmed(
   ps_ks.exact = NULL,
   ps_n.keep = 1,
   ps_n.grid = 25,
-  ps_cv.folds = 10
+  ps_cv.folds = 10,
+  ps_keep.data = FALSE
 )
 }
 \arguments{
@@ -128,6 +129,10 @@ minimum between grid points 34 and 36.Only used with \code{xgboost}. Default: 25
 \item{ps_cv.folds}{integer, optional
 A numeric variable that sets the number of cross-validation folds if
 using method='crossval'. Default: 10.}
+
+\item{ps_keep.data}{logical, optional
+A logical variable that determines if the dataset should be saved
+in the ps model objects. Default: FALSE.}
 
 \item{total_effect_weights}{vector
 A vector of total effect weights, which if left \code{NULL}

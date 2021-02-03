@@ -22,6 +22,7 @@ ps(
   ks.exact = NULL,
   n.keep = 1,
   n.grid = 25,
+  keep.data = TRUE,
   ...
 )
 }
@@ -54,8 +55,8 @@ more details. Default: 10.}
 \item{perm.test.iters}{A non-negative integer giving the number of iterations
 of the permutation test for the KS statistic. If \code{perm.test.iters=0}
 then the function returns an analytic approximation to the p-value. Setting
-\code{perm.test.iters=200} will yield precision to within 3\% if the true
-p-value is 0.05. Use \code{perm.test.iters=500} to be within 2\%. Default: 0.}
+\code{perm.test.iters=200} will yield precision to within 3\\% if the true
+p-value is 0.05. Use \code{perm.test.iters=500} to be within 2\\%. Default: 0.}
 
 \item{print.level}{The amount of detail to print to the screen. Default: 2.}
 
@@ -103,6 +104,9 @@ value of \code{n.grid=50} uses a 50 point grid from \code{1:n.trees}. It
 finds the minimum, say at grid point 35. It then looks for the actual
 minimum between grid points 34 and 36. If specified with \code{n.keep>1}, \code{n.grid}
 corresponds to a grid of points on the kept iterations as defined by \code{n.keep}. Default: 25.}
+
+\item{keep.data}{A logical variable indicating whether or not the data is saved in
+the resulting \code{ps} object. Default: \code{TRUE}.}
 
 \item{...}{Additional arguments that are passed to ps function.}
 }
