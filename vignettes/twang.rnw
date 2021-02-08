@@ -20,15 +20,15 @@
 \newcolumntype{L}{>{\arraybackslash}m{.8\linewidth}}
 
 
-\title{Propensity scores for binary treatments:\\A
-tutorial for the \texttt{ps} function in the \texttt{twang} package, Version 2.0}
+\title{Toolkit for Weighting and Analysis of Nonequivalent Groups: A guide to the twang package}
+%\title{Propensity scores for binary treatments:\\A
+%tutorial for the \texttt{ps} function in the \texttt{twang} package, Version 2.0}
 
-\author{Greg Ridgeway, Dan McCaffrey, Andrew Morral, Lane
+\author{Greg Ridgeway, Dan McCaffrey, Andrew Morral, Matthew Cefalu, Lane
   Burgette and Beth Ann Griffin\footnote{The twang package and
-    this tutorial were developed under NIDA grants R01 DA017507 and
-    R01 DA015697-03} 
+    this tutorial were developed under NIDA grants R01 DA017507,
+    R01 DA015697-03, and R01 DA034065} 
 \\RAND}
-
 %\VignetteIndexEntry{Toolkit for Weighting and Analysis of Nonequivalent Groups: A guide to the twang package}
 %\VignetteDepends{gbm,survey,xtable}
 %\VignetteKeywords{propensity score, nonresponse weighting}
@@ -47,7 +47,9 @@ tutorial for the \texttt{ps} function in the \texttt{twang} package, Version 2.0
 
 \section{Introduction}
 
-The Toolkit for Weighting and Analysis of Nonequivalent Groups, \texttt{twang}, contains a set of functions and procedures to support causal modeling of observational data through the estimation and evaluation of propensity scores and associated weights for binary, multinomial, and time-varying treatments. This package was developed in 2004. After extensive use, it received major updates in 2012 and 2020. Starting with version 2.0, the \texttt{twang} package has undergone extensive revisions to improve computational efficiency. Code written for prior versions of \texttt{twang} should still run without modification. However, in certain situations, results from the updated version of \texttt{twang} will no longer replicate previous results. If a user wishes to results from a prior version of twang, a new option (\texttt{version="legacy"}) must be specified. This tutorial provides an introduction to \texttt{twang} and demonstrates its use through illustrative examples. Interested readers can review the related tutorials for more than two treatment groups and time-varying treatments at \url{https://www.rand.org/statistics/twang/tutorials.html}.
+The Toolkit for Weighting and Analysis of Nonequivalent Groups, \texttt{twang}, contains a set of functions and procedures to support causal modeling of observational data through the estimation and evaluation of propensity scores and associated weights for binary, multinomial, and time-varying treatments. This package was developed in 2004. The \texttt{twang} package underwent extensive revisions in 2012 and 2020. Starting with version 2.0, the \texttt{twang} package includes revisions that improve computational efficiency. Code written for prior versions of \texttt{twang} should still run without modification. However, in certain situations, results from the updated version of \texttt{twang} will no longer replicate previous results. If a user wishes to reproduce results from a prior version of twang, a new option (\texttt{version="legacy"}) must be specified. 
+
+This tutorial provides an introduction to \texttt{twang} and demonstrates its use through illustrative examples. Interested readers can review the related tutorials for more than two treatment groups and time-varying treatments at \url{https://www.rand.org/statistics/twang/tutorials.html}.
 
 The foundation of the methods supported by \texttt{twang} is the propensity score. The propensity score is the probability that a particular case would be assigned or exposed to a treatment condition. Rosenbaum \& Rubin (1983) showed that knowing the propensity score is sufficient to separate the effect of a treatment on an outcome from observed confounding factors that influence both treatment assignment and outcomes, provided the necessary conditions hold. The propensity score has the balancing property that given the propensity score the distribution of features for the treatment cases is the same as that for the control cases. While the treatment selection probabilities are generally not known, good estimates of them can be effective at diminishing or eliminating confounds between pretreatment group differences and treatment outcomes in the estimation of treatment effects.
 
@@ -55,7 +57,7 @@ There are now numerous propensity scoring methods in the literature. They differ
 
 The main workhorse of \texttt{twang} is the \texttt{ps()} function, which implements gradient boosted models with either the \texttt{gbm} package or the \texttt{xgboost} package to estimate the propensity scores. However, the framework of the package is flexible enough to allow the user to use propensity score estimates from other methods and to assess the usefulness of those estimates for ensuring equivalence (or ``balance'') in the pretreatment covariate distributions of treatment and control groups using tools from the package. The same set of functions is also useful for other tasks such as non-response weighting, as discussed in Section~\ref{sec:nonresponse}.
 
-The \texttt{twang} package aims to (i) compute from the data estimates of the propensity scores which yield accurate causal effect estimates, (ii) check the quality of the resulting propensity score weights by assessing whether or not they have the balancing properties that we expect in theory, and (iii) use them in computing treatment effect estimates. Users who are more comfortable with Stata or SAS than R are encouraged to visit \url{www.rand.org/statistics/twang/} for information on Stata commands and SAS macros that implement these methods. 
+The \texttt{twang} package aims to (i) compute from the data estimates of the propensity scores which yield accurate causal effect estimates, (ii) check the quality of the resulting propensity score weights by assessing whether or not they have the balancing properties that we expect in theory, and (iii) use them in computing treatment effect estimates. Users who are more comfortable with Stata or SAS than R are encouraged to visit \url{www.rand.org/statistics/twang/} for information on Stata commands and SAS macros that implement these methods. Additionally, we now have Shiny apps available that are menu-driven and user-friendly versions of the R tools.
 
 \section{Principles of \texttt{twang}}
 
@@ -395,9 +397,7 @@ summary(ps.lalonde.gbm$gbm.obj,
 \label{fig:relativeinfluence}
 \end{figure}
 
-
-
-
+Additionally, our team has developed the \texttt{SBdecomp} package for R which can be used to quantify the proportion of the estimated selection bias explained by each observed confounder when estimating causal effects using propensity score weights. It includes two approaches to quantify the proportion of the selection bias explained by each observed confounder: a single confounder removal approach and a single confounder inclusion approach. This tool can help analyze data where there is a substantive interest in identifying the variable or variables that explains the largest proportion of the estimated selection bias. Interested users are encourage to review the tutorial for that package at \url{https://www.rand.org/pubs/tools/TLA570-3.html}.
 
 \subsection{Analysis of outcomes}
 
@@ -1185,9 +1185,10 @@ correct or the regression model is correct then the treatment effect
 estimator will be unbiased (Bang \& Robins 2005).
 
 
+\section*{About This Tutorial}
+This tutorial and the R package were supported by funding from grant R01DA017507, R01DA015697, and R01DA034065 from the National Institute on Drug Abuse. The overarching goal of this work is to develop statistical methods and tools that will provide addiction health services researchers and others with the tools and training they need to study the effectiveness of treatments using observational data. For more information about \texttt{twang} and other causal tools being developed, see www.rand.org/statistics/twang.
 
-
-
+RAND Social and Economic Well-Being is a division of the RAND Corporation that seeks to actively improve the health and social and economic well-being of populations and communities throughout the world. This research was conducted in the Social and Behavioral Policy Program within RAND Social and Economic Well-Being. The program focuses on such topics as risk factors and prevention programs, social safety net programs and other social supports, poverty, aging, disability, child and youth health and well-being, and quality of life, as well as other policy concerns that are influenced by social and behavioral actions and systems that affect well-being. For more information, email sbp@rand.org.
 
 \begin{thebibliography}{77}     % start the bibliography
 
