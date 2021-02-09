@@ -7,6 +7,10 @@ bal.stat.fast <- function(data,vars=NULL,treat.var,w.all, sampw,
 {
   if(is.null(vars)) vars<-names(data)[names(data)!=treat.var]
   
+  # make Row.names null to avoid cran check warning about binding 
+  Row.names = NULL
+  
+  
   # is.fac   <- sapply(data[,vars,drop=FALSE],is.factor)
   # fac      <- vars[is.fac]
   # not.fac  <- vars[!is.fac]
