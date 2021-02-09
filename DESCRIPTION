@@ -14,9 +14,9 @@ Imports:
     latticeExtra,
     MatrixModels,
     data.table,
-    ggplot2
-Suggests:
+    ggplot2,
     xgboost
+Suggests:
 Description: Provides functions for propensity score
         estimating and weighting, nonresponse weighting, and diagnosis
         of the weights.
