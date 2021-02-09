@@ -1,5 +1,4 @@
 surveytable <- function(formula , data ){
-  #formula = as.formula(~A+Z.X5)
   rows<-formula[[2]][[2]]
   cols<-formula[[2]][[3]]
   rowvar<-unique(data[,as.character(rows)])
@@ -14,8 +13,6 @@ surveytable <- function(formula , data ){
   nu <- N-1
   
   
-  #pearson<- suppressWarnings(chisq.test(svytable(formula,design,Ntotal=N),
-  #                                      correct=FALSE))
   p = xtabs(eval(bquote(w~.(rows)+.(cols))),data=data)*N/sum(data$w)
   pearson <- chisq.test( p , correct=F)
   
@@ -24,8 +21,7 @@ surveytable <- function(formula , data ){
   X12<-model.matrix(~factor(rows)*factor(cols),mf1)
   
   
-  #mean2<-svymean(mm,Dsvy,na.rm=TRUE)
-  
+
   mean2 = as.vector(data$w%*%mm / sum(data$w))
   score = (sweep(mm , 2  , mean2 , "-")) / sum(data$w)
   a = sweep(score,1,data$w,"*")
@@ -36,18 +32,11 @@ surveytable <- function(formula , data ){
   Dmat <- diag(mean2)
   iDmat<- diag(ifelse(mean2==0,0,1/mean2))
   Vsrs <- (Dmat - outer(mean2,mean2))/N
-  #V <- attr(mean2,"var")
   denom<- t(Cmat) %*% (iDmat/N) %*% Cmat
   numr<-t(Cmat)%*% iDmat %*% V %*% iDmat %*% Cmat
   Delta<-solve(denom,numr)
   d0<- sum(diag(Delta))^2/(sum(diag(Delta%*%Delta)))
   
-  # warn<-options(warn=-1) ## turn off the small-cell count warning.
-  # pearson<- chisq.test(svytable(formula,design,Ntotal=N),
-  #                      correct=FALSE)
-  # options(warn)
-  
-  #if (match.arg(statistic)=="F"){
   pearson$statistic<-pearson$statistic/sum(diag(Delta))
   pearson$p.value<-pf(pearson$statistic, d0, d0*nu, lower.tail=FALSE)
   attr(pearson$statistic,"names")<-"F"

@@ -1,10 +1,10 @@
 calcKS <- function(data, w , treat , multinomATE=FALSE, sw=NULL ){
   
-  W1 = sweep(w , 1 , treat , "*") #apply(w,2,function(x) x*treat )
+  W1 = sweep(w , 1 , treat , "*") 
   if (multinomATE){
     W0 = as.matrix(sw)
   }else{
-    W0 = sweep(w , 1 , 1-treat , "*") #apply(w,2,function(x) x*(1-treat))
+    W0 = sweep(w , 1 , 1-treat , "*") 
   }
   
   ks.effect = NULL

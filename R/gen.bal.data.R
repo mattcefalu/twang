@@ -27,7 +27,6 @@ gen.bal.data <- function(data,var.names){
   bal.data = cbind(bal.data , NAdata[,apply(NAdata,2,any),drop=F])
   
   # handles factors or NAs that have names that expand to the same name as a numeric
-  #bal.data = data.frame(bal.data)
   colnames(bal.data) = make.unique(colnames(bal.data))
   
   return(list(bal.data=bal.data , numeric.vars=numeric.vars , factor.vars=factor.vars))

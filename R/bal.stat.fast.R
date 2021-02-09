@@ -10,24 +10,7 @@ bal.stat.fast <- function(data,vars=NULL,treat.var,w.all, sampw,
   # make Row.names null to avoid cran check warning about binding 
   Row.names = NULL
   
-  
-  # is.fac   <- sapply(data[,vars,drop=FALSE],is.factor)
-  # fac      <- vars[is.fac]
-  # not.fac  <- vars[!is.fac]
-  # 
-  # ret <- vector("list",length(vars))
-  # names(ret) <- vars
-  
-  #   multinom <- FALSE
-  
-  #sampW <- sampw
-  
   ##### Calculate stats for numeric variables
-  #ret[vars] <- ps.summary.new3(data=data[,vars,drop=FALSE], 
-                         # t=data, w=w.all, sampw = sampW,
-                         # get.means=get.means, get.ks=get.ks,
-                         # na.action=na.action,
-                         # estimand=estimand, multinom = multinom, fillNAs = fillNAs)
   bal.data = gen.bal.data(data=data , var.names=vars )
   factor.vars = bal.data$factor.vars
   numeric.vars = bal.data$numeric.vars
@@ -67,31 +50,23 @@ bal.stat.fast <- function(data,vars=NULL,treat.var,w.all, sampw,
       x = bal.data$bal.data[,var]
       index = is.na(x)
       x[index] = 0
-      #w = w.all
-      #w[!index] = 0
-      #WX[!index,]=0
-      # should there be an if statement?
-      D= solve(Di - crossprod( WX[index,] , X[index,]) ) # solve(crossprod( WX , X)) # solve(t(X)%*%diag(w.all*index)%*%X)
-      beta = D %*% crossprod( WX , x ) # D %*% t(WX) %*% x     # D%*%t(X)%*%diag(w.all*index)%*%x
+      D= solve(Di - crossprod( WX[index,] , X[index,]) ) 
+      beta = D %*% crossprod( WX , x ) 
       resid = x - X%*%beta
       resid[index] = 0
-      a = sweep(WX,1,resid,"*") # sweep(X,1,resid*w.all*index,"*")
-      a = beta[2]/ sqrt(crossprod(a%*%t(D))[2,2]*N/(N-1) ) # sqrt( (D%*%t(a)%*%a%*%t(D)*N/(N-1))[2,2] )
+      a = sweep(WX,1,resid,"*") #
+      a = beta[2]/ sqrt(crossprod(a%*%t(D))[2,2]*N/(N-1) ) 
       ret.test = rbind(ret.test ,matrix( c(a , 2*pt(-abs(a) ,df=N-2 )) , nrow=1 , dimnames = list(var , c("stat","p"))) )
       
       # ks stat pvalue
       if (any(index)){
-        ess <- sapply(split(w.all[!index],treat[!index]), function(y){sum(y)^2/sum(y^2)})	 # sapply(split(w,treat), function(y){sum(y)^2/sum(y^2)})		
+        ess <- sapply(split(w.all[!index],treat[!index]), function(y){sum(y)^2/sum(y^2)})	 
       }else{
         ess <- ess1
       }
       if ( ifelse( is.null(ks.exact) , prod(ess)<10000 , ks.exact) ){
-         #PVAL <- 1 - .Call(C_pSmirnov2x, STATISTIC, n.x, n.y)
         pval <- 1- .Call("pSmirnov2x", as.double(ret.ks[var,"ks"]), as.integer(ess[2]), as.integer(ess[1]))
       }else{
-        #n <- n.x * n.y / (n.x + n.y)
-        #pval <- 2*sum((-1)^(0:4)*exp(-2*(1:5)^2*(ret.ks[var,"ks"])^2*prod(ess)/sum(ess))) # .C("pkstwo", p=as.double(prod(ess)/sum(ess)*ret.ks[var,"ks"]) , as.integer(1), as.double(1e-06) , PACKAGE="twang")$p
-         
          ## copied from ks.test
          pkstwo <- function(x, tol = 1e-06) {
             if (is.numeric(x)) 
@@ -119,32 +94,6 @@ bal.stat.fast <- function(data,vars=NULL,treat.var,w.all, sampw,
   }
 
   ##### Calculate stats for factor variables
-  # ret[is.fac] <- lapply(data[,vars[is.fac],drop=FALSE], ps.summary.new2,
-  #                       t=data[,treat.var], w=w.all, sampw = sampW, 
-  #                       get.means=get.means, get.ks=get.ks,
-  #                       na.action=na.action,
-  #                       collapse.by.var=FALSE, estimand=estimand, multinom = multinom, fillNAs = fillNAs)
-  
-  
-  # # this keeps the variables in the same order as vars
-  # n.rows <- sapply(ret,nrow)
-  # var.levels <- unlist(sapply(ret, rownames))
-  # var.names <- rep(names(ret),n.rows)
-  # var.names[var.levels!=""] <- paste(var.names[var.levels!=""],
-  #                                    var.levels[var.levels!=""],sep=":")
-  # 
-  # res <- data.frame(matrix(0,nrow=length(var.names), ncol=ncol(ret[[1]])))
-  # names(res) <- colnames(ret[[1]])
-  # rownames(res) <- var.names
-  # 
-  # # populate the results table
-  # i.insert <- 1
-  # for(i in 1:length(ret))
-  # {
-  #   res[i.insert:(i.insert+nrow(ret[[i]])-1),] <- ret[[i]]
-  #   i.insert <- i.insert+nrow(ret[[i]])
-  # }
-  
   ## maintain order of variables
   var.order = NULL
   for (var in vars){

@@ -140,9 +140,5 @@ mnps.fast <- function(formula,
    
    
    return(returnObj)
-   
-   
-   }
+}
 
-#mnps(formula = treat ~ age + educ, data = lalonde2, estimand = "ATT", treatATT = "0")
-#ft1 <- mnps(formula = treat ~ age + educ, data = lalonde2, estimand = "ATT", treatATT = "0")

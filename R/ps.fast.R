@@ -88,10 +88,6 @@ ps.fast<-function(formula ,
    Terms <- attr(mf, "terms")
    var.names <- attributes(Terms)$term.labels
    
-   # going to let the boosters handle the parsing of the equation. we only need to extract the variable names
-   # var.names = all.vars(formula)[-1]
-   # treat.var <- all.vars(formula)[1]
-   
    if(length(var.names) < 2) stop("At least two variables are needed in the right-hand side of the formula.\n")
    
    treat.var <- as.character(formula[[2]])
@@ -133,8 +129,7 @@ ps.fast<-function(formula ,
    }else{
       sparse.form = reformulate(c("-1",var.names))
       sparse.data = model.Matrix(sparse.form , model.frame(terms(sparse.form),data=data[,var.names] , na.action=na.pass), drop.unused.levels=T , sparse = T)
-      #dtrain <- xgb.DMatrix(train$data, label=data[,treat.var])
-      
+
       if (is.null(params)){
          params = list(eta = shrinkage , max_depth = interaction.depth , subsample = bag.fraction , min_child_weight=n.minobsinnode , objective = "binary:logistic")
       }else{
@@ -204,9 +199,7 @@ ps.fast<-function(formula ,
    
    # 25 point grid of iterations
    iters.grid <- round(seq( 1 , length(iters)  ,length=n.grid))
-   #iters.grid.ks <- round(seq( 1 , length(iters)  ,length=n.grid.ks))
-   #iters.grid.es <- round(seq( 1 , length(iters)  ,length=ifelse(is.null(n.grid.es) ,length(iters) ,n.grid.es )))
-   
+  
    std.effect = ks.effect = balance.es = balance.ks = NULL
    if ( any(grepl("es.",stop.method.names)) ){
       if(verbose) cat("Calculating standardized differences\n")
@@ -232,16 +225,8 @@ ps.fast<-function(formula ,
          
          # save the grid
          balance.es = std.effect
-         #iters.es.plot = iters.grid.es
-         
+
          std.effect = calcES(data=bal.data, w=W[,iters.es] , treat=data[,treat.var,drop=TRUE],numeric.vars = numeric.vars , estimand=estimand , multinom=multinom , sw=sampW)
-         #ks.effect = calcKS(data=bal.data,w=W[,iters.es],treat=data[,treat.var])
-         #colnames(std.effect) = colnames(bal.data)
-      # }else{ # this currently never gets visited
-      #    iters.es = iters.grid.es
-      #    iters.es.plot = iters.grid.ks
-      #    balance.es = std.effect[iters.grid.ks,]
-      # }
    }
    if ( any(grepl("ks.",stop.method.names)) ){
       if(verbose) cat("Calculating Kolmogorov-Smirnov statistics\n")
@@ -293,21 +278,17 @@ ps.fast<-function(formula ,
       if ( grepl("es.mean",stop.method.names[i.tp]) ) {
          opt = list(minimum= iters.es[which.min(apply(abs(std.effect),1,mean, na.rm=T))] )
          balance = cbind(balance , apply(abs(balance.es),1,mean, na.rm=T) )
-         #balance = c(balance , list(es.mean = data.table(iter=iters[iters.grid] , value=apply(abs(balance.es),1,mean, na.rm=T)) )) #cbind(balance , apply(abs(std.effect[iters.25,]),1,mean, na.rm=T) )
       }
       if ( grepl("es.max",stop.method.names[i.tp]) ){
          opt = list(minimum= iters.es[which.min(apply(abs(std.effect),1,max, na.rm=T))] )
          balance = cbind(balance , apply(abs(balance.es),1,max, na.rm=T) )
-         #balance = c(balance , list(es.max = data.table(iter=iters[iters.grid] , value=apply(abs(balance.es),1,max, na.rm=T)) )) #cbind(balance , apply(abs(std.effect[iters.25,]),1,mean, na.rm=T) )
       }
       if ( grepl("ks.mean",stop.method.names[i.tp]) ){
          opt = list(minimum= iters.ks[which.min(apply(abs(ks.effect),1,mean, na.rm=T))] )
-         #balance = c(balance , list(ks.mean = data.table(iter=iters[iters.grid] , value=apply(abs(balance.ks),1,mean, na.rm=T)) )) 
          balance = cbind(balance ,  apply(abs(balance.ks),1,mean, na.rm=T) )
       }
       if ( grepl("ks.max",stop.method.names[i.tp]) ){
          opt = list(minimum= iters.ks[which.min(apply(abs(ks.effect),1,max, na.rm=T))] )
-         #balance = c(balance , list(ks.max = data.table(iter=iters[iters.grid] , value=apply(abs(balance.ks),1,max, na.rm=T)) )) 
          balance = cbind(balance ,  apply(abs(balance.ks),1,max, na.rm=T) )
       }
       

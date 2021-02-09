@@ -103,34 +103,10 @@ calcES <- function(data,treat,w,numeric.vars,estimand,multinom=FALSE,sw=NULL,get
     std.effect = (m1-m0)/sqrt(var1)
   }
   
-  # scale by sample size for numeric -- this is the correction factor for the variance: N/(N-1)
-  # svyvar always uses actual sample size, not number of non-NA. 
-  # if (estimand=="ATE"){
-  #   N = nrow(data)
-  # }else{
-  #   N = sum(treat)
-  # }
-  # std.effect[,numeric.vars] = std.effect[,numeric.vars]* sqrt( (N-1) / N )
-  
   if (get.means){
     ## surveyglm always uses total sample, not number of non-NA
-    # N = nrow(data)
-    # X = cbind(1 , treat)
-    # index = !is.na(data)
-    # t.n <- NULL
-    # for (var in numeric.vars){
-    #   x = data[,var]
-    #   D=solve(t(X)%*%diag(w*index[,var])%*%X)
-    #   beta = D%*%t(X)%*%diag(w*index[,var])%*%x
-    #   resid = x - X%*%beta
-    #   a = sweep(X,1,resid*w*index[,var],"*")
-    #   a = beta[2]/sqrt( (D%*%t(a)%*%a%*%t(D)*N/(N-1))[2,2] )
-    #   t.n = rbind(t.n ,c(a , 1-2*pt(-abs(a) ,df=N-1 )) )
-    # }
-    # rownames(t.n) = numeric.vars
     res = t(rbind(tx.mn=m1 , tx.sd=sqrt(var1), ct.mn=m0 , ct.sd=sqrt(var0) , std.eff.sz=std.effect ))
     colnames(res) = c("tx.mn", "tx.sd",  "ct.mn", "ct.sd", "std.eff.sz")
-    #res[numeric.vars,c("tx.sd","ct.sd")] =  res[numeric.vars,c("tx.sd","ct.sd")]*sqrt(N/(N-1))
     return(res)
   }else{
     return(std.effect)

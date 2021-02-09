@@ -19,9 +19,6 @@ desc.wts.fast <-function(data,w, sampw = sampw,
   vars1 <- vars
   treat.var1 <- treat.var
   
-  
-  #multinom <- FALSE
-  
   bal.tab   <- bal.stat.fast(data=data,w.all=w, sampw = sampW,
                         vars=vars1,
                         treat.var=treat.var1,
