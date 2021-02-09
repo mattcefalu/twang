@@ -358,8 +358,8 @@ ps.fast<-function(formula ,
                   balance.ks = balance.ks,
                   balance.es = balance.es,
                   balance = balance,
-                  es = std.effect,
-                  ks = ks.effect,
+                  #es = std.effect,
+                  #ks = ks.effect,
                   n.trees = n.trees)
    if (keep.data){
       result = c(result , list(data=data))
