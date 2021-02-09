@@ -41,6 +41,7 @@ tutorial for the \texttt{iptw} function in the \texttt{twang} package}
  \newcommand{\mathgbf}[1]{{\mbox{\boldmath$#1$\unboldmath}}}
 
 \begin{document}
+\SweaveOpts{concordance=TRUE}
 
 \maketitle
 
@@ -282,6 +283,7 @@ unstabWt1 <- get.weights.unstab(iptw.Ex)
  We can estimate the treatment effect using these unstabilized weights
 as follows. the number of periods of treatment for each individual
 <<>>=
+library(survey)
 nTx <- with(iptwExWide, tx1 + tx2 + tx3)
 outDatUnstab <- data.frame(outcome = iptwExWide$outcome,
                      nTx, 
