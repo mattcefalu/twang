@@ -39,12 +39,13 @@ gradient boosting. Default: 3.}
 See [gbm] for more details. Default: 0.01.}
 
 \item{bag.fraction}{A numeric value between 0 and 1 denoting the fraction of
- the observations randomly selected in each iteration of the gradient
- boosting algorithm to propose the next tree. See [gbm] for
- more details. Default: 1.0.
-@param n.minobsinnode An integer specifying the minimum number of observations 
- in the terminal nodes of the trees used in the gradient boosting.  See [gbm] for
- more details. Default: 10.}
+the observations randomly selected in each iteration of the gradient
+boosting algorithm to propose the next tree. See [gbm] for
+more details. Default: 1.0.}
+
+\item{n.minobsinnode}{An integer specifying the minimum number of observations 
+in the terminal nodes of the trees used in the gradient boosting.  See [gbm] for
+more details. Default: 10.}
 
 \item{perm.test.iters}{A non-negative integer giving the number of iterations
 of the permutation test for the KS statistic. If `perm.test.iters=0`

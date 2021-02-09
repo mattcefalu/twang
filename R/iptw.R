@@ -30,7 +30,7 @@
 #'   the observations randomly selected in each iteration of the gradient
 #'   boosting algorithm to propose the next tree. See [gbm] for
 #'   more details. Default: 1.0.
-#'  @param n.minobsinnode An integer specifying the minimum number of observations 
+#' @param n.minobsinnode An integer specifying the minimum number of observations 
 #'   in the terminal nodes of the trees used in the gradient boosting.  See [gbm] for
 #'   more details. Default: 10.
 #' @param perm.test.iters A non-negative integer giving the number of iterations
