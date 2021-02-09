@@ -17,6 +17,7 @@ Imports:
     ggplot2,
     xgboost
 Suggests:
+    knitr
 Description: Provides functions for propensity score
         estimating and weighting, nonresponse weighting, and diagnosis
         of the weights.
@@ -24,4 +25,5 @@ License: GPL-3 | file LICENSE
 Encoding: UTF-8
 NeedsCompilation: yes
 Repository: CRAN
+VignetteBuilder: knitr
 RoxygenNote: 6.1.1
