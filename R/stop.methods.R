@@ -1,4 +1,12 @@
-
+#' Stop methods (e.g. "es.mean", "ks.mean", etc.) object, used only for backward compatibility
+#'
+#' In older versions of twang, the `ps` function specified the `stop.method` in a different
+#' manner. This `stop.methods` object is used to ensure backward compatibility; new twang
+#' users should not make use of it.
+#'
+#' This is merely a vector with the names of the stopping rules.
+#'
+#' @export
 stop.methods <- matrix(c("es.mean","ks.mean","es.max","ks.max","ks.max.direct","es.max.direct"), nr = 1)
 names(stop.methods) <- c("es.stat.mean","ks.stat.mean", "es.stat.max", "ks.stat.max",
 "ks.max.direct", "es.max.direct")

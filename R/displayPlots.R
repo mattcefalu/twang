@@ -1,3 +1,12 @@
+#' Display plots
+#'
+#' @param ptList A list of plots to display.
+#' @param figureRows The number of rows in the figure.
+#' @param singlePlot An integer indicating the index of the plot to display.
+#' @param multiPage Whether to display plots on multiple pages.
+#' @param bxpt Whether to display boxplots. Default: `FALSE`.
+#' 
+#' @export
 displayPlots <- function(ptList, figureRows, singlePlot, multiPage, bxpt = FALSE){
 	nPlot <- length(ptList)
 	if(!is.null(singlePlot)) {
@@ -37,5 +46,4 @@ displayPlots <- function(ptList, figureRows, singlePlot, multiPage, bxpt = FALSE
 		print(ptList[[nPlot]], split = c(curCol,curRow,nx = figCol,ny = figureRows), more = FALSE)
    		
    		}
-	
 }

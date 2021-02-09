@@ -112,7 +112,27 @@ res <- list(min_mean=min_mean, max_mean=max_mean, min_cor=min_cor, max_cor=max_c
 return(res)
 }
 
-
+#' Function to run sensitivity analysis described in Ridgeway's paper;
+#' currently works only for ATT.
+#'
+#' Performs the sensitivity analyses described in Ridgeway (2006).
+#' This is a beta version of this functionality. Please let the developers
+#' know if you have problems with it.
+#'
+#' @param ps1 A `ps` object.
+#' @param data The dataset including the outcomes
+#' @param outcome The outcome of interest.
+#' @param order.by.importance Orders the output by relative importance of covariates.
+#' @param verbose If `TRUE`, extra information will be printed.
+#'
+#' @return Returns the following
+#'   * `tx` Summary for treated observations.
+#'   * `ctrl` Summary for control observations.
+#'
+#' @references Ridgeway, G. (2006). "The effect of race bias in post-traffic stop
+#'   outcomes using propensity scores", *Journal of Quantitative Criminology* 22(1):1-29.
+#'
+#' @export
 sensitivity <- function(ps1,data,
                         outcome,
                         order.by.importance=TRUE,

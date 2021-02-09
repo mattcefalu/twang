@@ -1,4 +1,10 @@
-# Produces a summary table for ps object 
+#' Produces a summary table for `ps` object
+#'
+#' @param x An `ps` object
+#' @param ... Additional arguments.
+#' 
+#' @method print summary.ps
+#' @export
 print.summary.ps <- function(x, ...)
 {
       dots <- list(...)

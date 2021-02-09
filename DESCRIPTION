@@ -1,14 +1,29 @@
 Package: twang
-Version: 1.6
-Date: 2020-02-01
+Version: 2.0
+Date: 2021-02-01
 Title: Toolkit for Weighting and Analysis of Nonequivalent Groups
-Author: Greg Ridgeway, Dan McCaffrey, Andrew Morral, Beth Ann Griffin, Lane Burgette, Matthew Cefalu
-	<mcefalu@rand.org>
-Maintainer: Matthew Cefalu <mcefalu@rand.org>
-Depends: R (>= 2.10), gbm (>= 1.5-3), survey, xtable, lattice,
-        latticeExtra
+Author: Matthew Cefalu <Matthew_Cefalu@rand.org>, Greg Ridgeway, Dan McCaffrey, Andrew Morral, Beth Ann Griffin, and Lane Burgette
+Maintainer: Matthew Cefalu <Matthew_Cefalu@rand.org>
+Depends: 
+    R (>= 2.10)
+Imports:
+    gbm (>= 1.5-3),
+    survey,
+    xtable,
+    lattice,
+    latticeExtra,
+    MatrixModels,
+    data.table,
+    ggplot2,
+    xgboost
+Suggests:
+    knitr
 Description: Provides functions for propensity score
         estimating and weighting, nonresponse weighting, and diagnosis
-        of the weights. 
+        of the weights.
 License: GPL-3 | file LICENSE
+Encoding: UTF-8
 NeedsCompilation: yes
+Repository: CRAN
+VignetteBuilder: knitr
+RoxygenNote: 6.1.1

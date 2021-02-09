@@ -1,3 +1,23 @@
+#' Extract propensity score weights.
+#'
+#' Extracts propensity score weights from a ps or mnps object.
+#'
+#' Weights for ATT are 1 for the treatment cases and p/(1-p) for the control cases. 
+#' Weights for ATE are 1/p for the treatment cases and 1/(1-p) for the control cases.
+#'
+#' @param ps1 A `ps` or `mnps` object.
+#' @param stop.method Indicates which set of weights to retrieve from the `ps` object.
+#' @param estimand Indicates whether the weights are for the average treatment effect on
+#'   the treated (ATT) or the average treatment effect on the population (ATE). By default,
+#'   `get.weights` will use the estimand used to fit the `ps` object.
+#' @param withSampW Whether to return weights with sample weights multiplied in, if they were
+#'   provided in the original `ps` or `mnps` call. Default: `TRUE`.
+#'
+#' @return Returns a vector of weights.
+#'
+#' @seealso [ps]
+#'
+#' @export
 get.weights <- function(ps1, stop.method = NULL, estimand = NULL, withSampW = TRUE)
 {
    if(class(ps1)[1]=="ps"){

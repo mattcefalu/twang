@@ -1,282 +1,233 @@
-## require(twang); data(lalonde); ps.lalonde <- ps(treat~age + educ + black + hispan + nodegree + married + re74 + re75, data = lalonde, stop.method = c("es.max", "es.mean"),estimand = "ATT", n.trees = 5000, verbose = FALSE)
+#' Gradient boosted propensity score estimation
+#'
+#' `ps` calculates propensity scores using gradient boosted logistic
+#' regression and diagnoses the resulting propensity scores using a variety of
+#' methods
+#' 
+#' For user more comfortable with the options of [xgboost],
+#' the options for `ps` controlling the behavior of the gradient boosting
+#' algorithm can be specified using the [xgboost] naming
+#' scheme. This includes `nrounds`, `max_depth`, `eta`, and
+#' `subsample`. In addition, the list of parameters passed to
+#' [xgboost] can be specified with `params`.
+#' 
+#' Note that unlike earlier versions of `twang`, the plotting functions are
+#' no longer included in the `ps` function. See  [plot] for
+#' details of the plots.
+#' 
+#' @param formula An object of class [formula]: a symbolic
+#'   description of the propensity score model to be fit with the treatment
+#'   indicator on the left side of the formula and the potential confounding
+#'   variables on the right side.
+#' @param data A dataset that includes the treatment indicator as well as the
+#'   potential confounding variables.
+#' @param n.trees Number of gbm iterations passed on to [gbm]. Default: 10000.
+#' @param interaction.depth A positive integer denoting the tree depth used in
+#'   gradient boosting. Default: 3.
+#' @param shrinkage A numeric value between 0 and 1 denoting the learning rate.
+#'   See [gbm] for more details. Default: 0.01.
+#' @param bag.fraction A numeric value between 0 and 1 denoting the fraction of
+#'   the observations randomly selected in each iteration of the gradient
+#'   boosting algorithm to propose the next tree. See [gbm] for
+#'   more details. Default: 1.0.
+#' @param n.minobsinnode An integer specifying the minimum number of observations 
+#'   in the terminal nodes of the trees used in the gradient boosting.  See [gbm] for
+#'   more details. Default: 10.
+#' @param perm.test.iters A non-negative integer giving the number of iterations
+#'   of the permutation test for the KS statistic. If `perm.test.iters=0`
+#'   then the function returns an analytic approximation to the p-value. Setting
+#'   `perm.test.iters=200` will yield precision to within 3\% if the true
+#'   p-value is 0.05. Use `perm.test.iters=500` to be within 2\%. Default: 0.
+#' @param print.level The amount of detail to print to the screen. Default: 2.
+#' @param verbose If `TRUE`, lots of information will be printed to monitor the
+#'   the progress of the fitting. Default: `TRUE`.
+#' @param estimand "ATE" (average treatment effect) or "ATT" (average treatment
+#'   effect on the treated) : the causal effect of interest. ATE estimates the
+#'   change in the outcome if the treatment were applied to the entire
+#'   population versus if the control were applied to the entire population. ATT
+#'   estimates the analogous effect, averaging only over the treated population.
+#'   Default: "ATE".
+#' @param stop.method A method or methods of measuring and summarizing balance across pretreatment
+#'   variables. Current options are `ks.mean`, `ks.max`, `es.mean`, and `es.max`. `ks` refers to the
+#'   Kolmogorov-Smirnov statistic and es refers to standardized effect size. These are summarized
+#'   across the pretreatment variables by either the maximum (`.max`) or the mean (`.mean`). 
+#'   Default: `c("ks.mean", "es.mean")`.
+#' @param sampw Optional sampling weights.
+#' @param version "gbm", "xgboost", or "legacy", indicating which version of the twang package to use.
+#'   * `"gbm"` uses gradient boosting from the `gbm` package.
+#'   * `"xgboost"` uses gradient boosting from the `xgboost` package.
+#'   * `"legacy"` uses the prior implementation of the `ps`` function.
+#' @param ks.exact `NULL` or a logical indicating whether the
+#'   Kolmogorov-Smirnov p-value should be based on an approximation of exact
+#'   distribution from an unweighted two-sample Kolmogorov-Smirnov test. If
+#'   `NULL`, the approximation based on the exact distribution is computed
+#'   if the product of the effective sample sizes is less than 10,000.
+#'   Otherwise, an approximation based on the asymptotic distribution is used.
+#'   **Warning:** setting `ks.exact = TRUE` will add substantial
+#'   computation time for larger sample sizes. Default: `NULL`.
+#' @param n.keep A numeric variable indicating the algorithm should only
+#'   consider every `n.keep`-th iteration of the propensity score model and
+#'   optimize balance over this set instead of all iterations. Default: 1.
+#' @param n.grid A numeric variable that sets the grid size for an initial
+#'   search of the region most likely to minimize the `stop.method`. A
+#'   value of `n.grid=50` uses a 50 point grid from `1:n.trees`. It
+#'   finds the minimum, say at grid point 35. It then looks for the actual
+#'   minimum between grid points 34 and 36. If specified with `n.keep>1`, `n.grid` 
+#'   corresponds to a grid of points on the kept iterations as defined by ```n.keep```. Default: 25.
+#' @param keep.data A logical variable indicating whether or not the data is saved in 
+#'   the resulting `ps` object. Default: `TRUE`.
+#' @param ... Additional arguments that are passed to ps function.
+#'
+#' @return Returns an object of class `ps`, a list containing 
+#'   * `gbm.obj` The returned [gbm] object.
+#'   * `treat` The vector of treatment indicators.
+#'   * `treat.var` The treatment variable.
+#'   * `desc` A list containing balance tables for each method selected in
+#'     `stop.methods`. Includes a component for the unweighted
+#'     analysis names \dQuote{unw}. Each `desc` component includes
+#'     a list with the following components
+#'     - `ess` The effective sample size of the control group.
+#'     - `n.treat` The number of subjects in the treatment group.
+#'     - `n.ctrl` The number of subjects in the control group.
+#'     - `max.es` The largest effect size across the covariates.
+#'     - `mean.es` The mean absolute effect size.
+#'     - `max.ks` The largest KS statistic across the covariates.
+#'     - `mean.ks` The average KS statistic across the covariates.
+#'     - `bal.tab` a (potentially large) table summarizing the quality of the 
+#'       weights for equalizing the distribution of features across 
+#'       the two groups. This table is best extracted using the
+#'       [bal.table] method. See the help for [bal.table] for details
+#'       on the table's contents.
+#'     - `n.trees` The estimated optimal number of [gbm]
+#'       iterations to optimize the loss function for the associated 
+#'        `stop.methods`.
+#'     - `ps` a data frame containing the estimated propensity scores. Each
+#'       column is associated with one of the methods selected in `stop.methods`.
+#'     - `w` a data frame containing the propensity score weights. Each
+#'       column is associated with one of the methods selected in `stop.methods`.
+#'       If sampling weights are given then these are incorporated into these weights.
+#'     - `estimand` The estimand of interest (ATT or ATE).
+#'  * `datestamp` Records the date of the analysis.
+#'  * `parameters` Saves the `ps` call.
+#'  * `alerts` Text containing any warnings accumulated during the estimation.
+#'  * `iters` A sequence of iterations used in the GBM fits used by `plot` function.
+#'  * `balance` The balance measures for the pretreatment covariates used in plotting, with a column for each
+#'    `stop.method`.
+#'  * `balance.ks` The KS balance measures for the pretreatment covariates used in plotting, with a column for each
+#'    covariate.
+#'  * `balance.es` The standard differences for the pretreatment covariates used in plotting, with a column for each
+#'    covariate.
+#'  * `ks` The KS balance measures for the pretreatment covariates on a finer grid, with a column for each
+#'    covariate.
+#'  * `es` The standard differences for the pretreatment covariates on a finer grid, with a column for each
+#'    covariate.
+#'  * `n.trees` Maximum number of trees considered in GBM fit.
+#'  * `data` Data as specified in the `data` argument.
+#'
+#' @seealso [gbm], [xgboost], [plot.ps], [bal.table]
+#' @keywords models, multivariate
+#'
+#' @references Dan McCaffrey, G. Ridgeway, Andrew Morral (2004). "Propensity
+#'   Score Estimation with Boosted Regression for Evaluating Adolescent
+#'   Substance Abuse Treatment", *Psychological Methods* 9(4):403-425.
+#'
+#' @export
 ps<-function(formula = formula(data),
-             data,                         # data
-             n.trees=10000,                 # gbm options
-             interaction.depth=3,
-             shrinkage=0.01,
+             data,
+             # boosting options 
+             n.trees = 10000,
+             interaction.depth = 3,
+             shrinkage = 0.01,
              bag.fraction = 1.0,
-             perm.test.iters=0,
-             print.level=2,                 # direct optimizer options
-             iterlim=1000,
-             verbose=TRUE,
-             estimand="ATE", 
+             n.minobsinnode =10,
+             perm.test.iters = 0,
+             print.level = 2,       
+             verbose = TRUE,
+             estimand = "ATE", 
              stop.method = c("ks.mean", "es.mean"), 
-             sampw = NULL, multinom = FALSE, 
+             sampw = NULL, 
+             version = "gbm",
+             ks.exact = NULL,
+             n.keep = 1,
+             n.grid = 25,
+             keep.data=TRUE,
              ...){
-             	
-	
-#	multinom <- FALSE
-	
-	if(is.null(sampw)) sampW <- rep(1, nrow(data))
-	else sampW <- sampw
-	
-	type <- alert <- NULL
-	
-	dots <- list(...)
-	if(!is.null(dots$plots))
-	warning("From version 1.2, the plots argument has been removed from ps(). \nPlease use the plot() function instead.")
-	
-	stop.method[stop.method == "ks.stat.mean"] <- "ks.mean"
-	stop.method[stop.method == "es.stat.mean"] <- "es.mean"
-	stop.method[stop.method == "ks.stat.max"] <- "ks.max"
-	stop.method[stop.method == "es.stat.max"] <- "es.max"
-	stop.method[stop.method == "ks.stat.max.direct"] <- "ks.max.direct"
-	stop.method[stop.method == "es.stat.max.direct"] <- "es.max.direct"	
-	
 
-	             
+   # collect named arguments from dots
+   args         <- list(...)
+   args_named   <- names(args)
 
-
-if(!(estimand %in% c("ATT","ATE"))) stop("estimand must be either \"ATT\" or \"ATE\".")
-allowableStopMethods <- c("ks.mean", "es.mean","ks.max", "es.max","ks.max.direct","es.max.direct")
-
-nMethod <- length(stop.method)
-methodList <- vector(mode="list", length = nMethod)
-for(i in 1:nMethod){
-	if(is.character(stop.method[i])){
-		if (!(stop.method[i] %in% allowableStopMethods)){
-			print(allowableStopMethods)
-			stop("Each element of stop.method must either be one of \nthe above character strings, or an object of the stop.method class.")	
-		}
-		
-	methodList[[i]] <- get(stop.method[i])
-	methodName <- paste(stop.method[i], ".", estimand, sep="")
-	methodList[[i]]$name <- methodName
-	}
-	else {
-		if (class(stop.method[i])[1] != "stop.method"){
-			print(allowableStopMethods)
-			stop("Each element of stop.method must either be one of \nthe above character strings, or an object of the stop.method class.")	
-		}
-		methodList[[i]] <- stop.method[i]	
-	}
-}
-
-stop.method <- methodList
-
-
-   terms <- match.call()
+   # parse hidden options and xgboost parameters
+   params       <- args$params
+   multinom     <- if (!is.null(args$multinom)) args$multinom else FALSE
+   max_depth    <- if (!is.null(args$max_depth)) args$max_depth else interaction.depth
+   subsample    <- if (!is.null(args$subsample)) args$subsample else bag.fraction
+   nrounds      <- if (!is.null(args$nrounds)) args$nrounds else n.trees
+   eta          <- if (!is.null(args$eta)) args$eta else shrinkage
+   min_child_weight <- if (!is.null(args$min_child_weight)) args$min_child_weight else n.minobsinnode
    
-   # all this is just to extract the variable names
-   mf <- match.call(expand.dots = FALSE)
-   m <- match(c("formula", "data"), names(mf), 0)
-   mf <- mf[c(1, m)]
-   mf[[1]] <- as.name("model.frame")
-   mf$na.action <- na.pass
-   mf$subset <- rep(FALSE, nrow(data)) # drop all the data
-   mf <- eval(mf, parent.frame())
-   Terms <- attr(mf, "terms")
-   var.names <- attributes(Terms)$term.labels
+   # throw some errors if the user specifies two versions of the same option
+   if (!missing(n.trees) & ('nrounds' %in% args_named))             stop("Only one of n.trees and nrounds can be specified.")
+   if (!missing(interaction.depth) & ('max_depth' %in% args_named)) stop("Only one of interaction.depth and max_depth can be specified.")
+   if (!missing(shrinkage) & ('eta' %in% args_named))               stop("Only one of shrinkage and eta can be specified.")
+   if (!missing(bag.fraction) & ('subsample' %in% args_named))      stop("Only one of bag.fraction and subsample can be specified.")
+   if (!missing(n.minobsinnode) & ('min_child_weight' %in% args_named))      stop("Only one of n.minobsinnode and min_child_weight can be specified.")
    
-   if(length(var.names) < 2) stop("At least two variables are needed in the right-hand side of the formula.\n")
-   
-   treat.var <- as.character(formula[[2]])
-
-   # create the desc object. This holds information on variable balance
-#   if (class(stop.method)=="stop.method"){
-#      stop.method <- list(stop.method)}
-      
-   stop.method.names <- sapply(stop.method,function(x){x$name})
-   i <- which(sapply(stop.method,function(x){x$direct}))
-   if(length(i)>0) cat(paste("*** WARNING: Stop method",stop.method.names[i],"involves direct\noptimization, which is very time consuming, especially\nfor datasets with more than a few hundred cases. Consider\nusing another stop.method or be prepared for a very long wait. ***\n\n"))
-   desc <- vector("list",1+length(stop.method))
-   names(desc) <- c("unw",stop.method.names)
-
-
-   # allocate space for the propensity scores and weights
-   p.s        <- data.frame(matrix(NA,nrow=nrow(data),
-                                      ncol=length(stop.method)))
-   names(p.s) <- stop.method.names
-   w          <- data.frame(matrix(NA,nrow=nrow(data),
-                                      ncol=length(stop.method)))
-   names(w)   <- stop.method.names
-   
-   # check sampw
-#   if(is.null(sampw)) sampw <- rep(1,nrow(data))
- 
-   # alert.stack collects all the warnings
-   alerts.stack <- textConnection("alert","w")
-
-   # fit the propensity score model
-   if(verbose) cat("Fitting gbm model\n")
-   # need to reformulate formula to use this environment
-   form <- paste(deparse(formula, 500), collapse="") 
-
-   gbm1 <-gbm(formula(form),
-              data = data,
-              weights=sampW,
-              distribution = "bernoulli",
-              n.trees = n.trees,
-              interaction.depth = interaction.depth,
-              n.minobsinnode = 10,
-              shrinkage = shrinkage,
-   ### bag.fraction was 0.5.  revised 101210
-              bag.fraction = bag.fraction,
-              train.fraction = 1,
-              verbose = verbose,
-              keep.data = FALSE)
-
-   if(verbose) cat("Diagnosis of unweighted analysis\n")
-   
-   if(is.factor(data[,treat.var])) stop("Treatment indicator must be numeric, not a factor")
-   
-   desc$unw <- desc.wts(data=data[,c(treat.var,var.names)],
-                        treat.var=treat.var,
-                        w=sampW,
-                        sampw = rep(1, nrow(data)), 
-                        tp="unw",
-                        na.action="level",
-                        perm.test.iters=perm.test.iters,
-                        verbose=verbose,
-                        alerts.stack=alerts.stack,
-                        estimand=estimand, multinom = multinom)
-   desc$unw$n.trees <- NA
-
-balance <- matrix(NA, ncol = nMethod, nrow = 25)
-#balance <- matrix(NA, nc = nMethod, nr = 100)
-
-
-   for (i.tp in 1:nMethod){
-      tp <- stop.method.names[i.tp]
-      if(verbose) cat("Optimizing with",tp,"stopping rule\n")
-
-      # get optimal number of iterations
-      # Step #1: evaluate at 25 equally spaced points
-      iters <- round(seq(1,gbm1$n.trees,length=25))
-      bal <- rep(0,length(iters))
-      
-      
-      for (j in 1:length(iters)){
-         bal[j] <- MetricI(iters[j],
-                    fun          = match.fun(stop.method[[i.tp]]$metric),
-                    vars         = var.names,
-                    treat.var    = treat.var,
-                    data         = data,
-                    sampw        = sampW,
-                    rule.summary = match.fun(stop.method[[i.tp]]$rule.summary),
-                    na.action    = stop.method[[i.tp]]$na.action,
-                    gbm1         = gbm1,
-                    estimand       = estimand,
-                    multinom = multinom)
-
-
-balance[,i.tp] <- bal
-
-      # Step #2: find the interval containing the approximate minimum
-      interval <- which.min(bal) +c(-1,1)
-      interval[1] <- max(1,interval[1])
-      interval[2] <- min(length(iters),interval[2])
-      }
- 
-
-   
-      # Step #3: refine the minimum by searching with the identified interval
-      opt<-optimize(MetricI,
-                    interval=iters[interval],
-                    maximum   = FALSE,
-                    tol       = 1,
-                    fun       = match.fun(stop.method[[i.tp]]$metric),
-                    vars      = var.names,
-                    treat.var = treat.var,
-                    data      = data,
-                    sampw     = sampW,
-                    rule.summary = match.fun(stop.method[[i.tp]]$rule.summary),
-                    na.action = stop.method[[i.tp]]$na.action,
-                    gbm1      = gbm1,
-                    estimand    = estimand,
-                    multinom = multinom)
-      if(verbose) cat("   Optimized at",round(opt$minimum),"\n")
-      if(gbm1$n.trees-opt$minimum < 100) warning("Optimal number of iterations is close to the specified n.trees. n.trees is likely set too small and better balance might be obtainable by setting n.trees to be larger.")
-
-      # compute propensity score weights
-      p.s[,i.tp]  <- predict(gbm1,newdata=data,
-                             n.trees=round(opt$minimum),
-                             type="response")
-
-      if (estimand=="ATT") {
-      w[,i.tp] <- p.s[,i.tp]/(1-p.s[,i.tp])
-      w[data[,treat.var]==1,i.tp] <- 1
-      }
-
-      if (estimand=="ATE"){
-      w[data[,treat.var]==1,i.tp] <- 1/p.s[data[,treat.var]==1,i.tp]
-      w[data[,treat.var]==0,i.tp] <- 1/(1-p.s[data[,treat.var]==0,i.tp])
-      }
-      
-      # adjust for sampling weights
-      w[,i.tp] <- w[,i.tp]*sampW 
-
-      # Directly optimize the weights if requested
-      if (stop.method[[i.tp]]$direct){
-         if (verbose) cat("   Proceeding to direct optimization\n")
-
-         obj   <- nlm(match.fun(stop.method[[i.tp]]$metric),
-                      p           = log(w[data[,treat.var]==0,i.tp]),
-                      fscale      = 0.1,
-                      data        = data,
-                      vars        = var.names,
-                      treat.var   = treat.var,
-                      ndigit      = 3,
-                      rule.summary = match.fun(stop.method[[i.tp]]$rule.summary),
-                      na.action   = stop.method[[i.tp]]$na.action,
-                      print.level = print.level,
-                      iterlim     = iterlim,
-                      estimand    = estimand)
-         if(obj$code %in% c(4,5))
-            warning("Failed to completely optimize metric directly.")
-
-         w[data[,treat.var]==0,i.tp] <- exp(obj$estimate)
-      }
-
-      if(verbose) cat("Diagnosis of",tp,"weights\n")
-      desc[[tp]] <- desc.wts(data[,c(treat.var,var.names)],
-                             treat.var    = treat.var,
-                             w            = w[,i.tp],
-                             sampw = sampW, 
-                             tp           = type,
-                             na.action    = stop.method[[i.tp]]$na.action,
-                             perm.test.iters=perm.test.iters,
-                             verbose=verbose,
-                             alerts.stack = alerts.stack,
-                             estimand       = estimand,
-                             multinom = multinom)
-      desc[[tp]]$n.trees <- 
-         ifelse(stop.method[[i.tp]]$direct, NA, round(opt$minimum))
-      
-
+   # throw error if user specifies params with other options
+   if (!missing(interaction.depth) | ('max_depth' %in% args_named) | !missing(shrinkage) | ('eta' %in% args_named) | !missing(bag.fraction) | ('subsample' %in% args_named) ){
+      if (!is.null(params)) stop("params cannot be specified with any of interaction.depth, max_depth, shrinkage, eta, bag.fraction, or subsample.")
    }
 
-
-   close(alerts.stack)
-   if(verbose) cat(alert,sep="\n")
-
-   result <- list(gbm.obj    = gbm1,
-                  treat      = data[,treat.var], # needed for plot.ps
-                  treat.var  = treat.var,
-                  desc       = desc,
-                  ps         = p.s,
-                  w          = w,
-                  sampw      = sampW, 
-                  estimand   = estimand,
-#                  plot.info  = plot.info,
-                  datestamp  = date(),
-                  parameters = terms,
-                  alerts     = alert,
-                  iters = iters,
-                  balance = balance,
-                  n.trees = n.trees,
-                  data = data)
-   class(result) <- "ps"
-   return(result)
+   if (version=="legacy"){
+      ## throw some errors if the user specifies an option not allowed in legacy version of ps
+      if (!is.null(ks.exact))     stop("Option ks.exact is not allowed with version='legacy'")
+      if (!is.null(params))       stop("Option params is not allowed with version='legacy'")
+      if (!is.null(args$tree_method))  stop("Option tree_method is not allowed with version='legacy'")
+      if (!missing(n.keep))       stop("Option n.keep is not allowed with version='legacy'")
+      if (!missing(n.grid))       stop("Option n.grid is not allowed with version='legacy'")
+      if (!missing(n.minobsinnode) | !is.null(args$min_child_weight)) stop("Options n.minobsinnode or min_child_weight are not allowed with version='legacy'")
+      if (!missing(keep.data)) stop("Option keep.data is not allowed with version='legacy'")
+      
+      return(ps.old(formula = formula,
+                     data = data,                         # data
+                     n.trees = nrounds,                   # gbm options
+                     interaction.depth = max_depth,
+                     shrinkage=eta,
+                     bag.fraction = subsample,
+                     perm.test.iters = perm.test.iters,
+                     print.level = print.level,       
+                     verbose = verbose,
+                     estimand = estimand, 
+                     stop.method = stop.method, 
+                     sampw = sampw, 
+                     multinom = multinom, 
+                     ...))
+  }else{
+    # xgboost tree method  
+    tree_method  <- if (!is.null(args$tree_method)) args$tree_method else "hist"
+    # throw error if user specifies params with version=="gbm"
+    if ( version=="gbm" & !is.null(params) ) stop("params cannot be specified when version='gbm'.")
+    return(ps.fast(formula = formula,
+                  data = data,                         # data
+                  n.trees = nrounds,                   # gbm options
+                  interaction.depth = max_depth,
+                  shrinkage = eta,
+                  bag.fraction = subsample,
+                  n.minobsinnode = min_child_weight,
+                  params = params,
+                  perm.test.iters = perm.test.iters,
+                  print.level = print.level,       
+                  verbose = verbose,
+                  estimand = estimand, 
+                  stop.method = stop.method, 
+                  sampw = sampw, 
+                  multinom = multinom,
+                  ks.exact = ks.exact,
+                  version = version,
+                  tree_method = tree_method,
+                  n.keep = n.keep,
+                  n.grid = n.grid,
+                  keep.data=keep.data))
+  }
 }
-
+  
