@@ -318,7 +318,11 @@ ps.fast<-function(formula ,
       
       desc[[tp]]$n.trees <- ifelse(stop.method[[i.tp]]$direct, NA, iters[opt$minimum])
    }
-
+   
+   # clean up to avoid memory problems
+   rm(ps,W)
+   gc();gc();gc()
+   
 
    close(alerts.stack)
    if(verbose) cat(alert,sep="\n")
