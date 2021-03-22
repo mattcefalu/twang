@@ -6,39 +6,39 @@
 #' For users comfortable with [ps], any options prefaced with
 #' `ps_` are passed directly to the `ps()` function.
 #'
-#' @param formula.med formula
-#'   A formula relating the mediatior(s)
-#'   to the covariates
-#' @param data data.frame
-#'   The dataset
-#' @param a_treatment character
-#'   The name of the treatment variable, a, which must be
-#'   dichotomous.
-#' @param y_outcome character, optional
-#'   The name of the outcome variable, y. If this is not provided, then
+#' @param formula.med 
+#'   A object of class [formula] relating the mediatior(s)
+#'   to the covariates (potential confounding variables).
+#' @param data 
+#'   A dataset of class [data.frame] that includes the treatment indicator, mediator(s), and covariates. 
+#' @param a_treatment 
+#'   The (character) name of the treatment variable, which must be
+#'   dichotomous (0, 1).
+#' @param y_outcome 
+#'   The (character) name of the outcome variable, y. If this is not provided, then
 #'   no effects will be calculated and a warning will be raised. Default : `NULL`.
-#' @param total_effect_weights vector
+#' @param total_effect_weights 
 #'   A vector of total effect weights, which if left `NULL`
 #'   then total_effect_ps must be supplied. Default : `NULL`.
-#' @param total_effect_ps vector
+#' @param total_effect_ps 
 #'   A ps object that contains the total effect weights,
 #;   which if left `NULL` then total_effect_weights must be supplied. Default : `NULL`.
 #' @param total_effect_stop_rule
-#'   The stopping rule for the total effect weights, which 
+#'   The stopping rule (`ks.mean`, `ks.max`, `es.mean`, `es.max`) for the total effect weights, which 
 #'   only needs to be specified if total_effect_ps is provided. Default : `NULL`.
 #' @param method
 #'   The method for getting weights ("ps", "logistic", or "crossval"). Default : `"ps"`.
-#' @param sampw numeric, optional
+#' @param sampw 
 #'   Optional sampling weights Default : `NULL`.
-#' @param ps_n.trees integer, optional
+#' @param ps_n.trees 
 #'   Number of gbm iterations passed on to [gbm]. Default: 10000.
-#' @param ps_interaction.depth integer, optional
+#' @param ps_interaction.depth 
 #'   A positive integer denoting the tree depth used in
 #'   gradient boosting. Default: 3.
-#' @param ps_shrinkage numeric, optional
+#' @param ps_shrinkage
 #'   A numeric value between 0 and 1 denoting the learning rate.
 #'   See [gbm] for more details. Default: 0.01.
-#' @param ps_bag.fraction numeric, optional
+#' @param ps_bag.fraction 
 #'   A numeric value between 0 and 1 denoting the fraction of
 #'   the observations randomly selected in each iteration of the gradient
 #'   boosting algorithm to propose the next tree. See [gbm] for
@@ -46,22 +46,22 @@
 #' @param ps_n.minobsinnode An integer specifying the minimum number of observations 
 #'   in the terminal nodes of the trees used in the gradient boosting.  See [gbm] for
 #'   more details. Default: 10.
-#' @param ps_perm.test.iters integer, optional
+#' @param ps_perm.test.iters 
 #'   A non-negative integer giving the number of iterations
 #'   of the permutation test for the KS statistic. If `perm.test.iters=0`
 #'   then the function returns an analytic approximation to the p-value. Setting
 #'   `perm.test.iters=200` will yield precision to within 3% if the true
 #'   p-value is 0.05. Use `perm.test.iters=500` to be within 2%. Default: 0.
-#' @param ps_verbose logical, optional 
+#' @param ps_verbose 
 #'   If `TRUE`, lots of information will be printed to monitor the
 #'   the progress of the fitting. Default: `FALSE`.
-#' @param ps_stop.method integer, optional
+#' @param ps_stop.method 
 #'   A method or methods of measuring and summarizing balance across pretreatment
 #'   variables. Current options are `ks.mean`, `ks.max`, `es.mean`, and `es.max`. `ks` refers to the
 #'   Kolmogorov-Smirnov statistic and es refers to standardized effect size. These are summarized
 #'   across the pretreatment variables by either the maximum (`.max`) or the mean (`.mean`). 
 #'   Default: `c("ks.mean", "ks.max")`.
-#' @param ps_version character, optional
+#' @param ps_version 
 #'  "gbm", "xgboost", or "legacy", indicating which version of the twang package to use.
 #'   * `"gbm"` uses gradient boosting from the [gbm] package.
 #'   * `"xgboost"` uses gradient boosting from the [xgboost] package.
@@ -74,23 +74,23 @@
 #'   Otherwise, an approximation based on the asymptotic distribution is used.
 #'   **Warning:** setting `ks.exact = TRUE` will add substantial
 #'   computation time for larger sample sizes. Default: `NULL`.
-#' @param ps_n.keep  integer, optional
+#' @param ps_n.keep  
 #'   A numeric variable indicating the algorithm should only
 #'   consider every `n.keep`-th iteration of the propensity score model and
-#'   optimize balance over this set instead of all iterations. Only used
-#'   with `xgboost`. Default : 1.
-#' @param ps_n.grid integer, optional
+#'   optimize balance over this set instead of all iterations. Default : 1.
+#' @param ps_n.grid 
 #'   A numeric variable that sets the grid size for an initial
 #'   search of the region most likely to minimize the `stop.method`. A
 #'   value of `n.grid=50` uses a 50 point grid from `1:n.trees`. It
 #'   finds the minimum, say at grid point 35. It then looks for the actual
-#'   minimum between grid points 34 and 36.Only used with `xgboost`. Default: 25.
-#' @param ps_cv.folds integer, optional
+#'   minimum between grid points 34 and 36.If specified with `n.keep>1`, `n.grid` 
+#'   corresponds to a grid of points on the kept iterations as defined by ```n.keep```. Default: 25.
+#' @param ps_cv.folds 
 #'   A numeric variable that sets the number of cross-validation folds if 
 #'   using method='crossval'. Default: 10. 
-#' @param ps_keep.data logical, optional
+#' @param ps_keep.data 
 #'   A logical variable that determines if the dataset should be saved 
-#'   in the ps model objects. Default: FALSE. 
+#'   in the resulting `ps` model objects. Default: `FALSE`. 
 #' @return mediation object
 #'   The `mediation` object includes the following:
 #'   - `model_a_res` The model A `ps()` results.
@@ -139,7 +139,7 @@ wgtmed <- function(formula.med,
                                ps_keep.data=FALSE) {
 
   # Check for errors in specification
-  if(!is.data.frame(data)){stop("Object specified in data must be a data frame")}
+  if(!is.data.frame(data) | is.data.table(data)){stop("The provided data object must be a data frame")}
     
   # Check the specification of total effect weights 
   # Set total_effect_covars to NULL and set to value later if possible
