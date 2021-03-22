@@ -1,93 +1,97 @@
-#' Propensity score estimation
+#' Propensity score estimation for multiple treatments
 #'
-#' `mnps` mnps calculates propensity scores for more than two treatment groups using gradient boosted
+#' \code{mnps} calculates propensity scores for more than two treatment groups using gradient boosted
 #' logistic regression, and diagnoses the resulting propensity scores using a variety of methods.
 #' 
-#' For user more comfortable with the options of [xgboost],
-#' the options for `ps` controlling the behavior of the gradient boosting
-#' algorithm can be specified using the [xgboost] naming
-#' scheme. This includes `nrounds`, `max_depth`, `eta`, and
-#' `subsample`. In addition, the list of parameters passed to
-#' [xgboost] can be specified with `params`.
+#' For user more comfortable with the options of \code{\link{xgboost}},
+#' the options for \code{mnps} controlling the behavior of the gradient boosting
+#' algorithm can be specified using the \code{\link{xgboost}} naming
+#' scheme. This includes \code{nrounds}, \code{max_depth}, \code{eta}, and
+#' \code{subsample}. In addition, the list of parameters passed to
+#' \code{\link{xgboost}} can be specified with \code{params}.
 #' 
-#' Note that unlike earlier versions of `twang`, the plotting functions are
-#' no longer included in the `ps` function. See  [plot] for
+#' Note that unlike earlier versions of \code{twang}, the plotting functions are
+#' no longer included in the \code{mnps} function. See \code{\link[twang:plot.mnps]{plot}} for
 #' details of the plots.
 #' 
 #' @param formula A formula for the propensity score model with the treatment
 #'   indicator on the left side of the formula and the potential
 #'   confounding variables on the right side.
 #' @param data The dataset, includes treatment assignment as well as covariates.
-#' @param n.trees Number of gbm iterations passed on to [gbm]. Default: 10000.
+#' @param n.trees Number of gbm iterations passed on to \code{\link{gbm}}. Default: 10000.
 #' @param interaction.depth A positive integer denoting the tree depth used in
 #'   gradient boosting. Default: 3.
 #' @param shrinkage A numeric value between 0 and 1 denoting the learning rate.
-#'   See [gbm] for more details. Default: 0.01.
+#'   See \code{\link{gbm}} for more details. Default: 0.01.
 #' @param bag.fraction A numeric value between 0 and 1 denoting the fraction of
 #'   the observations randomly selected in each iteration of the gradient
-#'   boosting algorithm to propose the next tree. See [gbm] for
+#'   boosting algorithm to propose the next tree. See \code{\link{gbm}} for
 #'   more details. Default: 1.0.
 #' @param n.minobsinnode An integer specifying the minimum number of observations 
-#'   in the terminal nodes of the trees used in the gradient boosting.  See [gbm] for
+#'   in the terminal nodes of the trees used in the gradient boosting. See \code{\link{gbm}} for
 #'   more details. Default: 10.
 #' @param perm.test.iters A non-negative integer giving the number of iterations
-#'   of the permutation test for the KS statistic. If `perm.test.iters=0`
+#'   of the permutation test for the KS statistic. If \code{perm.test.iters=0}
 #'   then the function returns an analytic approximation to the p-value. Setting
-#'   `perm.test.iters=200` will yield precision to within 3\% if the true
-#'   p-value is 0.05. Use `perm.test.iters=500` to be within 2\%. Default: 0.
+#'   \code{perm.test.iters=200} will yield precision to within 3\% if the true
+#'   p-value is 0.05. Use \code{perm.test.iters=500} to be within 2\%. Default: 0.
 #' @param print.level The amount of detail to print to the screen. Default: 2.
-#' @param verbose If `TRUE`, lots of information will be printed to monitor the
-#'   the progress of the fitting. Default: `TRUE`.
-#' @param estimand "ATE" (average treatment effect) or "ATT" (average treatment
+#' @param verbose If \code{TRUE}, lots of information will be printed to monitor the
+#'   the progress of the fitting. Default: \code{TRUE}.
+#' @param estimand \code{"ATE"} (average treatment effect) or \code{"ATT"} (average treatment
 #'   effect on the treated) : the causal effect of interest. ATE estimates the
 #'   change in the outcome if the treatment were applied to the entire
 #'   population versus if the control were applied to the entire population. ATT
 #'   estimates the analogous effect, averaging only over the treated population.
-#'   Default: "ATE".
+#'   Default: \code{"ATE"}.
 #' @param stop.method A method or methods of measuring and summarizing balance across pretreatment
-#'   variables. Current options are `ks.mean`, `ks.max`, `es.mean`, and `es.max`. `ks` refers to the
-#'   Kolmogorov-Smirnov statistic and es refers to standardized effect size. These are summarized
-#'   across the pretreatment variables by either the maximum (`.max`) or the mean (`.mean`). 
-#'   Default: `c("es.mean")`.
+#'   variables. Current options are \code{ks.mean}, \code{ks.max}, \code{es.mean}, and \code{es.max}. \code{ks} refers to the
+#'   Kolmogorov-Smirnov statistic and \code{es} refers to standardized effect size. These are summarized
+#'   across the pretreatment variables by either the maximum (\code{.max}) or the mean (\code{.mean}). 
+#'   Default: \code{c("es.mean")}.
 #' @param sampw Optional sampling weights.
-#' @param version "gbm", "xgboost", or "legacy", indicating which version of the twang package to use.
-#'   * `"gbm"` Uses gradient boosting from the `gbm` package.
-#'   * `"xgboost"` Uses gradient boosting from the `xgboost` package.
-#'   * `"legacy"` Uses the prior implementation of the `ps`` function.
-#' @param ks.exact `NULL` or a logical indicating whether the
+#' @param version \code{"gbm"}, \code{"xgboost"}, or \code{"legacy"}, indicating which version of the twang package to use.
+#'   \itemize{
+#'     \item{\code{"gbm"}}{ uses gradient boosting from the \code{\link{gbm}} package.}
+#'     \item{\code{"xgboost"}}{ uses gradient boosting from the \code{\link{xgboost}} package.}
+#'     \item{\code{"legacy"}}{ uses the prior implementation of the \code{\link{ps}} function.}
+#'   }
+#' @param ks.exact \code{NULL} or a logical indicating whether the
 #'   Kolmogorov-Smirnov p-value should be based on an approximation of exact
 #'   distribution from an unweighted two-sample Kolmogorov-Smirnov test. If
-#'   `NULL`, the approximation based on the exact distribution is computed
+#'   \code{NULL}, the approximation based on the exact distribution is computed
 #'   if the product of the effective sample sizes is less than 10,000.
 #'   Otherwise, an approximation based on the asymptotic distribution is used.
-#'   **Warning:** setting `ks.exact = TRUE` will add substantial
-#'   computation time for larger sample sizes. Default: `NULL`.
+#'   **Warning:** setting \code{ks.exact = TRUE} will add substantial
+#'   computation time for larger sample sizes. Default: \code{NULL}.
 #' @param n.keep A numeric variable indicating the algorithm should only
-#'   consider every `n.keep`-th iteration of the propensity score model and
+#'   consider every \code{n.keep}-th iteration of the propensity score model and
 #'   optimize balance over this set instead of all iterations. Default: 1.
 #' @param n.grid A numeric variable that sets the grid size for an initial
-#'   search of the region most likely to minimize the `stop.method`. A
-#'   value of `n.grid=50` uses a 50 point grid from `1:n.trees`. It
+#'   search of the region most likely to minimize the \code{stop.method}. A
+#'   value of \code{n.grid=50} uses a 50 point grid from \code{1:n.trees}. It
 #'   finds the minimum, say at grid point 35. It then looks for the actual
-#'   minimum between grid points 34 and 36. If specified with `n.keep>1`, `n.grid` 
-#'   corresponds to a grid of points on the kept iterations as defined by ```n.keep```. Default: 25.
+#'   minimum between grid points 34 and 36. If specified with \code{n.keep>1}, \code{n.grid} 
+#'   corresponds to a grid of points on the kept iterations as defined by \code{n.keep}. Default: 25.
 #' @param treatATT If the estimand is specified to be ATT, this argument is 
 #'   used to specify which treatment condition is considered 'the treated'.
 #'   It must be one of the levels of the treatment variable. It is ignored for
 #'   ATE analyses.
-#' @param ... Additional arguments that are passed to `ps` function.
+#' @param ... Additional arguments that are passed to \code{\link{ps}} function.
 #'
-#' @return Returns an object of class `mnps`, which consists of the following.  
-#'   * `psList` A list of `ps` objects with length equal to the number of time periods.
-#'   * `nFits` The number of `ps` objects (i.e., the number of distinct time points).
-#'   * `estimand` The specified estimand.
-#'   * `treatATT` For ATT fits, the treatment category that is considered "the treated".
-#'   * `treatLev` The levels of the treatment variable.
-#'   * `levExceptTreatAtt` The levels of the treatment variable, excluding the `treatATT` level.
-#'   * `data` The data used to fit the model.
-#'   * `treatVar` The vector of treatment indicators.
-#'   * `stopMethods` The stopping rules specified in the call to `mnps`.
-#'   * `sampw` Sampling weights provided to `mnps`, if any.
+#' @return Returns an object of class \code{mnps}, which consists of the following.  
+#'   \itemize{
+#'     \item{\code{psList}}{ A list of \code{\link{ps}} objects with length equal to the number of time periods.}
+#'     \item{\code{nFits}}{ The number of \code{\link{ps}} objects (i.e., the number of distinct time points).}
+#'     \item{\code{estimand}}{ The specified estimand.}
+#'     \item{\code{treatATT}}{ For ATT fits, the treatment category that is considered "the treated".}
+#'     \item{\code{treatLev}}{ The levels of the treatment variable.}
+#'     \item{\code{levExceptTreatAtt}}{ The levels of the treatment variable, excluding the \code{treatATT} level.}
+#'     \item{\code{data}}{ The data used to fit the model.}
+#'     \item{\code{treatVar}}{ The vector of treatment indicators.}
+#'     \item{\code{stopMethods}}{ The stopping rules specified in the call to \code{mnps}.}
+#'     \item{\code{sampw}}{ Sampling weights provided to \code{mnps}, if any.}
+#'   }
 #'
 #' @author Lane Burgette `<burgette@rand.org>`, Beth Ann Griffin `<bethg@rand.org>`,
 #'   Dan Mc- Caffrey `<danielm@rand.org>`
@@ -96,7 +100,7 @@
 #'   Score Estimation with Boosted Regression for Evaluating Adolescent
 #'   Substance Abuse Treatment", *Psychological Methods* 9(4):403-425.
 #'
-#' @seealso [ps], [gbm], [xgboost], [plot.mnps], [bal.table]
+#' @seealso \code{\link{ps}}, \code{\link{gbm}}, \code{\link{xgboost}}, \code{\link[twang:plot.mnps]{plot}}, \code{\link{bal.table}}
 #'
 #' @export
 mnps<-function(formula,
