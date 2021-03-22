@@ -56,6 +56,7 @@
 #'     \item{\code{"xgboost"}}{ uses gradient boosting from the \code{\link{xgboost}} package.}
 #'     \item{\code{"legacy"}}{ uses the prior implementation of the \code{\link{ps}} function.}
 #'   }
+#'   Default: \code{"gbm"}.
 #' @param ks.exact \code{NULL} or a logical indicating whether the
 #'   Kolmogorov-Smirnov p-value should be based on an approximation of exact
 #'   distribution from an unweighted two-sample Kolmogorov-Smirnov test. If

@@ -54,9 +54,12 @@
 #'   Default: \code{c("ks.mean", "es.mean")}.
 #' @param sampw Optional sampling weights.
 #' @param version \code{"gbm"}, \code{"xgboost"}, or \code{"legacy"}, indicating which version of the twang package to use.
-#'   \code{"gbm"} uses gradient boosting from the \code{\link{gbm}} package,
-#'   \code{"xgboost"} uses gradient boosting from the \code{\link{xgboost}} package, and
-#'   \code{"legacy"} uses the prior implementation of the \code{ps} function. Default: \code{"gbm"}.
+#'   \itemize{
+#'     \item{\code{"gbm"}}{ uses gradient boosting from the \code{\link{gbm}} package,}
+#'     \item{\code{"xgboost"}}{ uses gradient boosting from the \code{\link{xgboost}} package, and}
+#'     \item{\code{"legacy"}}{ uses the prior implementation of the \code{ps} function.}
+#'   }
+#'   Default: \code{"gbm"}.
 #' @param ks.exact \code{NULL} or a logical indicating whether the
 #'   Kolmogorov-Smirnov p-value should be based on an approximation of exact
 #'   distribution from an unweighted two-sample Kolmogorov-Smirnov test. If
@@ -79,50 +82,54 @@
 #' @param ... Additional arguments that are passed to \code{ps} function.
 #' 
 #' @return Returns an object of class \code{ps}, a list containing 
-#'   * \code{gbm.obj} The returned \code{\link{gbm}} or \code{\link{xgboost}} object.
-#'   * \code{treat} The vector of treatment indicators.
-#'   * \code{treat.var} The treatment variable.
-#'   * \code{desc} A list containing balance tables for each method selected in
+#'   \itemize{
+#'   \item{\code{gbm.obj}}{ The returned \code{\link{gbm}} or \code{\link{xgboost}} object.}
+#'   \item{\code{treat}}{ The vector of treatment indicators.}
+#'   \item{\code{treat.var}}{ The treatment variable.}
+#'   \item{\code{desc}}{ A list containing balance tables for each method selected in
 #'     \code{stop.methods}. Includes a component for the unweighted
 #'     analysis names \dQuote{unw}. Each \code{desc} component includes
 #'     a list with the following components
-#'     - \code{ess} The effective sample size of the control group.
-#'     - \code{n.treat} The number of subjects in the treatment group.
-#'     - \code{n.ctrl} The number of subjects in the control group.
-#'     - \code{max.es} The largest effect size across the covariates.
-#'     - \code{mean.es} The mean absolute effect size.
-#'     - \code{max.ks} The largest KS statistic across the covariates.
-#'     - \code{mean.ks} The average KS statistic across the covariates.
-#'     - \code{bal.tab} a (potentially large) table summarizing the quality of the 
+#'     \itemize{
+#'     \item{\code{ess}}{ The effective sample size of the control group.}
+#'     \item{\code{n.treat}}{ The number of subjects in the treatment group.}
+#'     \item{\code{n.ctrl}}{ The number of subjects in the control group.}
+#'     \item{\code{max.es}}{ The largest effect size across the covariates.}
+#'     \item{\code{mean.es}}{ The mean absolute effect size.}
+#'     \item{\code{max.ks}}{ The largest KS statistic across the covariates.}
+#'     \item{\code{mean.ks}}{ The average KS statistic across the covariates.}
+#'     \item{\code{bal.tab}}{ a (potentially large) table summarizing the quality of the 
 #'       weights for equalizing the distribution of features across 
 #'       the two groups. This table is best extracted using the
 #'       \code{\link{bal.table}} method. See the help for \code{\link{bal.table}} for details
-#'       on the table's contents.
-#'     - \code{n.trees} The estimated optimal number of gradient boosted
+#'       on the table's contents.}
+#'     \item{\code{n.trees}}{ The estimated optimal number of gradient boosted
 #'       iterations to optimize the loss function for the associated 
-#'        \code{stop.methods}.
-#'     - \code{ps} a data frame containing the estimated propensity scores. Each
-#'       column is associated with one of the methods selected in \code{stop.methods}.
-#'     - \code{w} a data frame containing the propensity score weights. Each
-#'       column is associated with one of the methods selected in \code{stop.methods}.
+#'        \code{stop.methods}.}
+#'     \item{\code{ps}}{ a data frame containing the estimated propensity scores. Each
+#'       column is associated with one of the methods selected in \code{stop.methods}.}
+#'     \item{\code{w}}{ a data frame containing the propensity score weights. Each
+#'       column is associated with one of the methods selected in \code{stop.methods}.}
 #'       If sampling weights are given then these are incorporated into these weights.
-#'     - \code{estimand} The estimand of interest (ATT or ATE).
-#'  * \code{datestamp} Records the date of the analysis.
-#'  * \code{parameters} Saves the \code{ps} call.
-#'  * \code{alerts} Text containing any warnings accumulated during the estimation.
-#'  * \code{iters} A sequence of iterations used in the GBM fits used by \code{\link[twang:plot.ps]{plot}} function.
-#'  * \code{balance} The balance measures for the pretreatment covariates used in plotting, with a column for each
-#'    \code{stop.method}.
-#'  * \code{balance.ks} The KS balance measures for the pretreatment covariates used in plotting, with a column for each
-#'    covariate.
-#'  * \code{balance.es} The standard differences for the pretreatment covariates used in plotting, with a column for each
-#'    covariate.
-#'  * \code{ks} The KS balance measures for the pretreatment covariates on a finer grid, with a column for each
-#'    covariate.
-#'  * \code{es} The standard differences for the pretreatment covariates on a finer grid, with a column for each
-#'    covariate.
-#'  * \code{n.trees} Maximum number of trees considered in GBM fit.
-#'  * \code{data} Data as specified in the \code{data} argument.
+#'     \item{\code{estimand}}{ The estimand of interest (ATT or ATE).}
+#'     }}
+#'  \item{\code{datestamp}}{ Records the date of the analysis.}
+#'  \item{\code{parameters}}{ Saves the \code{ps} call.}
+#'  \item{\code{alerts}}{ Text containing any warnings accumulated during the estimation.}
+#'  \item{\code{iters}}{ A sequence of iterations used in the GBM fits used by \code{\link[twang:plot.ps]{plot}} function.}
+#'  \item{\code{balance}}{ The balance measures for the pretreatment covariates used in plotting, with a column for each
+#'    \code{stop.method}.}
+#'  \item{\code{balance.ks}}{ The KS balance measures for the pretreatment covariates used in plotting, with a column for each
+#'    covariate.}
+#'  \item{\code{balance.es}}{ The standard differences for the pretreatment covariates used in plotting, with a column for each
+#'    covariate.}
+#'  \item{\code{ks}}{ The KS balance measures for the pretreatment covariates on a finer grid, with a column for each
+#'    covariate.}
+#'  \item{\code{es}}{ The standard differences for the pretreatment covariates on a finer grid, with a column for each
+#'    covariate.}
+#'  \item{\code{n.trees}}{ Maximum number of trees considered in GBM fit.}
+#'  \item{\code{data}}{ Data as specified in the \code{data} argument.}
+#'  }
 #'
 #' @seealso \code{\link{gbm}}, \code{\link{xgboost}}, \code{\link[twang:plot.ps]{plot}}, \code{\link{bal.table}}
 #' @keywords models, multivariate
