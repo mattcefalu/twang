@@ -4,53 +4,63 @@
 \alias{dx.wts}
 \title{Compute diagnostics assessing covariates balance.}
 \usage{
-dx.wts(x, data, estimand, vars = NULL, treat.var, x.as.weights = TRUE,
-  sampw = NULL, perm.test.iters = 0)
+dx.wts(
+  x,
+  data,
+  estimand,
+  vars = NULL,
+  treat.var,
+  x.as.weights = TRUE,
+  sampw = NULL,
+  perm.test.iters = 0
+)
 }
 \arguments{
-\item{x}{A data frame, matrix, or vector of propensity score weights or a ps 
-object. `x` can also be a data frame, matrix, or vector of 
-propensity scores if `x.as.weights=FALSE`.}
+\item{x}{A data frame, matrix, or vector of propensity score weights or a ps
+object. \code{x} can also be a data frame, matrix, or vector of
+propensity scores if \code{x.as.weights=FALSE}.}
 
 \item{data}{A data frame.}
 
 \item{estimand}{The estimand of interest: either "ATT" or "ATE".}
 
-\item{vars}{A vector of character strings naming variables in `data` on 
+\item{vars}{A vector of character strings naming variables in \code{data} on
 which to assess balance.}
 
-\item{treat.var}{A character string indicating which variable in `data`
+\item{treat.var}{A character string indicating which variable in \code{data}
 contains the 0/1 treatment group indicator.}
 
-\item{x.as.weights}{`TRUE` or `FALSE` indicating whether `x`
-specifies propensity score weights or propensity scores. 
-Ignored if `x` is a ps object. Default: `TRUE`.}
+\item{x.as.weights}{\code{TRUE} or \code{FALSE} indicating whether \code{x}
+specifies propensity score weights or propensity scores.
+Ignored if \code{x} is a ps object. Default: \code{TRUE}.}
 
-\item{sampw}{Optional sampling weights. If `x` is a `ps` object, then the 
-sampling weights should have been passed to [ps] and 
-not specified here. `dx.wts` will issue a warning if 
-`x` is a `ps object and `sampw` is also specified.}
+\item{sampw}{Optional sampling weights. If \code{x} is a \code{ps} object, then the
+sampling weights should have been passed to \link{ps} and
+not specified here. \code{dx.wts} will issue a warning if
+\code{x} is a \code{ps} object and \code{sampw} is also specified.}
 
 \item{perm.test.iters}{A non-negative integer giving the number of iterations
-of the permutation test for the KS statistic. If `perm.test.iters=0`,
+of the permutation test for the KS statistic. If \code{perm.test.iters=0},
 then the function returns an analytic approximation to the p-value. This
-argument is ignored is `x` is a `ps` object. Setting
-`perm.test.iters=200` will yield precision to within 3\% if the true
-p-value is 0.05. Use `perm.test.iters=500` to be within 2\%.}
+argument is ignored is \code{x} is a \code{ps} object. Setting
+\code{perm.test.iters=200} will yield precision to within 3\% if the true
+p-value is 0.05. Use \code{perm.test.iters=500} to be within 2\%.}
 }
 \value{
 Returns a list containing
-  * `treat` The vector of 0/1 treatment assignment indicators.
+\itemize{
+\item \code{treat} The vector of 0/1 treatment assignment indicators.
+}
 }
 \description{
-`dx.wts` takes a `ps` object or a set of propensity scores and 
+\code{dx.wts} takes a \code{ps} object or a set of propensity scores and
 computes diagnostics assessing covariates balance.
 }
 \details{
-Creates a balance table that compares unweighted and weighted means and 
-standard deviations, computes effect sizes, and KS statistics to assess the 
+Creates a balance table that compares unweighted and weighted means and
+standard deviations, computes effect sizes, and KS statistics to assess the
 ability of the propensity scores to balance the treatment and control groups.
 }
 \seealso{
-[ps]
+\link{ps}
 }

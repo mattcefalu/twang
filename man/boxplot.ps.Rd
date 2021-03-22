@@ -4,8 +4,7 @@
 \alias{boxplot.ps}
 \title{Boxplot for `ps` objects}
 \usage{
-\method{boxplot}{ps}(x, subset = NULL, color = TRUE, time = NULL,
-  ...)
+\method{boxplot}{ps}(x, subset = NULL, color = TRUE, time = NULL, ...)
 }
 \arguments{
 \item{x}{A `ps` object}

@@ -4,7 +4,9 @@
 \name{stop.methods}
 \alias{stop.methods}
 \title{Stop methods (e.g. "es.mean", "ks.mean", etc.) object, used only for backward compatibility}
-\format{An object of class \code{matrix} with 1 rows and 6 columns.}
+\format{
+An object of class \code{matrix} (inherits from \code{array}) with 1 rows and 6 columns.
+}
 \usage{
 stop.methods
 }

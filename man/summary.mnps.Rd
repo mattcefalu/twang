@@ -2,27 +2,27 @@
 % Please edit documentation in R/summary.mnps.R
 \name{summary.mnps}
 \alias{summary.mnps}
-\title{Summarize a `mnps` object}
+\title{Summarize a \code{mnps} object}
 \usage{
 \method{summary}{mnps}(object, ...)
 }
 \arguments{
-\item{object}{An `mnps` object.}
+\item{object}{An \code{mnps} object.}
 
 \item{...}{Additional arguments.}
 }
 \value{
-See [mnps] for details on the returned table.
+See \link{mnps} for details on the returned table.
 }
 \description{
-Computes summary information about a stored `mnps` object
+Computes summary information about a stored \code{mnps} object
 }
 \details{
-Compresses the information in the `desc` component of the `mnps` object
+Compresses the information in the \code{desc} component of the \code{mnps} object
 into a short summary table describing the size of the dataset and the quality of
 the propensity score weights.
 }
 \seealso{
-[mnps]
+\link{mnps}
 }
 \keyword{models}

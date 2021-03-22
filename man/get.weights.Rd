@@ -4,20 +4,19 @@
 \alias{get.weights}
 \title{Extract propensity score weights.}
 \usage{
-get.weights(ps1, stop.method = NULL, estimand = NULL,
-  withSampW = TRUE)
+get.weights(ps1, stop.method = NULL, estimand = NULL, withSampW = TRUE)
 }
 \arguments{
-\item{ps1}{A `ps` or `mnps` object.}
+\item{ps1}{A \code{ps} or \code{mnps} object.}
 
-\item{stop.method}{Indicates which set of weights to retrieve from the `ps` object.}
+\item{stop.method}{Indicates which set of weights to retrieve from the \code{ps} object.}
 
 \item{estimand}{Indicates whether the weights are for the average treatment effect on
 the treated (ATT) or the average treatment effect on the population (ATE). By default,
-`get.weights` will use the estimand used to fit the `ps` object.}
+\code{get.weights} will use the estimand used to fit the \code{ps} object.}
 
 \item{withSampW}{Whether to return weights with sample weights multiplied in, if they were
-provided in the original `ps` or `mnps` call. Default: `TRUE`.}
+provided in the original \code{ps} or \code{mnps} call. Default: \code{TRUE}.}
 }
 \value{
 Returns a vector of weights.
@@ -26,9 +25,9 @@ Returns a vector of weights.
 Extracts propensity score weights from a ps or mnps object.
 }
 \details{
-Weights for ATT are 1 for the treatment cases and p/(1-p) for the control cases. 
+Weights for ATT are 1 for the treatment cases and p/(1-p) for the control cases.
 Weights for ATE are 1/p for the treatment cases and 1/(1-p) for the control cases.
 }
 \seealso{
-[ps]
+\link{ps}, \link{mnps}
 }

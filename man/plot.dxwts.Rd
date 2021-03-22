@@ -2,29 +2,31 @@
 % Please edit documentation in R/plot.dxwts.R
 \name{plot.dxwts}
 \alias{plot.dxwts}
-\title{Plot `dxwts`}
+\title{Plot \code{dxwts}}
 \usage{
 \method{plot}{dxwts}(x, plots = "es", ...)
 }
 \arguments{
-\item{x}{An `dxwts` object.}
+\item{x}{An \code{dxwts} object.}
 
 \item{plots}{An indicator of which type of plot is desired. The options are
-* `"optimize" or 1` A plot of the balance criteria as a function of the GBM 
-  iteration.
-* `"boxplot" or 2` Boxplots of the propensity scores for the treatment and 
-  control cases
-* `"es" or 3` Plots of the standardized effect size of the pre-treatment 
-  variables before and after reweighing
-* `"t" or 4` Plots of the p-values from t-statistics comparing means of 
-  treated and control subjects for pretreatment variables, before and after 
-  weighting.
-* `"ks" or 5` Plots of the p-values from Kolmogorov-Smirnov statistics 
-  comparing distributions of pretreatment variables of treated and control 
-  subjects, before and after weighting.}
+\itemize{
+\item \verb{"optimize" or 1} A plot of the balance criteria as a function of the GBM
+iteration.
+\item \verb{"boxplot" or 2} Boxplots of the propensity scores for the treatment and
+control cases
+\item \verb{"es" or 3} Plots of the standardized effect size of the pre-treatment
+variables before and after reweighing
+\item \verb{"t" or 4} Plots of the p-values from t-statistics comparing means of
+treated and control subjects for pretreatment variables, before and after
+weighting.
+\item \verb{"ks" or 5} Plots of the p-values from Kolmogorov-Smirnov statistics
+comparing distributions of pretreatment variables of treated and control
+subjects, before and after weighting.
+}}
 
 \item{...}{Additional arguments.}
 }
 \description{
-Plot `dxwts`
+Plot \code{dxwts}
 }

@@ -2,27 +2,27 @@
 % Please edit documentation in R/summary.ps.R
 \name{summary.ps}
 \alias{summary.ps}
-\title{Summarize a `ps` object}
+\title{Summarize a \code{ps} object}
 \usage{
 \method{summary}{ps}(object, ...)
 }
 \arguments{
-\item{object}{An `ps` object.}
+\item{object}{An \code{ps} object.}
 
 \item{...}{Additional arguments.}
 }
 \value{
-See [ps] for details on the returned table.
+See \link{ps} for details on the returned table.
 }
 \description{
-Computes summary information about a stored `ps` object
+Computes summary information about a stored \code{ps} object
 }
 \details{
-Compresses the information in the `desc` component of the `ps` object
+Compresses the information in the \code{desc} component of the \code{ps} object
 into a short summary table describing the size of the dataset and the quality of
 the propensity score weights.
 }
 \seealso{
-[ps]
+\link{ps}
 }
 \keyword{models}
