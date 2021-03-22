@@ -36,6 +36,7 @@
 #' @seealso [ps]
 #'
 #' @export
+#' @md
 dx.wts <- function(x,
                    data,
                    estimand,

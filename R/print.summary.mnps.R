@@ -5,6 +5,7 @@
 #'
 #' @method print summary.mnps
 #' @export
+#' @md
 print.summary.mnps <- function(x, ...)
 {
       dots <- list(...)

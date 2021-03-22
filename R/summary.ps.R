@@ -16,6 +16,7 @@
 #'
 #' @method summary ps
 #' @export
+#' @md
 summary.ps <- function(object,...){
       summary.tab <- NULL
       typ <- NULL   

@@ -5,6 +5,7 @@
 #'
 #' @method print summary.iptw
 #' @export
+#' @md
 print.summary.iptw <- function(x, ...)
 {
       	nSum <- length(x$summaryList)      	

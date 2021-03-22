@@ -16,6 +16,7 @@
 #'
 #' @method summary mnps
 #' @export
+#' @md
 summary.mnps <- function (object, ...){
 
 	nFits <- object$nFits

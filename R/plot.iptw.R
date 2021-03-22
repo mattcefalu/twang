@@ -41,6 +41,7 @@
 #'
 #' @method plot iptw
 #' @export
+#' @md
 plot.iptw <- function(x,
                       plots = "optimize",
                       subset = NULL,

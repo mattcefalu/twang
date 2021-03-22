@@ -5,6 +5,7 @@
 #'
 #' @method print summary.mniptw
 #' @export
+#' @md
 print.summary.mniptw <- function(x, ...)
 {
       	nSum <- length(x$summaryList)      	

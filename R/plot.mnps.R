@@ -51,6 +51,7 @@
 #'
 #' @method plot mnps
 #' @export
+#' @md
 plot.mnps <- function(x,plots = "optimize",
                       pairwiseMax = TRUE,
                       figureRows = NULL,

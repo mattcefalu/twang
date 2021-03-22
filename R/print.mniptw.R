@@ -5,6 +5,7 @@
 #'
 #' @method print mniptw
 #' @export
+#' @md
 print.mniptw <- function(x, ...)
 {
    print(summary(x,...))

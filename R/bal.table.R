@@ -49,6 +49,7 @@
 #'     which does not necessarily work well with a lot of ties.
 #'
 #' @export
+#' @md
 bal.table <- function(x,
                       digits = 3,
                       collapse.to = c("pair","covariate","stop.method")[1],

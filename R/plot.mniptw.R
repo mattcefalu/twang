@@ -39,6 +39,7 @@
 #'
 #' @method plot mniptw
 #' @export
+#' @md
 plot.mniptw <- function(x,
                         plots="optimize",
                         pairwiseMax = TRUE,
