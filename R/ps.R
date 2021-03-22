@@ -177,6 +177,15 @@ ps<-function(formula = formula(data),
    if (!missing(interaction.depth) | ('max_depth' %in% args_named) | !missing(shrinkage) | ('eta' %in% args_named) | !missing(bag.fraction) | ('subsample' %in% args_named) ){
       if (!is.null(params)) stop("params cannot be specified with any of interaction.depth, max_depth, shrinkage, eta, bag.fraction, or subsample.")
    }
+   
+   # check that data is not a tibble or data.table
+   if( class(data)[1] %in% c("tbl_df","tbl","data.table")){
+      stop("The twang package currently does not support data.table or tibble. Please convert your data object to a data.frame.")
+   }else{
+      if (class(data)[1] != "data.frame"){
+         warning("Data classes other than data.frame may cause errors." , call.=FALSE)
+      }
+   }
 
    if (version=="legacy"){
       ## throw some errors if the user specifies an option not allowed in legacy version of ps
