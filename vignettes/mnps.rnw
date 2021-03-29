@@ -157,7 +157,7 @@ regression trees added to the model increases, the
 model becomes more complex.  However, at some point, 
 more complex models typically result in worse balance on the
 pretreatment variables and therefore are less useful in a propensity
-score weighting context (Burgette, McCaffrey and Griffin, In Press).  The
+score weighting context.  The
 \texttt{n.trees} argument controls the 
 maximum number of iterations.
 
