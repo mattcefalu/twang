@@ -37,7 +37,6 @@
 #'   Substance Abuse Treatment", *Psychological Methods* 9(4):403-425.
 #'
 #' @seealso [iptw]
-#' @keywords models, multivariate
 #'
 #' @method plot iptw
 #' @export

@@ -132,7 +132,7 @@
 #'  }
 #'
 #' @seealso \code{\link{gbm}}, \code{\link{xgboost}}, \code{\link[twang:plot.ps]{plot}}, \code{\link{bal.table}}
-#' @keywords models, multivariate
+#' @keywords models multivariate
 #'
 #' @references Dan McCaffrey, G. Ridgeway, Andrew Morral (2004). "Propensity
 #'   Score Estimation with Boosted Regression for Evaluating Adolescent
