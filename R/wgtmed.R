@@ -138,9 +138,15 @@ wgtmed <- function(formula.med,
                                ps_cv.folds=10,
                                ps_keep.data=FALSE) {
 
-  # Check for errors in specification
-  if(!is.data.frame(data) | is.data.table(data)){stop("The provided data object must be a data frame")}
-    
+   # check that data is not a tibble or data.table
+   if( class(data)[1] %in% c("tbl_df","tbl","data.table")){
+      stop("The wgtmed function currently does not support data.table or tibble. Please convert your data object to a data.frame.")
+   }else{
+      if (class(data)[1] != "data.frame"){
+         warning("Data classes other than data.frame may cause errors." , call.=FALSE)
+      }
+   }
+
   # Check the specification of total effect weights 
   # Set total_effect_covars to NULL and set to value later if possible
   total_effect_covars <- NULL
