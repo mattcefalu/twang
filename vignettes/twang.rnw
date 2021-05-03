@@ -833,7 +833,7 @@ ovtool_ate = ov_sim(model_results=results_ATE,
 
 <<echo=FALSE>>=
 # save(ovtool_ate, file = "vignettes/ovtool_ate.rda", version = 2)
-load("vignettes/ovtool_ate.rda")
+load("ovtool_ate.rda")
 @
 
 \begin{center}
