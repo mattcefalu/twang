@@ -5,6 +5,7 @@
 #'
 #' @method print dxwts
 #' @export
+#' @md
 print.dxwts <- function(x,...)
 {
    print(x$summary.tab)

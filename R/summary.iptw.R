@@ -16,6 +16,7 @@
 #'
 #' @method summary iptw
 #' @export
+#' @md
 summary.iptw <- function (object, ...){
 	nFits <- object$nFits
 	summaryList <- vector(mode = "list", length = nFits)

@@ -5,6 +5,7 @@
 #'
 #' @method print iptw
 #' @export
+#' @md
 print.iptw <- function(x, ...)
 {
    print(summary(x,...))

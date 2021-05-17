@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot.iptw.R
 \name{plot.iptw}
 \alias{plot.iptw}
-\title{Plots for `iptw` objects}
+\title{Plots for \code{iptw} objects}
 \usage{
 \method{plot}{iptw}(
   x,
@@ -17,55 +17,57 @@
 )
 }
 \arguments{
-\item{x}{An `iptw` object.}
+\item{x}{An \code{iptw} object.}
 
 \item{plots}{An indicator of which type of plot is desired. The options are
-* `"optimize" or 1` A plot of the balance criteria as a function of the GBM 
-  iteration.
-* `"boxplot" or 2` Boxplots of the propensity scores for the treatment and 
-  control cases
-* `"es" or 3` Plots of the standardized effect size of the pre-treatment 
-  variables before and after reweighing
-* `"t" or 4` Plots of the p-values from t-statistics comparing means of 
-  treated and control subjects for pretreatment variables, before and after 
-  weighting.
-* `"ks" or 5` Plots of the p-values from Kolmogorov-Smirnov statistics 
-  comparing distributions of pretreatment variables of treated and control 
-  subjects, before and after weighting.}
+\itemize{
+\item \verb{"optimize" or 1} A plot of the balance criteria as a function of the GBM
+iteration.
+\item \verb{"boxplot" or 2} Boxplots of the propensity scores for the treatment and
+control cases
+\item \verb{"es" or 3} Plots of the standardized effect size of the pre-treatment
+variables before and after reweighing
+\item \verb{"t" or 4} Plots of the p-values from t-statistics comparing means of
+treated and control subjects for pretreatment variables, before and after
+weighting.
+\item \verb{"ks" or 5} Plots of the p-values from Kolmogorov-Smirnov statistics
+comparing distributions of pretreatment variables of treated and control
+subjects, before and after weighting.
+}}
 
-\item{subset}{Used to restrict which of the `stop.method`s will be used 
-in the figure. For example `subset = c(1,3)` would indicate that the 
-first and third `stop.method`s (in alphabetical order of those specified 
-in the original call to `iptw`) should be included in the figure.}
+\item{subset}{Used to restrict which of the \code{stop.method}s will be used
+in the figure. For example \code{subset = c(1,3)} would indicate that the
+first and third \code{stop.method}s (in alphabetical order of those specified
+in the original call to \code{iptw}) should be included in the figure.}
 
-\item{color}{If `color = FALSE`, figures will be gray scale. Default: `TRUE`.}
+\item{color}{If \code{color = FALSE}, figures will be gray scale. Default: \code{TRUE}.}
 
-\item{timePeriods}{The number of distinct time points. If `NULL`, this is assumed to be the number
-of `ps` objects (i.e., the number of distinct time points).}
+\item{timePeriods}{The number of distinct time points. If \code{NULL}, this is assumed to be the number
+of \code{ps} objects (i.e., the number of distinct time points).}
 
-\item{multiPage}{When multiple frames of a figure are produced, `multiPage = TRUE` will print each
+\item{multiPage}{When multiple frames of a figure are produced, \code{multiPage = TRUE} will print each
 frame on a different page. This is intended for situations where the graphical output is being
-saved to a file. Default: `FALSE`.}
+saved to a file. Default: \code{FALSE}.}
 
-\item{figureRows}{The figure rows, passed to [displayPlots]. Default: `NULL`.}
+\item{figureRows}{The figure rows, passed to \link{displayPlots}. Default: \code{NULL}.}
 
-\item{hline}{Arguments passed to `panel.abline`.}
+\item{hline}{Arguments passed to \code{panel.abline}.}
 
 \item{...}{Additional arguments.}
 }
 \description{
-This function produces a collection of diagnostic plots for `iptw` objects.
+This function produces a collection of diagnostic plots for \code{iptw} objects.
 }
 \details{
 This function produces lattice-style graphics of diagnostic plots.
 }
 \references{
 Dan McCaffrey, G. Ridgeway, Andrew Morral (2004). "Propensity
-  Score Estimation with Boosted Regression for Evaluating Adolescent
-  Substance Abuse Treatment", *Psychological Methods* 9(4):403-425.
+Score Estimation with Boosted Regression for Evaluating Adolescent
+Substance Abuse Treatment", \emph{Psychological Methods} 9(4):403-425.
 }
 \seealso{
-[iptw]
+\link{iptw}
 }
 \keyword{models,}
 \keyword{multivariate}

@@ -2,15 +2,15 @@
 % Please edit documentation in R/print.iptw.R
 \name{print.iptw}
 \alias{print.iptw}
-\title{Default print statement for `iptw` class}
+\title{Default print statement for \code{iptw} class}
 \usage{
 \method{print}{iptw}(x, ...)
 }
 \arguments{
-\item{x}{A `iptw` object}
+\item{x}{A \code{iptw} object}
 
 \item{...}{Additional arguments.}
 }
 \description{
-Default print statement for `iptw` class
+Default print statement for \code{iptw} class
 }

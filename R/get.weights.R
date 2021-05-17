@@ -15,9 +15,10 @@
 #'
 #' @return Returns a vector of weights.
 #'
-#' @seealso [ps]
+#' @seealso [ps], [mnps]
 #'
 #' @export
+#' @md
 get.weights <- function(ps1, stop.method = NULL, estimand = NULL, withSampW = TRUE)
 {
    if(class(ps1)[1]=="ps"){

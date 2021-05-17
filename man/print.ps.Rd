@@ -2,15 +2,15 @@
 % Please edit documentation in R/print.ps.R
 \name{print.ps}
 \alias{print.ps}
-\title{Default print statement for `ps` class}
+\title{Default print statement for \code{ps} class}
 \usage{
 \method{print}{ps}(x, ...)
 }
 \arguments{
-\item{x}{An `ps` object}
+\item{x}{An \code{ps} object}
 
 \item{...}{Additional arguments.}
 }
 \description{
-Default print statement for `ps` class
+Default print statement for \code{ps} class
 }

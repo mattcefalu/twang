@@ -5,6 +5,7 @@
 #' 
 #' @method print ps
 #' @export
+#' @md
 print.ps <- function(x, ...)
 {
    print(summary(x,...))

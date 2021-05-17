@@ -2,15 +2,15 @@
 % Please edit documentation in R/summary.mniptw.R
 \name{summary.mniptw}
 \alias{summary.mniptw}
-\title{Summarize a `mniptw` object}
+\title{Summarize a \code{mniptw} object}
 \usage{
 \method{summary}{mniptw}(object, ...)
 }
 \arguments{
-\item{object}{An `mniptw` object.}
+\item{object}{A \code{mniptw} object.}
 
 \item{...}{Additional arguments.}
 }
 \description{
-Summarize a `mniptw` object
+Summarize a \code{mniptw} object
 }

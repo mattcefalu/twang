@@ -20,12 +20,12 @@ bal.table(
 )
 }
 \arguments{
-\item{x}{A [ps] or [dx.wts] object.}
+\item{x}{A \link{ps} or \link{dx.wts} object.}
 
 \item{digits}{The number of digits that the numerical entries
 should be rounded to. Default: 3.}
 
-\item{collapse.to}{For `mnps` ATE objects, the comparisons
+\item{collapse.to}{For \code{mnps} ATE objects, the comparisons
 can be given for all pairs (default), summarized by pre-treatment
 covariate and stop.method, or as a single summary for each stop.method.}
 
@@ -38,16 +38,16 @@ treatment or a single pair of treatments.}
 treatment or a single pair of treatments.}
 
 \item{es.cutoff}{Subsets to comparisons with absolute ES values bigger than
-`es.cutoff`. Default: 0.}
+\code{es.cutoff}. Default: 0.}
 
 \item{ks.cutoff}{Subsets to comparisons with KS values bigger than
-`ks.cutoff`. Default: 0.}
+\code{ks.cutoff}. Default: 0.}
 
 \item{p.cutoff}{Subsets to comparisons with t- or chi-squared p-values
-no bigger than `p.cutoff`. Default: 1.}
+no bigger than \code{p.cutoff}. Default: 1.}
 
 \item{ks.p.cutoff}{Subsets to comparisons with t- or chi-squared p-values
-no bigger than `p.cutoff`. Default: 1.}
+no bigger than \code{p.cutoff}. Default: 1.}
 
 \item{timePeriods}{Used to subset times for iptw fits.}
 
@@ -55,30 +55,32 @@ no bigger than `p.cutoff`. Default: 1.}
 }
 \value{
 Returns a data frame containing the balance information.
-  * `tx.mn` The mean of the treatment group.
-  * `tx.sd` The standard deviation of the treatment group.
-  * `ct.mn` The mean of the control group.
-  * `ct.sd` The standard deviation of the control group.
-  * `std.eff.sz` The standardized effect size, (tx.mn-ct.mn)/tx.sd.
-    If tx.sd is small or 0, the standardized effect size can be large or INF. 
-    Therefore, standardized effect sizes greater than 500 are set to NA.
-  * `stat` The t-statistic for numeric variables and the chi-square 
-    statistic for continuous variables.
-  * `p` The p-value for the test associated with `stat`
-    `ks` The KS statistic.
-  * `ks.pval` The KS p-value computed using the analytic approximation,
-    which does not necessarily work well with a lot of ties.
+\itemize{
+\item \code{tx.mn} The mean of the treatment group.
+\item \code{tx.sd} The standard deviation of the treatment group.
+\item \code{ct.mn} The mean of the control group.
+\item \code{ct.sd} The standard deviation of the control group.
+\item \code{std.eff.sz} The standardized effect size, (tx.mn-ct.mn)/tx.sd.
+If tx.sd is small or 0, the standardized effect size can be large or INF.
+Therefore, standardized effect sizes greater than 500 are set to NA.
+\item \code{stat} The t-statistic for numeric variables and the chi-square
+statistic for continuous variables.
+\item \code{p} The p-value for the test associated with \code{stat}
+\code{ks} The KS statistic.
+\item \code{ks.pval} The KS p-value computed using the analytic approximation,
+which does not necessarily work well with a lot of ties.
+}
 }
 \description{
-Extract the balance table from [ps], [dx.wts], and [mnps] objects
+Extract the balance table from \link{ps}, \link{dx.wts}, and \link{mnps} objects
 }
 \details{
-`bal.table` is a generic function for extracting balance 
-tables from [ps] and [dx.wts] objects. These objects 
-usually have several sets of candidate weights, one for an unweighted 
-analysis and perhaps several `stop.methods`. `bal.table`
-will return a table for each set of weights combined into a list. Each list 
-component will be named as given in the `x`, usually the name of the 
-`stop.method`. The balance table labeled \dQuote{unw} indicates the 
+\code{bal.table} is a generic function for extracting balance
+tables from \link{ps} and \link{dx.wts} objects. These objects
+usually have several sets of candidate weights, one for an unweighted
+analysis and perhaps several \code{stop.methods}. \code{bal.table}
+will return a table for each set of weights combined into a list. Each list
+component will be named as given in the \code{x}, usually the name of the
+\code{stop.method}. The balance table labeled \dQuote{unw} indicates the
 unweighted analysis.
 }

@@ -5,6 +5,7 @@
 #' 
 #' @method print summary.ps
 #' @export
+#' @md
 print.summary.ps <- function(x, ...)
 {
       dots <- list(...)

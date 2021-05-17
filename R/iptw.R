@@ -1,83 +1,88 @@
 #' Inverse probability of treatment weighting for marginal structural models.
 #'
-#' `iptw` calculates propensity scores for sequential treatments using gradient boosted logistic
+#' \code{iptw} calculates propensity scores for sequential treatments using gradient boosted logistic
 #' regression and diagnoses the resulting propensity scores using a variety of
 #' methods
 #' 
-#' For user more comfortable with the options of [xgboost],
-#' the options for `iptw` controlling the behavior of the gradient boosting
-#' algorithm can be specified using the [xgboost] naming
-#' scheme. This includes `nrounds`, `max_depth`, `eta`, and
-#' `subsample`. In addition, the list of parameters passed to
-#' [xgboost] can be specified with `params`.
+#' For user more comfortable with the options of \code{\link{xgboost}}],
+#' the options for \code{iptw} controlling the behavior of the gradient boosting
+#' algorithm can be specified using the \code{\link{xgboost}} naming
+#' scheme. This includes \code{nrounds}, \code{max_depth}, \code{eta}, and
+#' \code{subsample}. In addition, the list of parameters passed to
+#' \code{\link{xgboost}} can be specified with \code{params}.
 #'
 #' @param formula Either a single formula (long format) or a list with formulas.
 #' @param data The dataset, includes treatment assignment as well as covariates.
 #' @param timeInvariant An optional formula (with no left-hand variable) specifying time-invariant
 #'   chararacteristics.
-#' @param cumulative If `TRUE`, the time t model includes time-varying characteristics from times 1
-#'   through t-1. Default: `TRUE`.
+#' @param cumulative If \code{TRUE}, the time t model includes time-varying characteristics from times 1
+#'   through t-1. Default: \code{TRUE}.
 #' @param timeIndicators For long format fits, a vector of times for each observation.
 #' @param ID For long format fits, a vector of numeric identifiers for unique analytic units.
-#' @param priorTreatment For long format fits, includes treatment levels from previous times if `TRUE`. This
-#'   argument is ignored for wide format fits. Default: `TRUE`.
-#' @param n.trees Number of gbm iterations passed on to [gbm].
+#' @param priorTreatment For long format fits, includes treatment levels from previous times if \code{TRUE}. This
+#'   argument is ignored for wide format fits. Default: \code{TRUE}.
+#' @param n.trees Number of gbm iterations passed on to \code{\link{gbm}}.
 #' @param interaction.depth A positive integer denoting the tree depth used in
 #'   gradient boosting. Default: 3.
 #' @param shrinkage A numeric value between 0 and 1 denoting the learning rate.
-#'   See [gbm] for more details. Default: 0.01.
+#'   See \code{\link{gbm}} for more details. Default: 0.01.
 #' @param bag.fraction A numeric value between 0 and 1 denoting the fraction of
 #'   the observations randomly selected in each iteration of the gradient
-#'   boosting algorithm to propose the next tree. See [gbm] for
+#'   boosting algorithm to propose the next tree. See \code{\link{gbm}} for
 #'   more details. Default: 1.0.
 #' @param n.minobsinnode An integer specifying the minimum number of observations 
-#'   in the terminal nodes of the trees used in the gradient boosting.  See [gbm] for
+#'   in the terminal nodes of the trees used in the gradient boosting. See \code{\link{gbm}} for
 #'   more details. Default: 10.
 #' @param perm.test.iters A non-negative integer giving the number of iterations
-#'   of the permutation test for the KS statistic. If `perm.test.iters=0`
+#'   of the permutation test for the KS statistic. If \code{perm.test.iters=0}
 #'   then the function returns an analytic approximation to the p-value. Setting
-#'   `perm.test.iters=200` will yield precision to within 3\% if the true
-#'   p-value is 0.05. Use `perm.test.iters=500` to be within 2\%. Default: 0.
+#'   \code{perm.test.iters=200} will yield precision to within 3\% if the true
+#'   p-value is 0.05. Use \code{perm.test.iters=500} to be within 2\%. Default: 0.
 #' @param print.level The amount of detail to print to the screen. Default: 2.
-#' @param verbose If `TRUE`, lots of information will be printed to monitor the
-#'   the progress of the fitting. Default: `TRUE`.
+#' @param verbose If \code{TRUE}, lots of information will be printed to monitor the
+#'   the progress of the fitting. Default: \code{TRUE}.
 #' @param stop.method A method or methods of measuring and summarizing balance across pretreatment
-#'   variables. Current options are `ks.mean`, `ks.max`, `es.mean`, and `es.max`. `ks` refers to the
+#'   variables. Current options are \code{ks.mean}, \code{ks.max}, \code{es.mean}, and \code{es.max}. \code{ks} refers to the
 #'   Kolmogorov-Smirnov statistic and es refers to standardized effect size. These are summarized
-#'   across the pretreatment variables by either the maximum (`.max`) or the mean (`.mean`). 
-#'   Default: `c("es.max")`.
+#'   across the pretreatment variables by either the maximum (\code{.max}) or the mean (\code{.mean}). 
+#'   Default: \code{c("es.max")}.
 #' @param sampw Optional sampling weights.
-#' @param version "gbm", "xgboost", or "legacy", indicating which version of the twang package to use.
-#'   * `"gbm"` Uses gradient boosting from the `gbm` package.
-#'   * `"xgboost"` Uses gradient boosting from the `xgboost` package.
-#'   * `"legacy"` Uses the prior implementation of the `ps`` function.
-#' @param ks.exact `NULL` or a logical indicating whether the
+#' @param version \code{"gbm"}, \code{"xgboost"}, or \code{"legacy"}, indicating which version of the twang package to use.
+#'   \itemize{
+#'     \item{\code{"gbm"}}{ uses gradient boosting from the \code{\link{gbm}} package.}
+#'     \item{\code{"xgboost"}}{ uses gradient boosting from the \code{\link{xgboost}} package.}
+#'     \item{\code{"legacy"}}{ uses the prior implementation of the \code{\link{ps}} function.}
+#'   }
+#'   Default: \code{"gbm"}.
+#' @param ks.exact \code{NULL} or a logical indicating whether the
 #'   Kolmogorov-Smirnov p-value should be based on an approximation of exact
 #'   distribution from an unweighted two-sample Kolmogorov-Smirnov test. If
-#'   `NULL`, the approximation based on the exact distribution is computed
+#'   \code{NULL}, the approximation based on the exact distribution is computed
 #'   if the product of the effective sample sizes is less than 10,000.
 #'   Otherwise, an approximation based on the asymptotic distribution is used.
-#'   **Warning:** setting `ks.exact = TRUE` will add substantial
-#'   computation time for larger sample sizes. Default: `NULL`.
+#'   **Warning:** setting \code{ks.exact = TRUE} will add substantial
+#'   computation time for larger sample sizes. Default: \code{NULL}.
 #' @param n.keep A numeric variable indicating the algorithm should only
-#'   consider every `n.keep`-th iteration of the propensity score model and
+#'   consider every \code{n.keep}-th iteration of the propensity score model and
 #'   optimize balance over this set instead of all iterations. Default: 1.
 #' @param n.grid A numeric variable that sets the grid size for an initial
-#'   search of the region most likely to minimize the `stop.method`. A
-#'   value of `n.grid=50` uses a 50 point grid from `1:n.trees`. It
+#'   search of the region most likely to minimize the \code{stop.method}. A
+#'   value of \code{n.grid=50} uses a 50 point grid from \code{1:n.trees}. It
 #'   finds the minimum, say at grid point 35. It then looks for the actual
-#'   minimum between grid points 34 and 36. If specified with `n.keep>1`, `n.grid` 
-#'   corresponds to a grid of points on the kept iterations as defined by ```n.keep```. Default: 25.
+#'   minimum between grid points 34 and 36. If specified with \code{n.keep>1}, \code{n.grid} 
+#'   corresponds to a grid of points on the kept iterations as defined by `\code{n.keep}. Default: 25.
 #' @param ... Additional arguments that are passed to ps function.
 #'
-#' @return Returns an object of class `iptw`, a list containing
-#'   * `psList` A list of `ps` objects with length equal to the number of time periods.
-#'   * `estimand` The specified estimand.
-#'   * `stop.methods` The stopping rules used to optimize `iptw` balance.
-#'   * `nFits` The number of `ps` objects (i.e., the number of distinct time points).
-#'   * `uniqueTimes` The unique times in the specified model.
+#' @return Returns an object of class \code{iptw}, a list containing
+#'   \itemize{
+#'     \item{\code{psList}}{ A list of \code{\link{ps}} objects with length equal to the number of time periods.}
+#'     \item{\code{estimand}}{ The specified estimand.}
+#'     \item{\code{stop.methods}}{ The stopping rules used to optimize \code{iptw} balance.}
+#'     \item{\code{nFits}}{ The number of \code{\link{ps}} objects (i.e., the number of distinct time points).}
+#'     \item{\code{uniqueTimes}}{ The unique times in the specified model.}
+#'   }
 #'
-#' @seealso [ps], [mnps], [gbm], [xgboost], [plot.iptw], [bal.table]
+#' @seealso \code{\link{ps}}, \code{\link{mnps}}, \code{\link{gbm}}, \code{\link{xgboost}}, \code{\link[twang:plot.iptw]{plot}}, \code{\link{bal.table}}
 #'
 #' @export
 iptw <- function(formula, 
@@ -128,6 +133,15 @@ iptw <- function(formula,
    # throw error if user specifies params with other options
    if (!missing(interaction.depth) | ('max_depth' %in% args_named) | !missing(shrinkage) | ('eta' %in% args_named) | !missing(bag.fraction) | ('subsample' %in% args_named) ){
       if (!is.null(params)) stop("params cannot be specified with any of interaction.depth, max_depth, shrinkage, eta, bag.fraction, or subsample.")
+   }
+   
+   # check that data is not a tibble or data.table
+   if( class(data)[1] %in% c("tbl_df","tbl","data.table")){
+      stop("The twang package currently does not support data.table or tibble. Please convert your data object to a data.frame.")
+   }else{
+      if (class(data)[1] != "data.frame"){
+         warning("Data classes other than data.frame may cause errors." , call.=FALSE)
+      }
    }
 
    if (version=="legacy"){

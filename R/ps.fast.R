@@ -162,7 +162,7 @@ ps.fast<-function(formula ,
                       feval=pred.xgboost , nrounds=n.trees , verbose=verbose , weight = sampW, 
                       callbacks=callback.list)
       iters = (1:n.trees)[(1:n.trees)%%n.keep==0]
-      ps = as.matrix(gbm1$evaluation_log)
+      ps = plogis(as.matrix(gbm1$evaluation_log))
    }
 
    if(verbose) cat("Diagnosis of unweighted analysis\n")

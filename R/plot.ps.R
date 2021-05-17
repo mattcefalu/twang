@@ -30,10 +30,10 @@
 #'   Substance Abuse Treatment", *Psychological Methods* 9(4):403-425.
 #'
 #' @seealso [ps]
-#' @keywords models, multivariate
 #'
 #' @method plot ps
 #' @export
+#' @md
 plot.ps <- function(x, plots = "optimize", subset = NULL, color = TRUE, ...)
 {
    # Creates diag.plot plots and sends to current device
