@@ -4,8 +4,7 @@
 \alias{plot.ps}
 \title{Plots for `ps` objects}
 \usage{
-\method{plot}{ps}(x, plots = "optimize", subset = NULL, color = TRUE,
-  ...)
+\method{plot}{ps}(x, plots = "optimize", subset = NULL, color = TRUE, ...)
 }
 \arguments{
 \item{x}{A `ps` object.}

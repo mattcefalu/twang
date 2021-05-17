@@ -4,8 +4,16 @@
 \alias{dx.wts}
 \title{Compute diagnostics assessing covariates balance.}
 \usage{
-dx.wts(x, data, estimand, vars = NULL, treat.var, x.as.weights = TRUE,
-  sampw = NULL, perm.test.iters = 0)
+dx.wts(
+  x,
+  data,
+  estimand,
+  vars = NULL,
+  treat.var,
+  x.as.weights = TRUE,
+  sampw = NULL,
+  perm.test.iters = 0
+)
 }
 \arguments{
 \item{x}{A data frame, matrix, or vector of propensity score weights or a ps 

@@ -4,13 +4,30 @@
 \alias{iptw}
 \title{Inverse probability of treatment weighting for marginal structural models.}
 \usage{
-iptw(formula, data, timeInvariant = NULL, cumulative = TRUE,
-  timeIndicators = NULL, ID = NULL, priorTreatment = TRUE,
-  n.trees = 10000, interaction.depth = 3, shrinkage = 0.01,
-  bag.fraction = 1, n.minobsinnode = 10, perm.test.iters = 0,
-  print.level = 2, verbose = TRUE, stop.method = c("es.max"),
-  sampw = NULL, version = "gbm", ks.exact = NULL, n.keep = 1,
-  n.grid = 25, ...)
+iptw(
+  formula,
+  data,
+  timeInvariant = NULL,
+  cumulative = TRUE,
+  timeIndicators = NULL,
+  ID = NULL,
+  priorTreatment = TRUE,
+  n.trees = 10000,
+  interaction.depth = 3,
+  shrinkage = 0.01,
+  bag.fraction = 1,
+  n.minobsinnode = 10,
+  perm.test.iters = 0,
+  print.level = 2,
+  verbose = TRUE,
+  stop.method = c("es.max"),
+  sampw = NULL,
+  version = "gbm",
+  ks.exact = NULL,
+  n.keep = 1,
+  n.grid = 25,
+  ...
+)
 }
 \arguments{
 \item{formula}{Either a single formula (long format) or a list with formulas.}

@@ -4,10 +4,21 @@
 \alias{plot.mnps}
 \title{Plots for `mnps` objects}
 \usage{
-\method{plot}{mnps}(x, plots = "optimize", pairwiseMax = TRUE,
-  figureRows = NULL, color = TRUE, subset = NULL,
-  treatments = NULL, singlePlot = NULL, multiPage = FALSE,
-  time = NULL, print = TRUE, hline = c(0.1, 0.5, 0.8), ...)
+\method{plot}{mnps}(
+  x,
+  plots = "optimize",
+  pairwiseMax = TRUE,
+  figureRows = NULL,
+  color = TRUE,
+  subset = NULL,
+  treatments = NULL,
+  singlePlot = NULL,
+  multiPage = FALSE,
+  time = NULL,
+  print = TRUE,
+  hline = c(0.1, 0.5, 0.8),
+  ...
+)
 }
 \arguments{
 \item{x}{An `mnps` object.}

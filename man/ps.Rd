@@ -4,12 +4,27 @@
 \alias{ps}
 \title{Gradient boosted propensity score estimation}
 \usage{
-ps(formula = formula(data), data, n.trees = 10000,
-  interaction.depth = 3, shrinkage = 0.01, bag.fraction = 1,
-  n.minobsinnode = 10, perm.test.iters = 0, print.level = 2,
-  verbose = TRUE, estimand = "ATE", stop.method = c("ks.mean",
-  "es.mean"), sampw = NULL, version = "gbm", ks.exact = NULL,
-  n.keep = 1, n.grid = 25, keep.data = TRUE, ...)
+ps(
+  formula = formula(data),
+  data,
+  n.trees = 10000,
+  interaction.depth = 3,
+  shrinkage = 0.01,
+  bag.fraction = 1,
+  n.minobsinnode = 10,
+  perm.test.iters = 0,
+  print.level = 2,
+  verbose = TRUE,
+  estimand = "ATE",
+  stop.method = c("ks.mean", "es.mean"),
+  sampw = NULL,
+  version = "gbm",
+  ks.exact = NULL,
+  n.keep = 1,
+  n.grid = 25,
+  keep.data = TRUE,
+  ...
+)
 }
 \arguments{
 \item{formula}{An object of class [formula]: a symbolic

@@ -4,9 +4,17 @@
 \alias{plot.iptw}
 \title{Plots for `iptw` objects}
 \usage{
-\method{plot}{iptw}(x, plots = "optimize", subset = NULL,
-  color = TRUE, timePeriods = NULL, multiPage = FALSE,
-  figureRows = NULL, hline = c(0.1, 0.5, 0.8), ...)
+\method{plot}{iptw}(
+  x,
+  plots = "optimize",
+  subset = NULL,
+  color = TRUE,
+  timePeriods = NULL,
+  multiPage = FALSE,
+  figureRows = NULL,
+  hline = c(0.1, 0.5, 0.8),
+  ...
+)
 }
 \arguments{
 \item{x}{An `iptw` object.}

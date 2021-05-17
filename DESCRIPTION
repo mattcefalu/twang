@@ -26,4 +26,4 @@ Encoding: UTF-8
 NeedsCompilation: yes
 Repository: CRAN
 VignetteBuilder: knitr
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.1
