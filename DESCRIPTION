@@ -17,7 +17,8 @@ Imports:
     ggplot2,
     xgboost
 Suggests:
-    knitr
+    knitr,
+    OVtool (>= 1.0.1)
 Description: Provides functions for propensity score
         estimating and weighting, nonresponse weighting, and diagnosis
         of the weights.

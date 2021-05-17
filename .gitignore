@@ -10,3 +10,5 @@ packrat/*
 *.Rproj
 *.Rprofile
 packrat/lib*/
+doc
+Meta
