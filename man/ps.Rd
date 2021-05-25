@@ -187,5 +187,5 @@ Dan McCaffrey, G. Ridgeway, Andrew Morral (2004). "Propensity
 \seealso{
 \code{\link{gbm}}, \code{\link{xgboost}}, \code{\link[twang:plot.ps]{plot}}, \code{\link{bal.table}}
 }
-\keyword{models,}
+\keyword{models}
 \keyword{multivariate}

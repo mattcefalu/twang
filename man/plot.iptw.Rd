@@ -69,5 +69,3 @@ Substance Abuse Treatment", \emph{Psychological Methods} 9(4):403-425.
 \seealso{
 \link{iptw}
 }
-\keyword{models,}
-\keyword{multivariate}

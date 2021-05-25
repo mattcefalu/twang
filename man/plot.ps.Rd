@@ -48,5 +48,3 @@ Substance Abuse Treatment", \emph{Psychological Methods} 9(4):403-425.
 \seealso{
 \link{ps}
 }
-\keyword{models,}
-\keyword{multivariate}
