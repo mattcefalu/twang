@@ -25,7 +25,7 @@
 %tutorial for the \texttt{ps} function in the \texttt{twang} package, Version 2.0}
 
 \author{Greg Ridgeway, Dan McCaffrey, Andrew Morral, Matthew Cefalu, Lane
-  Burgette and Beth Ann Griffin\footnote{The twang package and
+  Burgette, Joseph Pane, and Beth Ann Griffin\footnote{The twang package and
     this tutorial were developed under NIDA grants R01 DA017507,
     R01 DA015697-03, and R01 DA034065} 
 \\RAND}
