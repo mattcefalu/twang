@@ -93,15 +93,15 @@ pairwiseComparison <- function(x, collapse.to = c("pair","covariate","stop.metho
 	else {
 		subDt <- subset(tableShell, stop.method == "unw")
 		asmds <- apply(matrix(subDt$std.eff.sz, ncol = length(treatInds1)), 1, max, na.rm = TRUE)
-		pvals <- apply(matrix(subDt$p, ncol = length(treatInds1)), 1, min, na.rm = TRUE)
+		pvals <- suppressWarnings(apply(matrix(subDt$p, ncol = length(treatInds1)), 1, min, na.rm = TRUE))
 		kss <- apply(matrix(subDt$ks, ncol = length(treatInds1)), 1, max, na.rm = TRUE)		
-		kspvals <- apply(matrix(subDt$ks.pval, ncol = length(treatInds1)), 1, min, na.rm = TRUE)		
+		kspvals <- suppressWarnings(apply(matrix(subDt$ks.pval, ncol = length(treatInds1)), 1, min, na.rm = TRUE))		
 		for(i in 1:length(stpMth)){
 			subDt <- subset(tableShell, stop.method == stpMth[i])
 			asmds <- c(asmds, apply(matrix(subDt$std.eff.sz, ncol = length(treatInds1)), 1, max, na.rm = TRUE))
-			pvals <- c(pvals, apply(matrix(subDt$p, ncol = length(treatInds1)), 1, min, na.rm = TRUE))
+			pvals <- suppressWarnings(c(pvals, apply(matrix(subDt$p, ncol = length(treatInds1)), 1, min, na.rm = TRUE)))
 			kss <- c(kss, apply(matrix(subDt$ks, ncol = length(treatInds1)), 1, max, na.rm = TRUE))		
-			kspvals <- c(kspvals, apply(matrix(subDt$ks.pval, ncol = length(treatInds1)), 1, min, na.rm = TRUE))		
+			kspvals <- suppressWarnings(c(kspvals, apply(matrix(subDt$ks.pval, ncol = length(treatInds1)), 1, min, na.rm = TRUE)))		
 
 		}
 
