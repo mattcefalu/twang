@@ -57,6 +57,9 @@ bal.table.mnps <- function(x, digits = 3, collapse.to = c("pair","covariate","st
    	row.names(balTabList) <- NULL
    	
    	balTabList$stop.method <- gsub(".ATT", "", balTabList$stop.method)
+   	
+   	# rename column to match what this function expects
+   	colnames(balTabList) = gsub("^pval","p",colnames(balTabList))
 
    	if(collapse.to == "pair") {
    		if(!is.null(subset.var)) balTabList <- subset(balTabList, var %in% subset.var | var %in% paste(subset.var, "<NA>", sep = ":"))
