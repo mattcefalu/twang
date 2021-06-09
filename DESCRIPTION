@@ -1,6 +1,6 @@
 Package: twang
-Version: 2.2
-Date: 2021-06-04
+Version: 2.3
+Date: 2021-06-09
 Title: Toolkit for Weighting and Analysis of Nonequivalent Groups
 Author: Matthew Cefalu <Matthew_Cefalu@rand.org>, Greg Ridgeway, Dan McCaffrey, Andrew Morral, Beth Ann Griffin, and Lane Burgette
 Maintainer: Matthew Cefalu <Matthew_Cefalu@rand.org>
