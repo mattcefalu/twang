@@ -98,7 +98,7 @@ boxplot.mnps <- function(x,
 		
 		for(j in 1:nPlot){
 			currCats <- c(x$treatATT, x$levExceptTreatATT[j])
-			bwDat <- data.frame(ps = x$psList[[j]]$ps[,stopMethLong], treat = currCats[1 + x$psList[[j]]$data$currResp], respCat = x$levExceptTreatATT[j], attGrp = x$treatATT)
+			bwDat <- data.frame(ps = x$psList[[j]]$ps[,stopMethLong], treat = currCats[1 + x$psList[[j]]$treat], respCat = x$levExceptTreatATT[j], attGrp = x$treatATT)
 			ptNm <- paste("Propensity score of ", x$levExceptTreatATT[j], " versus ", x$treatATT, ".", sep = "")
 			if(!is.null(time)) ptNm <- paste(ptNm, " (time ", time, ")", sep = "")
 			pt1 <- bwplot(ps ~ treat, data = bwDat, ylim = c(-.1,1.1), ylab = "Propensity scores", xlab = "Treatment", main = ptNm,par.settings = list(strip.background = list(col=stripBgCol), box.rectangle = bwCols, plot.symbol = bwCols, box.umbrella = bwCols), ...)
