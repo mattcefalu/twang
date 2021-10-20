@@ -479,62 +479,62 @@ glm5 <- lm(sqrt(re78) ~ treat + age + educ + black + hispan + nodegree +
 
 This model estimates a rather strong treatment effect, estimating a program effect of \$\Sexpr{round(coef(glm4)[2])} with a p-value=\Sexpr{round(coef(summary(glm4))[2,4],3)}. Several variations of this regression approach also estimate strong program effects. For example using square root transforms on the earnings variables yields a p-value=\Sexpr{round(coef(summary(glm5))[2,4],3)}. These estimates, however, are very sensitive to the model structure since the treatment and control subjects differ greatly as seen in the unweighted balance comparison from \texttt{bal.table(ps.lalonde.gbm)}.
 
-\subsubsection{Omitted variable sensitivity analysis}
-
-Even though \texttt{glm3} is a ``doubly robust`` model, it is best practice to understand the sensitivity of the finding to unobserved variables. We utilize the Omitted Variable Tool, \texttt{OVtool}, to assess how sensitive the treatment effect direction is to unobserved variables. \texttt{OVtool} is a R package that assesses the sensitivity of research findings to omitted variables when estimating causal effects using ps weighting. The \texttt{OVtool} can be used to assess the sensitivity of both the estimated treatment effect and the p-value for a given analysis. \texttt{OVtool} should automatically be installed when installing \texttt{twang} and can be loaded with the library command.
-
-<<>>=
-library(OVtool)
-@
-
-The first step after loading the package is to replicate the outcome model using the \texttt{outcome\_model} function. This function automatically calls \texttt{svyglm} from the \texttt{survey} package. 
-
-<<>>=
-results = outcome_model(ps_object = NULL,
-                        stop.method = NULL, 
-                        data = lalonde,
-                        weights="w",
-                        treatment = "treat",
-                        outcome = "re78", 
-                        model_covariates = c("age", "educ",
-                                             "black", "hispan",
-                                             "nodegree", "married",
-                                             "re74", "re75"),
-                        estimand = "ATT")
-summary(results$mod_results)
-@
-
-We now are ready to run our sensitivity analysis using the following call to the \texttt{ov\_sim} function. For details on what the following parameters represent, please see \url{https://cloud.r-project.org/web/packages/OVtool/vignettes/OVtool.html}.
-
-<<eval=FALSE>>=
-ovtool_att = ov_sim(model_results=results,
-                                  plot_covariates=c("age", "educ", "hispan",
-                                                    "nodegree", "married",
-                                                    "re74", "re75"),
-                                  es_grid = NULL,
-                                  rho_grid = seq(0, 0.40, by = 0.05),
-                                  n_reps = 200,
-                                  progress = TRUE)
-@
-
-<<echo=FALSE>>=
-# save(ovtool_att, file = "data/ovtool_att.rda", version = 2)
-load("ovtool_att.rda")
-@
-
-\begin{center}
-<<fig =TRUE, height=6, width = 8>>=
-plot.ov(ovtool_att, col='color', print_graphic = 3)
-@ 
-\end{center}
-
-The y-axis shown in the figure represents the unobserved variable's absolute correlation with the outcome, [\texttt{re78}], while the x-axis has the association between the unobserved confounder and the treatment indicator on an effect size scale. Further, the black lines represent the treatment effect contours evaluated across plausible x and y values. The red dashed lines represent the p-value contours. Finally, the blue points represent a sample of the observed variables we controlled for in our doubly robust model to provide us with context in terms of how strong the omitted variable would need to be to shift the meaning of our results. Since there are no blue points to the right of the ``0`` contour, we can feel fairly confident that the direction of our estimated treatment effect is robust to unobserved confounders. We can utilize the \texttt{summary.ov()} function to help us interpret this graphic:
-
-<<eval=TRUE>>=
-summary.ov(ovtool_att, model_results = results)
-@
-
-The output above demonstrates that even if omitted variables existed, they likely wouldn't shift the direction of the effect. However, we do note that the magnitude of the effect would more than double if an unobserved variable existed that had an equivalent absolute correlation with [\texttt{re78}] and association with the treatment indicator. This is unlikely given [\texttt{re78}] is the pretreatment version of the outcome.
+% \subsubsection{Omitted variable sensitivity analysis}
+% 
+% Even though \texttt{glm3} is a ``doubly robust`` model, it is best practice to understand the sensitivity of the finding to unobserved variables. We utilize the Omitted Variable Tool, \texttt{OVtool}, to assess how sensitive the treatment effect direction is to unobserved variables. \texttt{OVtool} is a R package that assesses the sensitivity of research findings to omitted variables when estimating causal effects using ps weighting. The \texttt{OVtool} can be used to assess the sensitivity of both the estimated treatment effect and the p-value for a given analysis. \texttt{OVtool} should automatically be installed when installing \texttt{twang} and can be loaded with the library command.
+% 
+% <<>>=
+% library(OVtool)
+% @
+% 
+% The first step after loading the package is to replicate the outcome model using the \texttt{outcome\_model} function. This function automatically calls \texttt{svyglm} from the \texttt{survey} package. 
+% 
+% <<>>=
+% results = outcome_model(ps_object = NULL,
+%                         stop.method = NULL, 
+%                         data = lalonde,
+%                         weights="w",
+%                         treatment = "treat",
+%                         outcome = "re78", 
+%                         model_covariates = c("age", "educ",
+%                                              "black", "hispan",
+%                                              "nodegree", "married",
+%                                              "re74", "re75"),
+%                         estimand = "ATT")
+% summary(results$mod_results)
+% @
+% 
+% We now are ready to run our sensitivity analysis using the following call to the \texttt{ov\_sim} function. For details on what the following parameters represent, please see \url{https://cloud.r-project.org/web/packages/OVtool/vignettes/OVtool.html}.
+% 
+% <<eval=FALSE>>=
+% ovtool_att = ov_sim(model_results=results,
+%                                   plot_covariates=c("age", "educ", "hispan",
+%                                                     "nodegree", "married",
+%                                                     "re74", "re75"),
+%                                   es_grid = NULL,
+%                                   rho_grid = seq(0, 0.40, by = 0.05),
+%                                   n_reps = 200,
+%                                   progress = TRUE)
+% @
+% 
+% <<echo=FALSE>>=
+% # save(ovtool_att, file = "data/ovtool_att.rda", version = 2)
+% load("ovtool_att.rda")
+% @
+% 
+% \begin{center}
+% <<fig =TRUE, height=6, width = 8>>=
+% plot.ov(ovtool_att, col='color', print_graphic = 3)
+% @ 
+% \end{center}
+% 
+% The y-axis shown in the figure represents the unobserved variable's absolute correlation with the outcome, [\texttt{re78}], while the x-axis has the association between the unobserved confounder and the treatment indicator on an effect size scale. Further, the black lines represent the treatment effect contours evaluated across plausible x and y values. The red dashed lines represent the p-value contours. Finally, the blue points represent a sample of the observed variables we controlled for in our doubly robust model to provide us with context in terms of how strong the omitted variable would need to be to shift the meaning of our results. Since there are no blue points to the right of the ``0`` contour, we can feel fairly confident that the direction of our estimated treatment effect is robust to unobserved confounders. We can utilize the \texttt{summary.ov()} function to help us interpret this graphic:
+% 
+% <<eval=TRUE>>=
+% summary.ov(ovtool_att, model_results = results)
+% @
+% 
+% The output above demonstrates that even if omitted variables existed, they likely wouldn't shift the direction of the effect. However, we do note that the magnitude of the effect would more than double if an unobserved variable existed that had an equivalent absolute correlation with [\texttt{re78}] and association with the treatment indicator. This is unlikely given [\texttt{re78}] is the pretreatment version of the outcome.
 
 \clearpage
 
@@ -796,56 +796,56 @@ design.ps <- svydesign(ids=~1, weights = ~w, data = lindner)
 svychisq(~sixMonthSurvive + abcix, design = design.ps)
 @ 
 
-The reweighting does not diminish the association between the treatment and the outcome.  Indeed, it is marginally more significant after the reweighting.
+The reweighting does not diminish the association between the treatment and the outcome.  Indeed, it is marginally more significant after the reweighting. Alternatively, we can run a generalised linear model. 
 
-Alternatively, we can run a generalised linear model. The \texttt{OVtool} can assess the sensitivity of findings for binary outcomes, but it utilizes the residuals from a linear probability model to generate the empirical cumulative distribution function. For that purpose we will utilize a linear probability model as opposed to a logistic model.
-
-<<>>=
-glm_ATE = svyglm(sixMonthSurvive ~ abcix, design = design.ps)
-summary(glm_ATE)
-@
-
-As in the ATT example, we want to check to see how sensitive our analysis is to possible unobserved confounders. We first replicate the outcome model.
-
-<<>>=
-results_ATE = outcome_model(data = lindner,
-                            weights="w",
-                            treatment = "abcix",
-                            outcome = "sixMonthSurvive",
-                            model_covariates = 1,
-                            estimand = "ATE")
-@
-
-We then run the omitted variable simulations to understand the sensitivity of our results.
-
-<<eval=FALSE>>=
-ovtool_ate = ov_sim(model_results=results_ATE,
-                    plot_covariates=c("stent", "height", "female",
-                                      "diabetic", "ejecfrac"),
-                    es_grid = NULL,
-                    rho_grid = NULL,
-                    n_reps = 250,
-                    progress = TRUE)
-@
-
-<<echo=FALSE>>=
-# save(ovtool_ate, file = "vignettes/ovtool_ate.rda", version = 2)
-load("ovtool_ate.rda")
-@
-
-\begin{center}
-<<fig =TRUE, height=6, width = 8>>=
-plot.ov(ovtool_ate, col='color', print_graphic = 3, p_contours = c(0.01, 0.05))
-@
-\end{center}
-
-As discussed in the ATT example, the black lines represent the treatment effect contours evaluated across plausible x and y values. The x-axis represents the association a variable has with the treatment indicator, [\texttt{abcix}], while the y-axis represents the absolute correlation a variable has with the outcome, [\texttt{sixMonthSurvive}].  The p-value threshold of 0.05 visible in the top right corner of the graphic tells us that an unobserved variable would have to have an association with the treatment indicator and outcome of at least 0.3 and 0.15, respectively to shift these results. The \texttt{summary.ov()} function helps us summarize not only the sensitivity of statistical significance but also the direction of the effect.
-
-<<eval=TRUE>>=
-summary.ov(ovtool_ate, model_results = results_ATE)
-@
-
-The output above demonstrates that even if omitted variables existed, they likely wouldn't shift the interpretation of these results.
+% The \texttt{OVtool} can assess the sensitivity of findings for binary outcomes, but it utilizes the residuals from a linear probability model to generate the empirical cumulative distribution function. For that purpose we will utilize a linear probability model as opposed to a logistic model.
+% 
+% <<>>=
+% glm_ATE = svyglm(sixMonthSurvive ~ abcix, design = design.ps)
+% summary(glm_ATE)
+% @
+% 
+% As in the ATT example, we want to check to see how sensitive our analysis is to possible unobserved confounders. We first replicate the outcome model.
+% 
+% <<>>=
+% results_ATE = outcome_model(data = lindner,
+%                             weights="w",
+%                             treatment = "abcix",
+%                             outcome = "sixMonthSurvive",
+%                             model_covariates = 1,
+%                             estimand = "ATE")
+% @
+% 
+% We then run the omitted variable simulations to understand the sensitivity of our results.
+% 
+% <<eval=FALSE>>=
+% ovtool_ate = ov_sim(model_results=results_ATE,
+%                     plot_covariates=c("stent", "height", "female",
+%                                       "diabetic", "ejecfrac"),
+%                     es_grid = NULL,
+%                     rho_grid = NULL,
+%                     n_reps = 250,
+%                     progress = TRUE)
+% @
+% 
+% <<echo=FALSE>>=
+% # save(ovtool_ate, file = "vignettes/ovtool_ate.rda", version = 2)
+% load("ovtool_ate.rda")
+% @
+% 
+% \begin{center}
+% <<fig =TRUE, height=6, width = 8>>=
+% plot.ov(ovtool_ate, col='color', print_graphic = 3, p_contours = c(0.01, 0.05))
+% @
+% \end{center}
+% 
+% As discussed in the ATT example, the black lines represent the treatment effect contours evaluated across plausible x and y values. The x-axis represents the association a variable has with the treatment indicator, [\texttt{abcix}], while the y-axis represents the absolute correlation a variable has with the outcome, [\texttt{sixMonthSurvive}].  The p-value threshold of 0.05 visible in the top right corner of the graphic tells us that an unobserved variable would have to have an association with the treatment indicator and outcome of at least 0.3 and 0.15, respectively to shift these results. The \texttt{summary.ov()} function helps us summarize not only the sensitivity of statistical significance but also the direction of the effect.
+% 
+% <<eval=TRUE>>=
+% summary.ov(ovtool_ate, model_results = results_ATE)
+% @
+% 
+% The output above demonstrates that even if omitted variables existed, they likely wouldn't shift the interpretation of these results.
 
 \section{Non-response weights}
 \label{sec:nonresponse}
