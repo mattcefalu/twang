@@ -27,7 +27,7 @@
 \author{\parbox{\linewidth}{\centering Greg Ridgeway, Dan McCaffrey, Andrew Morral, Matthew Cefalu, Lane Burgette, Joseph Pane, and Beth Ann Griffin\footnote{The twang package and this tutorial were developed under NIDA grants R01 DA017507, R01 DA015697-03, and R01 DA034065}}
 \\RAND}
 %\VignetteIndexEntry{Toolkit for Weighting and Analysis of Nonequivalent Groups: A guide to the twang package}
-%\VignetteDepends{gbm,survey,xtable,OVtool}
+%\VignetteDepends{gbm,survey,xtable}
 %\VignetteKeywords{propensity score, nonresponse weighting}
 %\VignettePackage{twang}
 
