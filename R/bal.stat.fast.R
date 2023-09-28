@@ -7,9 +7,6 @@ bal.stat.fast <- function(data,vars=NULL,treat.var,w.all, sampw,
 {
   if(is.null(vars)) vars<-names(data)[names(data)!=treat.var]
   
-  # make Row.names null to avoid cran check warning about binding 
-  Row.names = NULL
-  
   ##### Calculate stats for numeric variables
   bal.data = gen.bal.data(data=data , var.names=vars )
   factor.vars = bal.data$factor.vars
@@ -84,16 +81,6 @@ bal.stat.fast <- function(data,vars=NULL,treat.var,w.all, sampw,
       ks.p = rbind(ks.p , data.frame( ks.pval=pval ,row.names = var))
   }
   
-  res = transform(merge(ret , ret.test , by="row.names"),row.names=Row.names , Row.names=NULL)
-  res = transform(merge(res , ret.ks , by="row.names"),row.names=Row.names , Row.names=NULL)
-  res = transform(merge(x=res , y=ks.p , by="row.names" , all.x=T),row.names=Row.names , Row.names=NULL)
-  
-  ## factors are given their chi2 p-value -- they are missing at this point
-  if (length(factor.vars)>0){
-    res$ks.pval[grepl(paste0("^(",paste0(factor.vars,collapse = "|"),"):") , rownames(res))] = res$pval[grepl(paste0("^(",paste0(factor.vars,collapse = "|"),"):") , rownames(res))] 
-  }
-
-  ##### Calculate stats for factor variables
   ## maintain order of variables
   var.order = NULL
   for (var in vars){
@@ -107,7 +94,16 @@ bal.stat.fast <- function(data,vars=NULL,treat.var,w.all, sampw,
     }
   }
   
-  res <- list(results=data.frame(res[var.order,]))
+  res <- data.frame(ret[var.order,,drop=FALSE], ret.test[var.order,,drop=FALSE],
+                    ret.ks[var.order,,drop=FALSE], ks.p[var.order,,drop=FALSE],
+                    row.names = var.order)
+
+  ## factors are given their chi2 p-value -- they are missing at this point
+  if (length(factor.vars)>0){
+    res$ks.pval[grepl(paste0("^(",paste0(factor.vars,collapse = "|"),"):") , rownames(res))] = res$pval[grepl(paste0("^(",paste0(factor.vars,collapse = "|"),"):") , rownames(res))]
+  }
+
+  res <- list(results = res)
   return(res)
 }
 
